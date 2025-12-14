@@ -1,0 +1,46 @@
+{
+    "private": true,
+    "scripts": {
+        "dev": "npm run development",
+        "development": "mix",
+        "watch": "mix watch",
+        "watch-poll": "mix watch -- --watch-options-poll=1000",
+        "hot": "mix watch --hot",
+        "prod": "npm run production",
+        "production": "mix --production"
+    },
+    "devDependencies": {
+        "@popperjs/core": "^2.10.2",
+        "@types/datatables.net-buttons": "^1.4.7",
+        "axios": "^0.27.2",
+        "bootstrap": "^5.2.2",
+        "lodash": "^4.17.19",
+        "postcss": "^8.1.14",
+        "resolve-url-loader": "^3.1.2",
+        "sass": "^1.32.11",
+        "sass-loader": "^11.0.1",
+        "vue": "^2.6.12",
+        "vue-loader": "^15.9.8",
+        "vue-template-compiler": "^2.6.12"
+    },
+    "dependencies": {
+        "animate.css": "^3.7.2",
+        "datatables.net": "^1.13.1",
+        "datatables.net-buttons": "^2.3.3",
+        "datatables.net-buttons-dt": "^2.3.3",
+        "datatables.net-dt": "^1.13.1",
+        "jquery": "^3.6.3",
+        "laravel-mix": "^6.0.49",
+        "laravel-vue-pagination": "^2.3.1",
+        "mdb-ui-kit": "^6.0.1",
+        "moment": "^2.29.4",
+        "sweetalert2": "^11.4.24",
+        "vform": "^2.1.2",
+        "vue-carousel": "^0.18.0",
+        "vue-moments-ago": "^0.2.0",
+        "vue-multiselect": "^2.1.6",
+        "vue-progressbar": "^0.7.5",
+        "vue-router": "^3.6.5",
+        "vue2-datepicker": "^3.11.0"
+    }
+}
