@@ -25,6 +25,7 @@ class User extends Authenticatable implements Authorizable
         'password',
         'phone',
         'merchant_id',
+        'role'
     ];
 
     /**

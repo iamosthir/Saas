@@ -40,6 +40,23 @@ Route::post("/login", "Auth\LoginController@login");
 Route::get("/register-merchant/{planId}", "MerchantRegistrationController@showRegistrationForm")->name("merchant.register.form");
 Route::post("/register-merchant", "MerchantRegistrationController@register")->name("merchant.register");
 
+// Customer Portal Routes
+Route::prefix('customer')->name('customer.')->group(function() {
+    // Guest routes (not authenticated)
+    Route::middleware('customer.guest')->group(function() {
+        Route::get('login', 'Customer\CustomerAuthController@showLoginForm')->name('login');
+        Route::post('login', 'Customer\CustomerAuthController@login');
+    });
+
+    // Authenticated customer routes
+    Route::middleware('customer.auth')->group(function() {
+        Route::post('logout', 'Customer\CustomerAuthController@logout')->name('logout');
+        Route::get('dashboard', 'Customer\CustomerDashboardController@index')->name('dashboard');
+        Route::get('invoices', 'Customer\CustomerInvoiceController@index')->name('invoices');
+        Route::get('invoices/{id}', 'Customer\CustomerInvoiceController@show')->name('invoices.show');
+    });
+});
+
 Route::get("/renew", function() {
     return view('renew');
 })->middleware('auth')->name('subscription.renew');

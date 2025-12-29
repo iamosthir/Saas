@@ -16,9 +16,12 @@
                 <a class="navbar-brand" href="#">
                     <i class="fas fa-store"></i> مركز التجار
                 </a>
-                <div class="me-auto">
+                <div class="me-auto d-flex gap-2">
+                    <a href="{{ route('customer.login') }}" class="btn btn-customer-login">
+                        <i class="fas fa-user"></i> بوابة العملاء
+                    </a>
                     <a href="{{ route('login') }}" class="btn btn-login">
-                        <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+                        <i class="fas fa-store"></i> تسجيل دخول التاجر
                     </a>
                 </div>
             </nav>
