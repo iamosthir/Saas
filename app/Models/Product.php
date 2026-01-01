@@ -21,6 +21,8 @@ class Product extends Model
         'default_price',
         'purchase_price',
         'sell_price',
+        'cash_price',
+        'installment_price',
         'discount_type',
         'discount_amount',
         'total_stock',
@@ -29,6 +31,8 @@ class Product extends Model
     protected $casts = [
         'purchase_price' => 'decimal:2',
         'sell_price' => 'decimal:2',
+        'cash_price' => 'decimal:2',
+        'installment_price' => 'decimal:2',
         'discount_amount' => 'decimal:2',
         'total_stock' => 'integer',
     ];
@@ -46,5 +50,13 @@ class Product extends Model
     public function merchant()
     {
         return $this->belongsTo(Merchant::class);
+    }
+
+    /**
+     * Get price based on payment type
+     */
+    public function getPriceForPaymentType($paymentType)
+    {
+        return $paymentType === 'full_payment' ? $this->cash_price : $this->installment_price;
     }
 }

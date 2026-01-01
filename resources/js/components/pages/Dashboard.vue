@@ -92,6 +92,48 @@
             </div>
           </div>
         </div>
+
+        <!-- إدارة الخزينة -->
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <router-link :to="{name: 'treasury'}" class="dashboard-card gradient-green">
+            <div class="card-icon">
+              <i class="fas fa-cash-register"></i>
+            </div>
+            <h3 class="card-title">إدارة الخزينة</h3>
+            <p class="card-description">متابعة الإيرادات والمصروفات</p>
+            <div class="card-arrow">
+              <i class="fas fa-arrow-left"></i>
+            </div>
+          </router-link>
+        </div>
+
+        <!-- فاتورة سريعة -->
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <router-link :to="{name: 'quick-invoice'}" class="dashboard-card warning">
+            <div class="card-icon">
+              <i class="fas fa-bolt"></i>
+            </div>
+            <h3 class="card-title">فاتورة سريعة</h3>
+            <p class="card-description">ملخص العميل وإنشاء فاتورة</p>
+            <div class="card-arrow">
+              <i class="fas fa-arrow-left"></i>
+            </div>
+          </router-link>
+        </div>
+
+        <!-- تسديد دفعات جملة -->
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <router-link :to="{name: 'customer-payments'}" class="dashboard-card gradient-blue">
+            <div class="card-icon">
+              <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <h3 class="card-title">دفعات جملة</h3>
+            <p class="card-description">تسديد عدة فواتير دفعة واحدة</p>
+            <div class="card-arrow">
+              <i class="fas fa-arrow-left"></i>
+            </div>
+          </router-link>
+        </div>
       </div>
 
       <!-- Products Section -->

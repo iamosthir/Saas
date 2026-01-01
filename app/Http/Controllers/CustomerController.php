@@ -52,8 +52,10 @@ class CustomerController extends Controller
             'customer_link'  => 'required|string',
             'phone1'         => 'required|string|max:50|unique:customers,phone1',
             'phone2'         => 'nullable|string|max:50|unique:customers,phone2',
-            'state'          => 'required|string|max:100',
-            'city'           => 'required|string|max:100',
+            'state'          => 'nullable|string|max:100',
+            'city'           => 'nullable|string|max:100',
+            'sponsor_name'   => 'nullable|string|max:255',
+            'sponsor_phone'  => 'nullable|string|max:20',
         ]);
 
         $data['merchant_id'] = auth()->user()->merchant_id;
@@ -75,8 +77,10 @@ class CustomerController extends Controller
             'customer_link'  => 'required|string',
             'phone1'         => 'required|string|max:50|unique:customers,phone1,' . $request->customerId,
             'phone2'         => 'nullable|string|max:50|unique:customers,phone2,' . $request->customerId,
-            'state'          => 'required|string|max:100',
-            'city'           => 'required|string|max:100',
+            'state'          => 'nullable|string|max:100',
+            'city'           => 'nullable|string|max:100',
+            'sponsor_name'   => 'nullable|string|max:255',
+            'sponsor_phone'  => 'nullable|string|max:20',
         ]);
 
         $merchantId = auth()->user()->merchant_id;
@@ -90,6 +94,8 @@ class CustomerController extends Controller
             'phone2'        => $data['phone2'],
             'state'         => $data['state'],
             'city'          => $data['city'],
+            'sponsor_name'  => $data['sponsor_name'] ?? null,
+            'sponsor_phone' => $data['sponsor_phone'] ?? null,
         ]);
 
         return response()->json([

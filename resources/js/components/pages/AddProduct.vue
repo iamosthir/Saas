@@ -64,6 +64,27 @@
                   </select>
                 </div>
                 <div class="col-md-6 mb-3">
+                  <label class="form-label">المورد (اختياري)</label>
+                  <multiselect
+                    v-model="selectedSupplier"
+                    :options="suppliers"
+                    label="supplier_name"
+                    track-by="id"
+                    placeholder="اختر مورد..."
+                    :searchable="true"
+                    :allow-empty="true"
+                  >
+                    <template slot="option" slot-scope="props">
+                      <div>
+                        <strong>{{ props.option.supplier_name }}</strong>
+                        <br>
+                        <small v-if="props.option.phone">{{ props.option.phone }}</small>
+                      </div>
+                    </template>
+                  </multiselect>
+                  <small class="text-muted">اختر المورد لهذا المنتج</small>
+                </div>
+                <div class="col-md-6 mb-3">
                   <label class="form-label">صورة المنتج الرئيسية</label>
                   <input
                     type="file"
@@ -90,7 +111,7 @@
             <div class="section-container mb-4">
               <h6 class="section-title"><i class="fas fa-dollar-sign"></i> معلومات السعر</h6>
               <div class="row">
-                <div class="col-md-3 mb-3">
+                <div class="col-md-4 mb-3">
                   <label class="form-label">سعر الشراء <span class="text-danger">*</span></label>
                   <input
                     type="number"
@@ -104,21 +125,49 @@
                   >
                   <HasError :form="form" field="purchase_price" />
                 </div>
-                <div class="col-md-3 mb-3">
-                  <label class="form-label">سعر البيع <span class="text-danger">*</span></label>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">سعر الكاش (الدفع الكامل) <span class="text-danger">*</span></label>
                   <input
                     type="number"
                     class="form-control"
-                    v-model="form.sell_price"
-                    :class="{'is-invalid': form.errors.has('sell_price')}"
+                    v-model="form.cash_price"
+                    :class="{'is-invalid': form.errors.has('cash_price')}"
                     placeholder="0.00"
                     step="0.01"
                     min="0"
                     required
                   >
-                  <HasError :form="form" field="sell_price" />
+                  <HasError :form="form" field="cash_price" />
+                  <small class="text-muted">سعر البيع عند الدفع الكامل</small>
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">سعر التقسيط <span class="text-danger">*</span></label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    v-model="form.installment_price"
+                    :class="{'is-invalid': form.errors.has('installment_price')}"
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0"
+                    required
+                  >
+                  <HasError :form="form" field="installment_price" />
+                  <small class="text-muted">عادة أعلى من سعر الكاش</small>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">سعر البيع (احتياطي)</label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    v-model="form.sell_price"
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0"
+                  >
+                  <small class="text-muted">سعر افتراضي احتياطي</small>
+                </div>
+                <div class="col-md-4 mb-3">
                   <label class="form-label">نوع الخصم</label>
                   <select class="form-control" v-model="form.discount_type">
                     <option :value="null">بدون خصم</option>
@@ -126,7 +175,7 @@
                     <option value="percentage">نسبة مئوية</option>
                   </select>
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-md-4 mb-3">
                   <label class="form-label">قيمة الخصم</label>
                   <input
                     type="number"
@@ -186,6 +235,8 @@
                           {{ attr.name }}
                         </th>
                         <th style="min-width: 120px">سعر الشراء</th>
+                        <th style="min-width: 120px">سعر الكاش</th>
+                        <th style="min-width: 120px">سعر التقسيط</th>
                         <th style="min-width: 120px">سعر البيع</th>
                         <th style="min-width: 100px">الكمية</th>
                         <th style="min-width: 150px">اسم المتغير</th>
@@ -208,6 +259,26 @@
                             type="number"
                             class="form-control form-control-sm"
                             v-model="variation.purchase_price"
+                            placeholder="0.00"
+                            step="0.01"
+                            min="0"
+                          >
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            class="form-control form-control-sm"
+                            v-model="variation.cash_price"
+                            placeholder="0.00"
+                            step="0.01"
+                            min="0"
+                          >
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            class="form-control form-control-sm"
+                            v-model="variation.installment_price"
                             placeholder="0.00"
                             step="0.01"
                             min="0"
@@ -256,7 +327,7 @@
                     </tbody>
                     <tfoot class="table-light">
                       <tr>
-                        <td :colspan="selectedAttributes.length + 2" class="text-end fw-bold">إجمالي المخزون:</td>
+                        <td :colspan="selectedAttributes.length + 4" class="text-end fw-bold">إجمالي المخزون:</td>
                         <td class="fw-bold text-primary">{{ totalStock }}</td>
                         <td colspan="2"></td>
                       </tr>
@@ -301,15 +372,20 @@ export default {
         image: null,
         thumbnail: null,
         purchase_price: "",
+        cash_price: "",
+        installment_price: "",
         sell_price: "",
         discount_type: null,
         discount_amount: 0,
+        supplier_id: null,
         variations: [],
         variant_data: "",
       }),
       categories: [],
       attributes: [],
+      suppliers: [],
       selectedAttributes: [],
+      selectedSupplier: null,
       totalStock: 0,
     }
   },
@@ -339,6 +415,14 @@ export default {
         console.error('Error fetching attributes:', error);
       }
     },
+    async loadSuppliers() {
+      try {
+        const response = await axios.get('/dashboard/api/suppliers/dropdown');
+        this.suppliers = response.data;
+      } catch (error) {
+        console.error('Error loading suppliers:', error);
+      }
+    },
     loadSubCategories() {
       // Reset sub category when main category changes
       this.form.sub_category_id = null;
@@ -361,6 +445,8 @@ export default {
       const newVariation = {
         attributes: {},
         purchase_price: this.form.purchase_price || "",
+        cash_price: this.form.cash_price || "",
+        installment_price: this.form.installment_price || "",
         sell_price: this.form.sell_price || "",
         quantity: 1,
         var_name: ""
@@ -429,11 +515,16 @@ export default {
         var_name: v.var_name,
         attribute_values: v.attributes,
         purchase_price: parseFloat(v.purchase_price) || 0,
+        cash_price: parseFloat(v.cash_price) || 0,
+        installment_price: parseFloat(v.installment_price) || 0,
         sell_price: parseFloat(v.sell_price) || 0,
         quantity: parseInt(v.quantity) || 0
       }));
 
       this.form.variant_data = JSON.stringify(variationsData);
+
+      // Set supplier_id from selectedSupplier
+      this.form.supplier_id = this.selectedSupplier ? this.selectedSupplier.id : null;
 
       // Use sub_category_id if selected, otherwise use category_id
       if (this.form.sub_category_id) {
@@ -457,6 +548,7 @@ export default {
       this.form.reset();
       this.form.clear();
       this.selectedAttributes = [];
+      this.selectedSupplier = null;
       this.form.variations = [];
       this.totalStock = 0;
       this.form.discount_type = null;
@@ -467,6 +559,7 @@ export default {
   mounted() {
     this.fetchCategories();
     this.fetchAttributes();
+    this.loadSuppliers();
   }
 }
 </script>

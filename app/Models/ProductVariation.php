@@ -16,6 +16,8 @@ class ProductVariation extends Model
         'attribute_values',
         'quantity',
         'price',
+        'cash_price',
+        'installment_price',
         'purchase_price',
         'average_price',
     ];
@@ -23,6 +25,8 @@ class ProductVariation extends Model
     protected $casts = [
         'attribute_values' => 'array',
         'price' => 'decimal:2',
+        'cash_price' => 'decimal:2',
+        'installment_price' => 'decimal:2',
         'purchase_price' => 'decimal:2',
         'average_price' => 'decimal:2',
         'quantity' => 'integer',
@@ -31,5 +35,13 @@ class ProductVariation extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Get price based on payment type
+     */
+    public function getPriceForPaymentType($paymentType)
+    {
+        return $paymentType === 'full_payment' ? $this->cash_price : $this->installment_price;
     }
 }

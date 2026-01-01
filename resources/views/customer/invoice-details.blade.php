@@ -333,6 +333,14 @@
                 @endif
             </span>
         </div>
+        @if($invoice->has_deposit && $invoice->deposit_amount > 0)
+        <div class="info-row">
+            <span class="info-label"><i class="fas fa-money-bill-wave"></i> الدفعة المقدمة:</span>
+            <span class="info-value">
+                <strong style="color: #43e97b;">{{ number_format($invoice->deposit_amount, 0) }} IQD</strong>
+            </span>
+        </div>
+        @endif
         <div class="info-row">
             <span class="info-label">حالة الدفع:</span>
             <span class="info-value">

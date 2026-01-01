@@ -50,6 +50,11 @@ import WholeSale from "../components/pages/WholeSale.vue";
 import Categories from "../components/pages/Categories.vue";
 import Attributes from "../components/pages/Attributes.vue";
 
+// Treasury & Financial Management
+import Treasury from "../components/pages/Treasury.vue";
+import CustomerPayments from "../components/pages/CustomerPayments.vue";
+import QuickInvoice from "../components/pages/QuickInvoice.vue";
+
 // Partner Management
 import PartnerList from "../components/pages/PartnerList.vue";
 import PartnerSettlements from "../components/pages/PartnerSettlements.vue";
@@ -378,6 +383,43 @@ const router = new VueRouter({
                 pageIcon: "fas fa-sliders-h",
                 pageSubtitle: "إدارة خصائص المنتجات",
                 permission: ['super'],
+            }
+        },
+        // Treasury & Financial Management Routes
+        {
+            path: prefix + "treasury",
+            name: "treasury",
+            component: Treasury,
+            meta: {
+                title: "Treasury Management",
+                pageTitle: "إدارة الخزينة",
+                pageIcon: "fas fa-cash-register",
+                pageSubtitle: "متابعة الإيرادات والمصروفات والرصيد",
+                permission: ['all'],
+            }
+        },
+        {
+            path: prefix + "quick-invoice",
+            name: "quick-invoice",
+            component: QuickInvoice,
+            meta: {
+                title: "Quick Invoice",
+                pageTitle: "فاتورة سريعة",
+                pageIcon: "fas fa-bolt",
+                pageSubtitle: "عرض ملخص العميل قبل إنشاء الفاتورة",
+                permission: ['all'],
+            }
+        },
+        {
+            path: prefix + "customer-payments",
+            name: "customer-payments",
+            component: CustomerPayments,
+            meta: {
+                title: "Customer Bulk Payments",
+                pageTitle: "تسديد دفعات الجملة",
+                pageIcon: "fas fa-money-bill-wave",
+                pageSubtitle: "تسديد عدة فواتير للعميل دفعة واحدة",
+                permission: ['all'],
             }
         },
         // Partner Management Routes

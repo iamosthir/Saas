@@ -4,7 +4,11 @@
       "Bash(php artisan:*)",
       "Bash(tree:*)",
       "Bash(cat:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(ls:*)",
+      "Bash(test:*)",
+      "Bash(composer require:*)",
+      "Bash(composer remove:*)"
     ]
   }
 }

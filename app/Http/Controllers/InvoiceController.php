@@ -12,6 +12,7 @@ use App\Models\ProductVariation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Services\TreasuryService;
 
 class InvoiceController extends Controller
 {
@@ -25,8 +26,12 @@ class InvoiceController extends Controller
             'customer_address' => 'nullable|string',
             'customer_state' => 'nullable|string',
             'customer_city' => 'nullable|string',
+            'sponsor_name' => 'nullable|string|max:255',
+            'sponsor_phone' => 'nullable|string|max:20',
             'payment_type' => 'required|in:full_payment,installment',
             'installment_months' => 'required_if:payment_type,installment|nullable|integer|min:1',
+            'has_deposit' => 'nullable|boolean',
+            'deposit_amount' => 'required_if:has_deposit,true|nullable|numeric|min:0',
             'paid_amount' => 'nullable|numeric|min:0',
             'discount_type' => 'nullable|in:percentage,fixed',
             'discount_amount' => 'nullable|numeric|min:0',
@@ -36,7 +41,7 @@ class InvoiceController extends Controller
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.product_variation_id' => 'nullable|exists:product_variations,id',
             'items.*.quantity' => 'required|integer|min:1',
-            'items.*.custom_price' => 'required|numeric|min:0',
+            'items.*.custom_price' => 'nullable|numeric|min:0',
         ]);
 
         DB::beginTransaction();
@@ -58,13 +63,26 @@ class InvoiceController extends Controller
                     'phone2' => $request->customer_phone2,
                     'state' => $request->customer_state,
                     'city' => $request->customer_city,
+                    'sponsor_name' => $request->sponsor_name,
+                    'sponsor_phone' => $request->sponsor_phone,
                 ]);
             }
 
-            // Calculate subtotal
+            // Calculate subtotal with dual pricing
             $subtotal = 0;
             foreach ($request->items as $item) {
-                $subtotal += $item['custom_price'] * $item['quantity'];
+                $product = Product::find($item['product_id']);
+                $variation = isset($item['product_variation_id']) ? ProductVariation::find($item['product_variation_id']) : null;
+
+                // Use dual pricing based on payment type
+                $priceToUse = $variation
+                    ? $variation->getPriceForPaymentType($request->payment_type)
+                    : $product->getPriceForPaymentType($request->payment_type);
+
+                // Use custom_price if provided, otherwise use calculated price
+                $finalPrice = $item['custom_price'] ?? $priceToUse;
+
+                $subtotal += $finalPrice * $item['quantity'];
             }
 
             // Calculate discount
@@ -78,6 +96,9 @@ class InvoiceController extends Controller
             $totalAmount = $subtotal - $discountAmount + $extraCharge;
 
             // Create invoice
+            $hasDeposit = $request->payment_type === 'installment' && $request->has_deposit;
+            $depositAmount = $hasDeposit ? ($request->deposit_amount ?? 0) : 0;
+
             $invoice = Invoice::create([
                 'merchant_id' => $merchantId,
                 'customer_id' => $customer->id,
@@ -89,9 +110,11 @@ class InvoiceController extends Controller
                 'total_amount' => $totalAmount,
                 'payment_type' => $request->payment_type,
                 'installment_months' => $request->installment_months,
-                'paid_amount' => 0,
-                'remaining_amount' => $totalAmount,
-                'payment_status' => 'unpaid',
+                'has_deposit' => $hasDeposit,
+                'deposit_amount' => $depositAmount,
+                'paid_amount' => $depositAmount,
+                'remaining_amount' => $totalAmount - $depositAmount,
+                'payment_status' => $depositAmount > 0 ? 'partial' : 'unpaid',
                 'is_fully_paid' => false,
                 'notes' => $request->notes,
                 'created_by' => $user->id,
@@ -102,6 +125,14 @@ class InvoiceController extends Controller
                 $product = Product::find($item['product_id']);
                 $variation = isset($item['product_variation_id']) ? ProductVariation::find($item['product_variation_id']) : null;
 
+                // Use dual pricing based on payment type
+                $priceToUse = $variation
+                    ? $variation->getPriceForPaymentType($request->payment_type)
+                    : $product->getPriceForPaymentType($request->payment_type);
+
+                // Use custom_price if provided, otherwise use calculated price
+                $finalPrice = $item['custom_price'] ?? $priceToUse;
+
                 InvoiceItem::create([
                     'invoice_id' => $invoice->id,
                     'product_id' => $item['product_id'],
@@ -109,9 +140,9 @@ class InvoiceController extends Controller
                     'product_name' => $product->name,
                     'variation_name' => $variation ? $variation->var_name : null,
                     'quantity' => $item['quantity'],
-                    'original_price' => $variation ? $variation->price : $product->sell_price,
-                    'custom_price' => $item['custom_price'],
-                    'line_total' => $item['custom_price'] * $item['quantity'],
+                    'original_price' => $priceToUse,
+                    'custom_price' => $finalPrice,
+                    'line_total' => $finalPrice * $item['quantity'],
                 ]);
             }
 
@@ -124,9 +155,21 @@ class InvoiceController extends Controller
                     'payment_status' => $paidAmount >= $totalAmount ? 'paid' : ($paidAmount > 0 ? 'partial' : 'unpaid'),
                     'is_fully_paid' => $paidAmount >= $totalAmount,
                 ]);
+
+                // Record full payment in treasury
+                if ($paidAmount > 0) {
+                    app(TreasuryService::class)->recordTransaction(
+                        'income',
+                        'invoice_payment',
+                        $paidAmount,
+                        "Full payment for Invoice #{$invoice->invoice_number}",
+                        $invoice
+                    );
+                }
             } else {
-                // Create installment schedules
-                $installmentAmount = $totalAmount / $request->installment_months;
+                // Create installment schedules (amount to finance = total - deposit)
+                $amountToFinance = $totalAmount - $depositAmount;
+                $installmentAmount = $amountToFinance / $request->installment_months;
                 $currentDate = Carbon::now();
 
                 for ($i = 1; $i <= $request->installment_months; $i++) {
@@ -140,7 +183,18 @@ class InvoiceController extends Controller
                     ]);
                 }
 
-                // Apply initial paid amount if any
+                // Record deposit in treasury if applicable
+                if ($depositAmount > 0) {
+                    app(TreasuryService::class)->recordTransaction(
+                        'income',
+                        'deposit',
+                        $depositAmount,
+                        "Deposit for Invoice #{$invoice->invoice_number}",
+                        $invoice
+                    );
+                }
+
+                // Apply additional initial paid amount if any (beyond deposit)
                 if ($request->paid_amount && $request->paid_amount > 0) {
                     $this->applyPaymentToInstallments($invoice, $request->paid_amount);
                 }
@@ -214,8 +268,11 @@ class InvoiceController extends Controller
 
     public function markAsPaid($id)
     {
+        DB::beginTransaction();
         try {
             $invoice = Invoice::findOrFail($id);
+
+            $amountToRecord = $invoice->remaining_amount;
 
             $invoice->update([
                 'paid_amount' => $invoice->total_amount,
@@ -233,12 +290,26 @@ class InvoiceController extends Controller
                 ]);
             }
 
+            // Record remaining amount in treasury
+            if ($amountToRecord > 0) {
+                app(TreasuryService::class)->recordTransaction(
+                    'income',
+                    $invoice->payment_type === 'installment' ? 'installment' : 'invoice_payment',
+                    $amountToRecord,
+                    "Mark as paid for Invoice #{$invoice->invoice_number}",
+                    $invoice
+                );
+            }
+
+            DB::commit();
+
             return response()->json([
                 'status' => 'ok',
                 'msg' => 'Invoice marked as fully paid',
             ]);
 
         } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'status' => 'error',
                 'msg' => 'Failed to update invoice: ' . $e->getMessage(),
@@ -328,43 +399,51 @@ class InvoiceController extends Controller
             }
 
             $paymentAmount = $request->amount;
-            $remainingPayment = $paymentAmount;
+            $remainingForInstallment = $installment->amount - $installment->paid_amount;
 
-            // Get all unpaid or partially paid installments in order
-            $installments = $invoice->installmentSchedules()
-                ->where('installment_number', '>=', $installment->installment_number)
-                ->whereIn('status', ['unpaid', 'partial'])
-                ->orderBy('installment_number')
-                ->get();
+            if ($paymentAmount >= $remainingForInstallment) {
+                // Full payment or overpayment
+                $installment->paid_amount += $remainingForInstallment;
+                $installment->status = 'paid';
+                $installment->paid_date = Carbon::now();
+                $installment->save();
 
-            foreach ($installments as $inst) {
-                if ($remainingPayment <= 0) break;
+                $overpayment = $paymentAmount - $remainingForInstallment;
 
-                $amountDue = $inst->amount - $inst->paid_amount;
-                $amountToPay = min($remainingPayment, $amountDue);
-
-                $inst->paid_amount += $amountToPay;
-                $remainingPayment -= $amountToPay;
-
-                if ($inst->paid_amount >= $inst->amount) {
-                    $inst->status = 'paid';
-                    $inst->paid_date = Carbon::now();
-                } else if ($inst->paid_amount > 0) {
-                    $inst->status = 'partial';
+                // Continue cascade to next installments if overpayment
+                if ($overpayment > 0) {
+                    $this->applyPaymentToInstallments($invoice, $overpayment);
                 }
+            } else {
+                // PARTIAL PAYMENT - Add shortfall to LAST installment
+                $shortfall = $remainingForInstallment - $paymentAmount;
 
-                $inst->save();
+                $installment->paid_amount += $paymentAmount;
+                $installment->status = 'partial';
+                $installment->save();
+
+                // Find last unpaid installment
+                $lastInstallment = InstallmentSchedule::where('invoice_id', $invoice->id)
+                    ->where('status', 'unpaid')
+                    ->orderBy('installment_number', 'desc')
+                    ->first();
+
+                if ($lastInstallment && $lastInstallment->id !== $installment->id) {
+                    $lastInstallment->amount += $shortfall;
+                    $lastInstallment->notes = "Added shortfall of " . number_format($shortfall, 0) . " IQD from Installment #{$installment->installment_number}";
+                    $lastInstallment->save();
+                }
             }
 
-            // Update invoice totals
-            $totalPaid = $invoice->installmentSchedules()->sum('paid_amount');
-            $invoice->paid_amount = $totalPaid;
-            $invoice->remaining_amount = $invoice->total_amount - $totalPaid;
+            // Update invoice totals (include deposit in paid amount)
+            $totalPaidFromInstallments = $invoice->installmentSchedules()->sum('paid_amount');
+            $invoice->paid_amount = $totalPaidFromInstallments + ($invoice->deposit_amount ?? 0);
+            $invoice->remaining_amount = $invoice->total_amount - $invoice->paid_amount;
 
-            if ($totalPaid >= $invoice->total_amount) {
+            if ($invoice->remaining_amount <= 0) {
                 $invoice->payment_status = 'paid';
                 $invoice->is_fully_paid = true;
-            } else if ($totalPaid > 0) {
+            } else if ($invoice->paid_amount > 0) {
                 $invoice->payment_status = 'partial';
                 $invoice->is_fully_paid = false;
             } else {
@@ -373,6 +452,15 @@ class InvoiceController extends Controller
             }
 
             $invoice->save();
+
+            // Record payment in treasury
+            app(TreasuryService::class)->recordTransaction(
+                'income',
+                'installment',
+                $paymentAmount,
+                "Installment payment for Invoice #{$invoice->invoice_number}",
+                $invoice
+            );
 
             DB::commit();
 

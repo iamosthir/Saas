@@ -263,6 +263,30 @@ Route::group(["prefix" => "dashboard", "middleware" => "auth"],function(){
         Route::get('/partner-profit-breakdown/{year}/{month}', 'PartnerController@profitBreakdown');
         // End
 
+        // Treasury Management
+        Route::get('/treasury', 'TreasuryController@index');
+        Route::get('/treasury/transactions', 'TreasuryController@transactions');
+        Route::get('/treasury/report', 'TreasuryController@report');
+        Route::get('/treasury/export', 'TreasuryController@export');
+        // End
+
+        // Customer Bulk Payments
+        Route::get('/customer-payments/outstanding/{customer}', 'CustomerPaymentController@getOutstandingInvoices');
+        Route::post('/customer-payments/bulk', 'CustomerPaymentController@bulkPayment');
+        // End
+
+        // Quick Invoice
+        Route::get('/quick-invoice/customer/{customer}/summary', 'QuickInvoiceController@getCustomerSummary');
+        // End
+
+        // Supplier Dropdown
+        Route::get('/suppliers/dropdown', 'SupplierController@dropdown');
+        Route::get('/suppliers', 'SupplierController@index');
+        Route::post('/suppliers/store', 'SupplierController@store');
+        Route::post('/suppliers/{id}/update', 'SupplierController@update');
+        Route::delete('/suppliers/{id}', 'SupplierController@delete');
+        // End
+
     });
     // End
 

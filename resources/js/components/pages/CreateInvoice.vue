@@ -63,15 +63,6 @@
                               </div>
                           </div>
 
-                          <div class="col-md-6 mb-4" v-if="showCustomerForm">
-                              <div class="modern-form-group">
-                                  <label class="modern-form-label" for="customerEmail">Email (Optional)</label>
-                                  <input type="email" id="customerEmail" class="modern-form-control"
-                                      v-model="form.customer_email" placeholder="customer@email.com"
-                                      :readonly="useExistingCustomer && selectedCustomer"/>
-                                  <HasError :form="form" field="customer_email"/>
-                              </div>
-                          </div>
 
                           <div class="col-md-6 mb-4" v-if="showCustomerForm">
                               <div class="modern-form-group">
@@ -95,18 +86,19 @@
 
                           <div class="col-md-6 mb-4" v-if="showCustomerForm">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label" for="customerState">State</label>
-                                  <input type="text" id="customerState" class="modern-form-control"
-                                      v-model="form.customer_state" placeholder="Enter state..."
+                                  <label class="modern-form-label" for="sponsorName">Sponsor Name (Optional)</label>
+                                  <input type="text" id="sponsorName" class="modern-form-control"
+                                      v-model="form.sponsor_name" placeholder="Name of referrer/partner..."
                                       :readonly="useExistingCustomer && selectedCustomer"/>
+                                  <small class="text-muted">Person who referred this customer</small>
                               </div>
                           </div>
 
                           <div class="col-md-6 mb-4" v-if="showCustomerForm">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label" for="customerCity">City</label>
-                                  <input type="text" id="customerCity" class="modern-form-control"
-                                      v-model="form.customer_city" placeholder="Enter city..."
+                                  <label class="modern-form-label" for="sponsorPhone">Sponsor Phone (Optional)</label>
+                                  <input type="text" id="sponsorPhone" class="modern-form-control"
+                                      v-model="form.sponsor_phone" placeholder="07XXXXXXXXX"
                                       :readonly="useExistingCustomer && selectedCustomer"/>
                               </div>
                           </div>
@@ -329,12 +321,39 @@
 
                               <div class="col-md-6 mb-4">
                                   <div class="modern-form-group">
-                                      <label class="modern-form-label">Initial Payment (Optional)</label>
+                                      <label class="modern-form-label">Deposit/Down Payment?</label>
+                                      <div class="form-check">
+                                          <input type="checkbox" v-model="form.has_deposit" class="form-check-input" id="hasDeposit">
+                                          <label class="form-check-label" for="hasDeposit">
+                                              Yes, customer will pay deposit
+                                          </label>
+                                      </div>
+                                  </div>
+                              </div>
+
+                              <div class="col-md-6 mb-4" v-if="form.has_deposit">
+                                  <div class="modern-form-group">
+                                      <label class="modern-form-label">Deposit Amount</label>
+                                      <input type="number" class="modern-form-control"
+                                          v-model="form.deposit_amount"
+                                          placeholder="0.00"
+                                          step="0.01"
+                                          min="0"
+                                          :max="totalAmount">
+                                      <small class="text-muted">Amount to finance: {{ amountToFinance.toFixed(2) }} IQD</small>
+                                      <HasError :form="form" field="deposit_amount"/>
+                                  </div>
+                              </div>
+
+                              <div class="col-md-6 mb-4">
+                                  <div class="modern-form-group">
+                                      <label class="modern-form-label">Initial Payment Beyond Deposit (Optional)</label>
                                       <input type="number" class="modern-form-control"
                                           v-model="form.paid_amount"
                                           placeholder="0.00"
                                           step="0.01"
                                           min="0">
+                                      <small class="text-muted">Additional payment for first installment(s)</small>
                                   </div>
                               </div>
 
@@ -342,9 +361,11 @@
                               <div class="col-md-12 mb-4" v-if="form.installment_months > 0">
                                   <div class="alert alert-info">
                                       <h6>Installment Plan Preview:</h6>
+                                      <p class="mb-1"><strong>Total Amount:</strong> {{ totalAmount.toFixed(2) }} IQD</p>
+                                      <p class="mb-1" v-if="form.has_deposit"><strong>Deposit:</strong> {{ (parseFloat(form.deposit_amount) || 0).toFixed(2) }} IQD</p>
+                                      <p class="mb-1"><strong>Amount to Finance:</strong> {{ amountToFinance.toFixed(2) }} IQD</p>
                                       <p class="mb-1"><strong>Monthly Payment:</strong> {{ monthlyInstallment.toFixed(2) }} IQD</p>
-                                      <p class="mb-1"><strong>Number of Installments:</strong> {{ form.installment_months }}</p>
-                                      <p class="mb-0"><strong>Total:</strong> {{ totalAmount.toFixed(2) }} IQD</p>
+                                      <p class="mb-0"><strong>Number of Installments:</strong> {{ form.installment_months }}</p>
                                   </div>
                               </div>
                           </template>
@@ -381,12 +402,13 @@ export default {
                 customer_name: "",
                 customer_phone1: "",
                 customer_phone2: "",
-                customer_email: "",
                 customer_address: "",
-                customer_state: "",
-                customer_city: "",
+                sponsor_name: "",
+                sponsor_phone: "",
                 payment_type: "full_payment",
                 installment_months: null,
+                has_deposit: false,
+                deposit_amount: 0,
                 paid_amount: null,
                 discount_type: "fixed",
                 discount_amount: 0,
@@ -434,9 +456,14 @@ export default {
             return this.subtotal - this.discountValue + parseFloat(this.form.extra_charge || 0);
         },
 
+        amountToFinance() {
+            const deposit = this.form.has_deposit ? (parseFloat(this.form.deposit_amount) || 0) : 0;
+            return this.totalAmount - deposit;
+        },
+
         monthlyInstallment() {
             if (this.form.installment_months > 0) {
-                return this.totalAmount / this.form.installment_months;
+                return this.amountToFinance / this.form.installment_months;
             }
             return 0;
         }
@@ -448,10 +475,9 @@ export default {
                 this.form.customer_name = customer.name;
                 this.form.customer_phone1 = customer.phone || customer.phone1 || "";
                 this.form.customer_phone2 = customer.phone2 || "";
-                this.form.customer_email = "";
                 this.form.customer_address = "";
-                this.form.customer_state = customer.state || "";
-                this.form.customer_city = customer.city || "";
+                this.form.sponsor_name = customer.sponsor_name || "";
+                this.form.sponsor_phone = customer.sponsor_phone || "";
             }
         },
 
@@ -460,8 +486,8 @@ export default {
                 this.currentItem.product_id = product.id;
                 this.loadProductVariations(product.id);
 
-                // Set default price
-                this.currentItem.custom_price = product.sell_price || product.default_price || 0;
+                // Set price based on payment type (dual pricing)
+                this.currentItem.custom_price = this.getPriceForProduct(product);
             }
         },
 
@@ -469,10 +495,22 @@ export default {
             if (variationId) {
                 const variation = this.productVariations.find(v => v.id == variationId);
                 if (variation) {
-                    this.currentItem.custom_price = variation.price;
+                    this.currentItem.custom_price = this.getPriceForVariation(variation);
                 }
             } else if (this.selectedProduct) {
-                this.currentItem.custom_price = this.selectedProduct.sell_price || this.selectedProduct.default_price || 0;
+                this.currentItem.custom_price = this.getPriceForProduct(this.selectedProduct);
+            }
+        },
+
+        'form.payment_type': function(paymentType) {
+            // Update current item price when payment type changes
+            if (this.currentItem.product_variation_id && this.productVariations.length > 0) {
+                const variation = this.productVariations.find(v => v.id == this.currentItem.product_variation_id);
+                if (variation) {
+                    this.currentItem.custom_price = this.getPriceForVariation(variation);
+                }
+            } else if (this.selectedProduct) {
+                this.currentItem.custom_price = this.getPriceForProduct(this.selectedProduct);
             }
         },
 
@@ -488,10 +526,9 @@ export default {
                 this.form.customer_name = "";
                 this.form.customer_phone1 = "";
                 this.form.customer_phone2 = "";
-                this.form.customer_email = "";
                 this.form.customer_address = "";
-                this.form.customer_state = "";
-                this.form.customer_city = "";
+                this.form.sponsor_name = "";
+                this.form.sponsor_phone = "";
             }
         }
     },
@@ -626,6 +663,22 @@ export default {
                 quantity: 1,
                 custom_price: 0,
             };
+        },
+
+        getPriceForProduct(product) {
+            if (this.form.payment_type === 'full_payment') {
+                return parseFloat(product.cash_price || product.sell_price || product.default_price || 0);
+            } else {
+                return parseFloat(product.installment_price || product.sell_price || product.default_price || 0);
+            }
+        },
+
+        getPriceForVariation(variation) {
+            if (this.form.payment_type === 'full_payment') {
+                return parseFloat(variation.cash_price || variation.price || 0);
+            } else {
+                return parseFloat(variation.installment_price || variation.price || 0);
+            }
         }
     },
 
