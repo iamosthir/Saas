@@ -207,6 +207,7 @@ class ProductController extends Controller
                 "attribute_values" => isset($var["attribute_values"]) ? $var["attribute_values"] : null,
                 "price" => $var["sell_price"],
                 "purchase_price" => $var["purchase_price"],
+                "installment_price" => $var["installment_price"] ?? 0,
                 "quantity" => $var["quantity"],
                 "average_price" => $var["purchase_price"] // Initial average price is purchase price
             ]);

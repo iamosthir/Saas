@@ -121,9 +121,37 @@
                               <h6 style="font-weight: 700; color: #2d3748;">المنتجات</h6>
                           </div>
 
+                          <!-- نوع الدفع -->
+                          <div class="col-md-12 mb-4">
+                              <div class="modern-form-group">
+                                  <label class="modern-form-label">نوع الدفع</label>
+                                  <div class="d-flex gap-3">
+                                      <div class="form-check">
+                                          <input class="form-check-input" type="radio" name="paymentType"
+                                              id="fullPayment" value="full_payment" v-model="form.payment_type">
+                                          <label class="form-check-label" for="fullPayment">
+                                              دفع كامل
+                                          </label>
+                                      </div>
+                                      <div class="form-check">
+                                          <input class="form-check-input" type="radio" name="paymentType"
+                                              id="installment" value="installment" v-model="form.payment_type">
+                                          <label class="form-check-label" for="installment">
+                                              أقساط
+                                          </label>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+
                           <div class="col-md-4 mb-4">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label">اختر المنتج</label>
+                                  <label class="modern-form-label">
+                                      اختر المنتج
+                                      <button type="button" @click="reloadProducts" class="btn btn-sm btn-outline-secondary ms-2" title="إعادة تحميل المنتجات">
+                                          <i class="fas fa-sync-alt" :class="{ 'fa-spin': reloading }"></i>
+                                      </button>
+                                  </label>
                                   <multiselect v-model="selectedProduct"
                                       :options="products"
                                       placeholder="اختر المنتج..."
@@ -142,7 +170,7 @@
                                       <option v-for="variation in productVariations"
                                           :key="variation.id"
                                           :value="variation.id">
-                                          {{ variation.var_name }} - {{ variation.price }} د.ع (المخزون: {{ variation.quantity }})
+                                          {{ variation.var_name }} - {{ formatNumber(getPriceForVariation(variation)) }} د.ع (المخزون: {{ variation.quantity }})
                                       </option>
                                   </select>
                               </div>
@@ -153,7 +181,7 @@
                                   <label class="modern-form-label">سعر مخصص</label>
                                   <input type="number" class="modern-form-control"
                                       v-model="currentItem.custom_price"
-                                      placeholder="0.00"
+                                      placeholder="0"
                                       step="0.01"
                                       min="0">
                               </div>
@@ -195,8 +223,8 @@
                                               <td>{{ item.product_name }}</td>
                                               <td>{{ item.variation_name || 'غير متوفر' }}</td>
                                               <td>{{ item.quantity }}</td>
-                                              <td>{{ item.custom_price }} د.ع</td>
-                                              <td>{{ (item.custom_price * item.quantity).toFixed(2) }} د.ع</td>
+                                              <td>{{ formatNumber(item.custom_price) }} د.ع</td>
+                                              <td>{{ formatNumber(item.custom_price * item.quantity) }} د.ع</td>
                                               <td>
                                                   <button @click="removeProduct(index)" class="btn btn-danger btn-sm">
                                                       <i class="fas fa-trash"></i>
@@ -213,7 +241,7 @@
                                       <!-- صف المجموع الفرعي -->
                                       <tr v-if="invoiceItems.length > 0" class="table-info">
                                           <td colspan="5" class="text-end"><strong>المجموع الفرعي:</strong></td>
-                                          <td colspan="2"><strong>{{ subtotal.toFixed(2) }} د.ع</strong></td>
+                                          <td colspan="2"><strong>{{ formatNumber(subtotal) }} د.ع</strong></td>
                                       </tr>
                                   </tbody>
                               </table>
@@ -244,7 +272,7 @@
                                   <label class="modern-form-label">قيمة الخصم</label>
                                   <input type="number" class="modern-form-control"
                                       v-model="form.discount_amount"
-                                      :placeholder="form.discount_type === 'percentage' ? '0-100' : '0.00'"
+                                      :placeholder="form.discount_type === 'percentage' ? '0-100' : '0'"
                                       step="0.01"
                                       min="0">
                               </div>
@@ -256,7 +284,7 @@
                                   <label class="modern-form-label">رسوم إضافية</label>
                                   <input type="number" class="modern-form-control"
                                       v-model="form.extra_charge"
-                                      placeholder="0.00"
+                                      placeholder="0"
                                       step="0.01"
                                       min="0">
                               </div>
@@ -265,30 +293,7 @@
                           <!-- عرض المجموع -->
                           <div class="col-md-6 mb-4">
                               <div class="alert alert-success">
-                                  <strong>المبلغ الإجمالي: {{ totalAmount.toFixed(2) }} د.ع</strong>
-                              </div>
-                          </div>
-
-                          <!-- نوع الدفع -->
-                          <div class="col-md-12 mb-4">
-                              <div class="modern-form-group">
-                                  <label class="modern-form-label">نوع الدفع</label>
-                                  <div class="d-flex gap-3">
-                                      <div class="form-check">
-                                          <input class="form-check-input" type="radio" name="paymentType"
-                                              id="fullPayment" value="full_payment" v-model="form.payment_type">
-                                          <label class="form-check-label" for="fullPayment">
-                                              دفع كامل
-                                          </label>
-                                      </div>
-                                      <div class="form-check">
-                                          <input class="form-check-input" type="radio" name="paymentType"
-                                              id="installment" value="installment" v-model="form.payment_type">
-                                          <label class="form-check-label" for="installment">
-                                              أقساط
-                                          </label>
-                                      </div>
-                                  </div>
+                                  <strong>المبلغ الإجمالي: {{ formatNumber(totalAmount) }} د.ع</strong>
                               </div>
                           </div>
 
@@ -298,7 +303,7 @@
                                   <label class="modern-form-label">المبلغ المدفوع</label>
                                   <input type="number" class="modern-form-control"
                                       v-model="form.paid_amount"
-                                      :placeholder="totalAmount.toFixed(2)"
+                                      :placeholder="formatNumber(totalAmount)"
                                       step="0.01"
                                       min="0">
                                   <small class="text-muted">اتركه فارغًا ليتم تعبئته تلقائيًا بمبلغ الإجمالي</small>
@@ -336,11 +341,11 @@
                                       <label class="modern-form-label">مبلغ العربون</label>
                                       <input type="number" class="modern-form-control"
                                           v-model="form.deposit_amount"
-                                          placeholder="0.00"
+                                          placeholder="0"
                                           step="0.01"
                                           min="0"
                                           :max="totalAmount">
-                                      <small class="text-muted">المبلغ المُمَوَّل: {{ amountToFinance.toFixed(2) }} د.ع</small>
+                                      <small class="text-muted">المبلغ المُمَوَّل: {{ formatNumber(amountToFinance) }} د.ع</small>
                                       <HasError :form="form" field="deposit_amount"/>
                                   </div>
                               </div>
@@ -350,7 +355,7 @@
                                       <label class="modern-form-label">دفعة أولية إضافية غير العربون (اختياري)</label>
                                       <input type="number" class="modern-form-control"
                                           v-model="form.paid_amount"
-                                          placeholder="0.00"
+                                          placeholder="0"
                                           step="0.01"
                                           min="0">
                                       <small class="text-muted">دفعة إضافية لتغطية القسط/الأقساط الأولى</small>
@@ -361,10 +366,10 @@
                               <div class="col-md-12 mb-4" v-if="form.installment_months > 0">
                                   <div class="alert alert-info">
                                       <h6>معاينة خطة الأقساط:</h6>
-                                      <p class="mb-1"><strong>المبلغ الإجمالي:</strong> {{ totalAmount.toFixed(2) }} د.ع</p>
-                                      <p class="mb-1" v-if="form.has_deposit"><strong>العربون:</strong> {{ (parseFloat(form.deposit_amount) || 0).toFixed(2) }} د.ع</p>
-                                      <p class="mb-1"><strong>المبلغ المُمَوَّل:</strong> {{ amountToFinance.toFixed(2) }} د.ع</p>
-                                      <p class="mb-1"><strong>القسط الشهري:</strong> {{ monthlyInstallment.toFixed(2) }} د.ع</p>
+                                      <p class="mb-1"><strong>المبلغ الإجمالي:</strong> {{ formatNumber(totalAmount) }} د.ع</p>
+                                      <p class="mb-1" v-if="form.has_deposit"><strong>العربون:</strong> {{ formatNumber(form.deposit_amount || 0) }} د.ع</p>
+                                      <p class="mb-1"><strong>المبلغ المُمَوَّل:</strong> {{ formatNumber(amountToFinance) }} د.ع</p>
+                                      <p class="mb-1"><strong>القسط الشهري:</strong> {{ formatNumber(monthlyInstallment) }} د.ع</p>
                                       <p class="mb-0"><strong>عدد الأقساط:</strong> {{ form.installment_months }}</p>
                                   </div>
                               </div>
@@ -427,6 +432,7 @@ export default {
             products: [],
             selectedProduct: null,
             productVariations: [],
+            reloading: false,
 
             currentItem: {
                 product_id: null,
@@ -568,6 +574,23 @@ export default {
             });
         },
 
+        async reloadProducts() {
+            this.reloading = true;
+            try {
+                await this.loadProductList();
+
+                // Reload variations if a product is selected
+                if (this.selectedProduct) {
+                    await this.loadProductVariations(this.selectedProduct.id);
+                }
+            } catch (error) {
+                console.error('Error reloading products:', error);
+                swal.fire('خطأ', 'فشل إعادة تحميل المنتجات', 'error');
+            } finally {
+                this.reloading = false;
+            }
+        },
+
         async loadProductVariations(productId) {
             this.productVariations = [];
             this.currentItem.product_variation_id = null;
@@ -668,18 +691,32 @@ export default {
 
         getPriceForProduct(product) {
             if (this.form.payment_type === 'full_payment') {
-                return parseFloat(product.sell_price || product.default_price || 0);
+                return parseFloat(product.sell_price ?? product.default_price ?? 0);
             } else {
-                return parseFloat(product.installment_price || product.sell_price || product.default_price || 0);
+                // For installment: use installment_price, fallback to sell_price only if installment_price is null/undefined
+                const price = product.installment_price !== null && product.installment_price !== undefined && product.installment_price > 0
+                    ? product.installment_price
+                    : (product.sell_price ?? product.default_price ?? 0);
+                return parseFloat(price);
             }
         },
 
         getPriceForVariation(variation) {
             if (this.form.payment_type === 'full_payment') {
-                return parseFloat(variation.price || 0);
+                return parseFloat(variation.price ?? 0);
             } else {
-                return parseFloat(variation.installment_price || variation.price || 0);
+                // For installment: use installment_price, fallback to price only if installment_price is null/undefined or 0
+                const price = variation.installment_price !== null && variation.installment_price !== undefined && variation.installment_price > 0
+                    ? variation.installment_price
+                    : (variation.price ?? 0);
+                return parseFloat(price);
             }
+        },
+
+        formatNumber(value) {
+            const num = parseFloat(value);
+            if (isNaN(num)) return '0';
+            return num % 1 === 0 ? num.toString() : num.toFixed(2).replace(/\.00$/, '');
         }
     },
 
@@ -693,5 +730,18 @@ export default {
 <style scoped>
 .gap-3 {
     gap: 1rem;
+}
+
+.fa-spin {
+    animation: fa-spin 1s infinite linear;
+}
+
+@keyframes fa-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 </style>
