@@ -3,40 +3,40 @@
       <div class="col-md-12 col-lg-12">
           <div class="modern-card card">
               <div class="card-body">
-                  <h5 class="modern-card-title text-center">Create New Invoice <i class="fas fa-file-invoice"></i></h5>
+                  <h5 class="modern-card-title text-center">إنشاء فاتورة جديدة <i class="fas fa-file-invoice"></i></h5>
                   <form class="mt-5" method="POST" @submit.prevent="createInvoice">
 
-                      <!-- Customer Section -->
+                      <!-- قسم العميل -->
                       <div class="row">
                           <div class="col-md-12 mb-4">
-                              <h6 style="font-weight: 700; color: #2d3748;">Customer Information</h6>
+                              <h6 style="font-weight: 700; color: #2d3748;">معلومات العميل</h6>
                           </div>
 
-                          <!-- Customer Selection Buttons -->
+                          <!-- أزرار اختيار العميل -->
                           <div class="col-md-12 mb-4">
                               <div class="d-flex gap-3">
                                   <button type="button"
                                       class="modern-btn"
                                       :class="useExistingCustomer ? 'modern-btn-primary' : 'modern-btn-outline'"
                                       @click="toggleCustomerMode(true)">
-                                      <i class="fas fa-search"></i> Select Existing Customer
+                                      <i class="fas fa-search"></i> اختيار عميل موجود
                                   </button>
                                   <button type="button"
                                       class="modern-btn"
                                       :class="!useExistingCustomer && showCustomerForm ? 'modern-btn-primary' : 'modern-btn-outline'"
                                       @click="toggleCustomerMode(false)">
-                                      <i class="fas fa-user-plus"></i> New Customer
+                                      <i class="fas fa-user-plus"></i> عميل جديد
                                   </button>
                               </div>
                           </div>
 
-                          <!-- Existing Customer Select -->
+                          <!-- اختيار عميل موجود -->
                           <div class="col-md-12 mb-4" v-if="useExistingCustomer">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label">Search Customer</label>
+                                  <label class="modern-form-label">بحث عن عميل</label>
                                   <multiselect v-model="selectedCustomer"
                                       :options="customers"
-                                      placeholder="Search by name or phone..."
+                                      placeholder="ابحث بالاسم أو رقم الهاتف..."
                                       label="name"
                                       track-by="id"
                                       :searchable="true"
@@ -52,12 +52,12 @@
                               </div>
                           </div>
 
-                          <!-- Customer Details Form - Only show when button clicked -->
+                          <!-- نموذج تفاصيل العميل - يظهر فقط عند الضغط على الزر -->
                           <div class="col-md-6 mb-4" v-if="showCustomerForm">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label" for="customerName">Customer Name</label>
+                                  <label class="modern-form-label" for="customerName">اسم العميل</label>
                                   <input type="text" id="customerName" class="modern-form-control"
-                                      v-model="form.customer_name" placeholder="Enter customer name..."
+                                      v-model="form.customer_name" placeholder="أدخل اسم العميل..."
                                       :readonly="useExistingCustomer && selectedCustomer"/>
                                   <HasError :form="form" field="customer_name"/>
                               </div>
@@ -66,7 +66,7 @@
 
                           <div class="col-md-6 mb-4" v-if="showCustomerForm">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label" for="customerPhone1">Primary Phone</label>
+                                  <label class="modern-form-label" for="customerPhone1">الهاتف الأساسي</label>
                                   <input type="text" id="customerPhone1" class="modern-form-control"
                                       v-model="form.customer_phone1" placeholder="07XXXXXXXXX"
                                       :readonly="useExistingCustomer && selectedCustomer"/>
@@ -76,7 +76,7 @@
 
                           <div class="col-md-6 mb-4" v-if="showCustomerForm">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label" for="customerPhone2">Secondary Phone (Optional)</label>
+                                  <label class="modern-form-label" for="customerPhone2">هاتف ثانوي (اختياري)</label>
                                   <input type="text" id="customerPhone2" class="modern-form-control"
                                       v-model="form.customer_phone2" placeholder="07XXXXXXXXX"
                                       :readonly="useExistingCustomer && selectedCustomer"/>
@@ -86,17 +86,17 @@
 
                           <div class="col-md-6 mb-4" v-if="showCustomerForm">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label" for="sponsorName">Sponsor Name (Optional)</label>
+                                  <label class="modern-form-label" for="sponsorName">اسم الكفيل/الراعي (اختياري)</label>
                                   <input type="text" id="sponsorName" class="modern-form-control"
-                                      v-model="form.sponsor_name" placeholder="Name of referrer/partner..."
+                                      v-model="form.sponsor_name" placeholder="اسم الشخص الكفيل/الشريك..."
                                       :readonly="useExistingCustomer && selectedCustomer"/>
-                                  <small class="text-muted">Person who referred this customer</small>
+                                  <small class="text-muted">الشخص الذي أحال هذا العميل</small>
                               </div>
                           </div>
 
                           <div class="col-md-6 mb-4" v-if="showCustomerForm">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label" for="sponsorPhone">Sponsor Phone (Optional)</label>
+                                  <label class="modern-form-label" for="sponsorPhone">هاتف الكفيل/الراعي (اختياري)</label>
                                   <input type="text" id="sponsorPhone" class="modern-form-control"
                                       v-model="form.sponsor_phone" placeholder="07XXXXXXXXX"
                                       :readonly="useExistingCustomer && selectedCustomer"/>
@@ -105,9 +105,9 @@
 
                           <div class="col-md-12 mb-4" v-if="showCustomerForm">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label" for="customerAddress">Address</label>
+                                  <label class="modern-form-label" for="customerAddress">العنوان</label>
                                   <textarea class="modern-textarea" id="customerAddress" rows="2"
-                                      v-model="form.customer_address" placeholder="Enter full address..."
+                                      v-model="form.customer_address" placeholder="أدخل العنوان الكامل..."
                                       :readonly="useExistingCustomer && selectedCustomer"></textarea>
                               </div>
                           </div>
@@ -115,18 +115,18 @@
 
                       <hr>
 
-                      <!-- Products Section -->
+                      <!-- قسم المنتجات -->
                       <div class="row">
                           <div class="col-md-12 mb-4">
-                              <h6 style="font-weight: 700; color: #2d3748;">Products</h6>
+                              <h6 style="font-weight: 700; color: #2d3748;">المنتجات</h6>
                           </div>
 
                           <div class="col-md-4 mb-4">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label">Select Product</label>
+                                  <label class="modern-form-label">اختر المنتج</label>
                                   <multiselect v-model="selectedProduct"
                                       :options="products"
-                                      placeholder="Choose product..."
+                                      placeholder="اختر المنتج..."
                                       label="name"
                                       track-by="id"
                                       select-label="">
@@ -136,21 +136,21 @@
 
                           <div class="col-md-3 mb-4">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label">Variation (Optional)</label>
+                                  <label class="modern-form-label">النوع/الخيار (اختياري)</label>
                                   <select class="modern-select" v-model="currentItem.product_variation_id">
-                                      <option value="">No Variation</option>
+                                      <option value="">بدون خيار</option>
                                       <option v-for="variation in productVariations"
                                           :key="variation.id"
                                           :value="variation.id">
-                                          {{ variation.var_name }} - {{ variation.price }} IQD (Stock: {{ variation.quantity }})
+                                          {{ variation.var_name }} - {{ variation.price }} د.ع (المخزون: {{ variation.quantity }})
                                       </option>
                                   </select>
                               </div>
                           </div>
 
-                          <div class="col-md-2 mb-4">
+                          <div class="col-md-3 mb-4">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label">Custom Price</label>
+                                  <label class="modern-form-label">سعر مخصص</label>
                                   <input type="number" class="modern-form-control"
                                       v-model="currentItem.custom_price"
                                       placeholder="0.00"
@@ -161,7 +161,7 @@
 
                           <div class="col-md-2 mb-4">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label">Quantity</label>
+                                  <label class="modern-form-label">الكمية</label>
                                   <div class="modern-input-group">
                                       <button @click="currentItem.quantity--" type="button" class="modern-btn modern-btn-primary">-</button>
                                       <input type="number" class="modern-form-control" v-model="currentItem.quantity" style="text-align:center;" min="1">
@@ -170,22 +170,22 @@
                               </div>
                           </div>
 
-                          <div class="col-md-1 mb-4 d-flex align-items-end">
-                              <button @click="addProductToInvoice" type="button" class="modern-btn modern-btn-warning w-100">Add</button>
+                          <div class="col-md-12 mb-4 d-flex align-items-end">
+                              <button @click="addProductToInvoice" type="button" class="modern-btn modern-btn-warning">إضافة</button>
                           </div>
 
-                          <!-- Products Table -->
+                          <!-- جدول المنتجات -->
                           <div class="col-md-12 mb-4">
                               <table class="modern-table table-bordered">
                                   <thead>
                                       <tr>
                                           <th>#</th>
-                                          <th>Product</th>
-                                          <th>Variation</th>
-                                          <th>Quantity</th>
-                                          <th>Price</th>
-                                          <th>Line Total</th>
-                                          <th>Action</th>
+                                          <th>المنتج</th>
+                                          <th>الخيار</th>
+                                          <th>الكمية</th>
+                                          <th>السعر</th>
+                                          <th>إجمالي السطر</th>
+                                          <th>إجراء</th>
                                       </tr>
                                   </thead>
                                   <tbody>
@@ -193,10 +193,10 @@
                                           <tr v-for="(item, index) in invoiceItems" :key="index">
                                               <td>{{ index + 1 }}</td>
                                               <td>{{ item.product_name }}</td>
-                                              <td>{{ item.variation_name || 'N/A' }}</td>
+                                              <td>{{ item.variation_name || 'غير متوفر' }}</td>
                                               <td>{{ item.quantity }}</td>
-                                              <td>{{ item.custom_price }} IQD</td>
-                                              <td>{{ (item.custom_price * item.quantity).toFixed(2) }} IQD</td>
+                                              <td>{{ item.custom_price }} د.ع</td>
+                                              <td>{{ (item.custom_price * item.quantity).toFixed(2) }} د.ع</td>
                                               <td>
                                                   <button @click="removeProduct(index)" class="btn btn-danger btn-sm">
                                                       <i class="fas fa-trash"></i>
@@ -206,14 +206,14 @@
                                       </template>
                                       <template v-else>
                                           <tr>
-                                              <td class="text-center text-muted" colspan="7">No products added</td>
+                                              <td class="text-center text-muted" colspan="7">لا توجد منتجات مضافة</td>
                                           </tr>
                                       </template>
 
-                                      <!-- Subtotal Row -->
+                                      <!-- صف المجموع الفرعي -->
                                       <tr v-if="invoiceItems.length > 0" class="table-info">
-                                          <td colspan="5" class="text-end"><strong>Subtotal:</strong></td>
-                                          <td colspan="2"><strong>{{ subtotal.toFixed(2) }} IQD</strong></td>
+                                          <td colspan="5" class="text-end"><strong>المجموع الفرعي:</strong></td>
+                                          <td colspan="2"><strong>{{ subtotal.toFixed(2) }} د.ع</strong></td>
                                       </tr>
                                   </tbody>
                               </table>
@@ -222,26 +222,26 @@
 
                       <hr>
 
-                      <!-- Pricing Section -->
+                      <!-- قسم التسعير والدفع -->
                       <div class="row" v-if="invoiceItems.length > 0">
                           <div class="col-md-12 mb-4">
-                              <h6 style="font-weight: 700; color: #2d3748;">Pricing & Payment</h6>
+                              <h6 style="font-weight: 700; color: #2d3748;">التسعير والدفع</h6>
                           </div>
 
-                          <!-- Discount -->
+                          <!-- الخصم -->
                           <div class="col-md-6 mb-4">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label">Discount Type</label>
+                                  <label class="modern-form-label">نوع الخصم</label>
                                   <select class="modern-select" v-model="form.discount_type">
-                                      <option value="fixed">Fixed Amount</option>
-                                      <option value="percentage">Percentage (%)</option>
+                                      <option value="fixed">مبلغ ثابت</option>
+                                      <option value="percentage">نسبة مئوية (%)</option>
                                   </select>
                               </div>
                           </div>
 
                           <div class="col-md-6 mb-4">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label">Discount Amount</label>
+                                  <label class="modern-form-label">قيمة الخصم</label>
                                   <input type="number" class="modern-form-control"
                                       v-model="form.discount_amount"
                                       :placeholder="form.discount_type === 'percentage' ? '0-100' : '0.00'"
@@ -250,10 +250,10 @@
                               </div>
                           </div>
 
-                          <!-- Extra Charge -->
+                          <!-- رسوم إضافية -->
                           <div class="col-md-6 mb-4">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label">Extra Charge</label>
+                                  <label class="modern-form-label">رسوم إضافية</label>
                                   <input type="number" class="modern-form-control"
                                       v-model="form.extra_charge"
                                       placeholder="0.00"
@@ -262,57 +262,57 @@
                               </div>
                           </div>
 
-                          <!-- Total Display -->
+                          <!-- عرض المجموع -->
                           <div class="col-md-6 mb-4">
                               <div class="alert alert-success">
-                                  <strong>Total Amount: {{ totalAmount.toFixed(2) }} IQD</strong>
+                                  <strong>المبلغ الإجمالي: {{ totalAmount.toFixed(2) }} د.ع</strong>
                               </div>
                           </div>
 
-                          <!-- Payment Type -->
+                          <!-- نوع الدفع -->
                           <div class="col-md-12 mb-4">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label">Payment Type</label>
+                                  <label class="modern-form-label">نوع الدفع</label>
                                   <div class="d-flex gap-3">
                                       <div class="form-check">
                                           <input class="form-check-input" type="radio" name="paymentType"
                                               id="fullPayment" value="full_payment" v-model="form.payment_type">
                                           <label class="form-check-label" for="fullPayment">
-                                              Full Payment
+                                              دفع كامل
                                           </label>
                                       </div>
                                       <div class="form-check">
                                           <input class="form-check-input" type="radio" name="paymentType"
                                               id="installment" value="installment" v-model="form.payment_type">
                                           <label class="form-check-label" for="installment">
-                                              Installment
+                                              أقساط
                                           </label>
                                       </div>
                                   </div>
                               </div>
                           </div>
 
-                          <!-- Full Payment Fields -->
+                          <!-- حقول الدفع الكامل -->
                           <div class="col-md-6 mb-4" v-if="form.payment_type === 'full_payment'">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label">Paid Amount</label>
+                                  <label class="modern-form-label">المبلغ المدفوع</label>
                                   <input type="number" class="modern-form-control"
                                       v-model="form.paid_amount"
                                       :placeholder="totalAmount.toFixed(2)"
                                       step="0.01"
                                       min="0">
-                                  <small class="text-muted">Leave empty to auto-fill with total amount</small>
+                                  <small class="text-muted">اتركه فارغًا ليتم تعبئته تلقائيًا بمبلغ الإجمالي</small>
                               </div>
                           </div>
 
-                          <!-- Installment Fields -->
+                          <!-- حقول الأقساط -->
                           <template v-if="form.payment_type === 'installment'">
                               <div class="col-md-6 mb-4">
                                   <div class="modern-form-group">
-                                      <label class="modern-form-label">Number of Months</label>
+                                      <label class="modern-form-label">عدد الأشهر</label>
                                       <input type="number" class="modern-form-control"
                                           v-model="form.installment_months"
-                                          placeholder="Enter months..."
+                                          placeholder="أدخل عدد الأشهر..."
                                           min="1"
                                           @input="calculateInstallments">
                                       <HasError :form="form" field="installment_months"/>
@@ -321,11 +321,11 @@
 
                               <div class="col-md-6 mb-4">
                                   <div class="modern-form-group">
-                                      <label class="modern-form-label">Deposit/Down Payment?</label>
+                                      <label class="modern-form-label">عربون/دفعة مقدمة؟</label>
                                       <div class="form-check">
                                           <input type="checkbox" v-model="form.has_deposit" class="form-check-input" id="hasDeposit">
                                           <label class="form-check-label" for="hasDeposit">
-                                              Yes, customer will pay deposit
+                                              نعم، العميل سيدفع عربون
                                           </label>
                                       </div>
                                   </div>
@@ -333,56 +333,56 @@
 
                               <div class="col-md-6 mb-4" v-if="form.has_deposit">
                                   <div class="modern-form-group">
-                                      <label class="modern-form-label">Deposit Amount</label>
+                                      <label class="modern-form-label">مبلغ العربون</label>
                                       <input type="number" class="modern-form-control"
                                           v-model="form.deposit_amount"
                                           placeholder="0.00"
                                           step="0.01"
                                           min="0"
                                           :max="totalAmount">
-                                      <small class="text-muted">Amount to finance: {{ amountToFinance.toFixed(2) }} IQD</small>
+                                      <small class="text-muted">المبلغ المُمَوَّل: {{ amountToFinance.toFixed(2) }} د.ع</small>
                                       <HasError :form="form" field="deposit_amount"/>
                                   </div>
                               </div>
 
                               <div class="col-md-6 mb-4">
                                   <div class="modern-form-group">
-                                      <label class="modern-form-label">Initial Payment Beyond Deposit (Optional)</label>
+                                      <label class="modern-form-label">دفعة أولية إضافية غير العربون (اختياري)</label>
                                       <input type="number" class="modern-form-control"
                                           v-model="form.paid_amount"
                                           placeholder="0.00"
                                           step="0.01"
                                           min="0">
-                                      <small class="text-muted">Additional payment for first installment(s)</small>
+                                      <small class="text-muted">دفعة إضافية لتغطية القسط/الأقساط الأولى</small>
                                   </div>
                               </div>
 
-                              <!-- Installment Preview -->
+                              <!-- معاينة خطة الأقساط -->
                               <div class="col-md-12 mb-4" v-if="form.installment_months > 0">
                                   <div class="alert alert-info">
-                                      <h6>Installment Plan Preview:</h6>
-                                      <p class="mb-1"><strong>Total Amount:</strong> {{ totalAmount.toFixed(2) }} IQD</p>
-                                      <p class="mb-1" v-if="form.has_deposit"><strong>Deposit:</strong> {{ (parseFloat(form.deposit_amount) || 0).toFixed(2) }} IQD</p>
-                                      <p class="mb-1"><strong>Amount to Finance:</strong> {{ amountToFinance.toFixed(2) }} IQD</p>
-                                      <p class="mb-1"><strong>Monthly Payment:</strong> {{ monthlyInstallment.toFixed(2) }} IQD</p>
-                                      <p class="mb-0"><strong>Number of Installments:</strong> {{ form.installment_months }}</p>
+                                      <h6>معاينة خطة الأقساط:</h6>
+                                      <p class="mb-1"><strong>المبلغ الإجمالي:</strong> {{ totalAmount.toFixed(2) }} د.ع</p>
+                                      <p class="mb-1" v-if="form.has_deposit"><strong>العربون:</strong> {{ (parseFloat(form.deposit_amount) || 0).toFixed(2) }} د.ع</p>
+                                      <p class="mb-1"><strong>المبلغ المُمَوَّل:</strong> {{ amountToFinance.toFixed(2) }} د.ع</p>
+                                      <p class="mb-1"><strong>القسط الشهري:</strong> {{ monthlyInstallment.toFixed(2) }} د.ع</p>
+                                      <p class="mb-0"><strong>عدد الأقساط:</strong> {{ form.installment_months }}</p>
                                   </div>
                               </div>
                           </template>
 
-                          <!-- Notes -->
+                          <!-- ملاحظات -->
                           <div class="col-md-12 mb-4">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label" for="notes">Notes (Optional)</label>
+                                  <label class="modern-form-label" for="notes">ملاحظات (اختياري)</label>
                                   <textarea class="modern-textarea" id="notes" rows="3"
-                                      v-model="form.notes" placeholder="Add any additional notes..."></textarea>
+                                      v-model="form.notes" placeholder="أضف أي ملاحظات إضافية..."></textarea>
                               </div>
                           </div>
 
-                          <!-- Submit Button -->
+                          <!-- زر الإرسال -->
                           <div class="col-md-12 mb-4 text-center">
                               <Button :form="form" class="btn btn-success btn-lg">
-                                  Create Invoice <i class="fas fa-check-circle"></i>
+                                  إنشاء الفاتورة <i class="fas fa-check-circle"></i>
                               </Button>
                           </div>
                       </div>
@@ -393,6 +393,7 @@
       </div>
     </div>
 </template>
+
 
 <script>
 export default {
@@ -667,7 +668,7 @@ export default {
 
         getPriceForProduct(product) {
             if (this.form.payment_type === 'full_payment') {
-                return parseFloat(product.cash_price || product.sell_price || product.default_price || 0);
+                return parseFloat(product.sell_price || product.default_price || 0);
             } else {
                 return parseFloat(product.installment_price || product.sell_price || product.default_price || 0);
             }
@@ -675,7 +676,7 @@ export default {
 
         getPriceForVariation(variation) {
             if (this.form.payment_type === 'full_payment') {
-                return parseFloat(variation.cash_price || variation.price || 0);
+                return parseFloat(variation.price || 0);
             } else {
                 return parseFloat(variation.installment_price || variation.price || 0);
             }

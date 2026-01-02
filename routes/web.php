@@ -171,6 +171,8 @@ Route::group(["prefix" => "dashboard", "middleware" => "auth"],function(){
 
         Route::post("/update-variant-stock","ProductController@updateVariantQuantity");
 
+        Route::post("/update-variation","ProductController@updateVariation");
+
         // Shipping crud
         Route::post("/store-shipping","ShippingController@store");
 

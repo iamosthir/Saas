@@ -223,7 +223,7 @@ class ProductController extends Controller
     {
         $this->validate($req,[
             "productId" => "required|numeric|exists:products,id",
-            "name" => "required",
+            "name" => "required|string|max:255",
         ]);
 
         $merchantId = auth()->user()->merchant_id;
@@ -240,9 +240,19 @@ class ProductController extends Controller
             ];
         }
 
+        // Update basic product information
         $product->name = $req->name;
         $product->model_name = $req->model_name;
+        $product->description = $req->description;
+        $product->category_id = $req->category_id;
+        $product->supplier_id = $req->supplier_id;
+        $product->purchase_price = $req->purchase_price;
+        $product->sell_price = $req->sell_price;
+        $product->installment_price = $req->installment_price;
+        $product->discount_type = $req->discount_type;
+        $product->discount_amount = $req->discount_amount ?? 0;
 
+        // Handle main image upload
         if($req->hasFile("image"))
         {
             if($product->image != "")
@@ -258,28 +268,99 @@ class ProductController extends Controller
             $file->move(public_path("uploads/products/"),$new_name);
             $product->image = $new_name;
         }
+
+        // Handle thumbnail upload
+        if($req->hasFile("thumbnail"))
+        {
+            if($product->thumbnail != "")
+            {
+                if(file_exists(public_path("uploads/products/$product->thumbnail")))
+                {
+                    unlink(public_path("uploads/products/$product->thumbnail"));
+                }
+            }
+
+            $file = $req->file("thumbnail");
+            $thumb_name = "thumb_" . rand() . "_" . time() . "." . $file->getClientOriginalExtension();
+            $file->move(public_path("uploads/products/"), $thumb_name);
+            $product->thumbnail = $thumb_name;
+        }
+
         $product->save();
 
-        $variants = json_decode($req->variant_data,1);
+        // Handle new variations if any
+        $variants = json_decode($req->variant_data, 1);
         $newVariants = array();
-        foreach($variants as $vars)
-        {
-            if($vars["variant_name"] != "" || $vars["price"] != "" || $vars["qnt"] != "")
+
+        if (!empty($variants)) {
+            foreach($variants as $vars)
             {
-                $vars = ProductVariation::create([
-                    "product_id" => $product->id,
-                    "var_name" => $vars["variant_name"],
-                    "price" => $vars["price"],
-                    "quantity" => $vars["qnt"],
-                ]);
-                $newVariants[] = $vars;
+                if(!empty($vars["var_name"]) && isset($vars["sell_price"]) && isset($vars["quantity"]))
+                {
+                    $newVar = ProductVariation::create([
+                        "merchant_id" => $merchantId,
+                        "product_id" => $product->id,
+                        "var_name" => $vars["var_name"],
+                        "attribute_values" => isset($vars["attribute_values"]) ? $vars["attribute_values"] : null,
+                        "price" => $vars["sell_price"],
+                        "purchase_price" => $vars["purchase_price"] ?? 0,
+                        "installment_price" => $vars["installment_price"] ?? 0,
+                        "quantity" => $vars["quantity"],
+                        "average_price" => $vars["purchase_price"] ?? 0
+                    ]);
+                    $newVariants[] = $newVar;
+                }
             }
         }
 
         return [
             "status" => "ok",
-            "msg" => "Product updated succesfully",
+            "msg" => "Product updated successfully",
             "new_vars" => $newVariants,
+        ];
+    }
+
+    public function updateVariation(Request $req)
+    {
+        $this->validate($req, [
+            "variation_id" => "required|numeric|exists:product_variations,id",
+            "purchase_price" => "nullable|numeric|min:0",
+            "price" => "nullable|numeric|min:0",
+            "installment_price" => "nullable|numeric|min:0",
+        ]);
+
+        $merchantId = auth()->user()->merchant_id;
+        $variation = ProductVariation::find($req->variation_id);
+
+        // Check if the variation's product belongs to merchant
+        $product = Product::where('id', $variation->product_id)
+            ->where('merchant_id', $merchantId)
+            ->first();
+
+        if (!$product) {
+            return [
+                "status" => "fail",
+                "msg" => "Access denied"
+            ];
+        }
+
+        // Update variation prices
+        if ($req->has('purchase_price')) {
+            $variation->purchase_price = $req->purchase_price;
+        }
+        if ($req->has('price')) {
+            $variation->price = $req->price;
+        }
+        if ($req->has('installment_price')) {
+            $variation->installment_price = $req->installment_price;
+        }
+
+        $variation->save();
+
+        return [
+            "status" => "ok",
+            "msg" => "Variation updated successfully",
+            "variation" => $variation
         ];
     }
 

@@ -202,6 +202,9 @@ export default {
       return months[new Date().getMonth()];
     },
     totalAmount() {
+      if (!Array.isArray(this.transactions)) {
+        return 0;
+      }
       return this.transactions.reduce((sum, t) => {
         return sum + (t.type === 'income' ? parseFloat(t.amount) : -parseFloat(t.amount));
       }, 0);
@@ -227,9 +230,10 @@ export default {
         if (this.filters.category) params.append('category', this.filters.category);
 
         const response = await axios.get(`/dashboard/api/treasury/transactions?${params.toString()}`);
-        this.transactions = response.data;
+        this.transactions = Array.isArray(response.data) ? response.data : [];
       } catch (error) {
         console.error('Error loading transactions:', error);
+        this.transactions = [];
         swal.fire('خطأ', 'فشل تحميل المعاملات', 'error');
       } finally {
         this.loading = false;
