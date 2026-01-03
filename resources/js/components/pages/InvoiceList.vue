@@ -272,8 +272,8 @@
                                   <span v-if="selectedOrder.payment_type == 'full_payment'" class="badge badge-info">دفع كامل</span>
                                   <span v-else-if="selectedOrder.payment_type == 'installment'" class="badge badge-warning">تقسيط ({{ selectedOrder.installment_months }} شهر)</span>
                               </p>
-                              <p><strong>المبلغ المدفوع:</strong> {{ formatAmount(selectedOrder.paid_amount) }} IQD</p>
-                              <p><strong>المبلغ المتبقي:</strong> {{ formatAmount(selectedOrder.remaining_amount) }} IQD</p>
+                              <p><strong>المبلغ المدفوع:</strong> {{ selectedOrder.paid_amount }} IQD</p>
+                              <p><strong>المبلغ المتبقي:</strong> {{ selectedOrder.remaining_amount }} IQD</p>
                           </div>
                           <div class="col-md-6">
                               <p><strong>حالة الدفع:</strong>
@@ -406,7 +406,7 @@
               })
           },
           printSingle(id) {
-              let url = `/dashboard/print-invoice/["${id}"]/copy/1`;
+              let url = `/dashboard/print-new-invoice/${id}`;
               window.open(url,"_blank");
           },
           updateOrderStatus(orderId,index,status) {
