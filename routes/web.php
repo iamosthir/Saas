@@ -114,6 +114,7 @@ Route::group(["prefix" => "dashboard", "middleware" => "auth"],function(){
         Route::post("/invoices","InvoiceController@store");
         Route::get("/invoices","InvoiceController@getList");
         Route::get("/invoices/{id}","InvoiceController@show");
+        Route::get("/invoices/{id}/activity-logs","InvoiceController@getActivityLogs");
         Route::get("/customers","InvoiceController@getCustomers");
         Route::post("/invoices/{id}/mark-paid","InvoiceController@markAsPaid");
         Route::post("/installments/{id}/pay","InvoiceController@payInstallment");

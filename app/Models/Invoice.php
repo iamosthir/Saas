@@ -21,6 +21,8 @@ class Invoice extends Model
         'total_amount',
         'payment_type',
         'installment_months',
+        'has_deposit',
+        'deposit_amount',
         'paid_amount',
         'remaining_amount',
         'payment_status',
@@ -63,6 +65,11 @@ class Invoice extends Model
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function activityLogs()
+    {
+        return $this->hasMany(InvoiceActivityLog::class)->orderBy('created_at', 'desc');
     }
 
     public static function generateInvoiceNumber()

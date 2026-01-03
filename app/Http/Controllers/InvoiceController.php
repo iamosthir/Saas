@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\InstallmentSchedule;
+use App\Models\InvoiceActivityLog;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\ProductVariation;
@@ -169,10 +170,23 @@ class InvoiceController extends Controller
             } else {
                 // Create installment schedules (amount to finance = total - deposit)
                 $amountToFinance = $totalAmount - $depositAmount;
-                $installmentAmount = $amountToFinance / $request->installment_months;
+                $baseInstallmentAmount = $amountToFinance / $request->installment_months;
+
+                // Round up to nearest 100 for a round figure
+                $roundedInstallmentAmount = ceil($baseInstallmentAmount / 100) * 100;
+
+                // Calculate last month amount (remainder)
+                $regularMonths = $request->installment_months - 1;
+                $lastMonthAmount = $amountToFinance - ($roundedInstallmentAmount * $regularMonths);
+
                 $currentDate = Carbon::now();
 
                 for ($i = 1; $i <= $request->installment_months; $i++) {
+                    // Use rounded amount for first (n-1) months, remainder for last month
+                    $installmentAmount = ($i < $request->installment_months)
+                        ? $roundedInstallmentAmount
+                        : $lastMonthAmount;
+
                     InstallmentSchedule::create([
                         'invoice_id' => $invoice->id,
                         'installment_number' => $i,
@@ -400,6 +414,7 @@ class InvoiceController extends Controller
 
             $paymentAmount = $request->amount;
             $remainingForInstallment = $installment->amount - $installment->paid_amount;
+            $userName = Auth::user()->name;
 
             if ($paymentAmount >= $remainingForInstallment) {
                 // Full payment or overpayment
@@ -407,6 +422,16 @@ class InvoiceController extends Controller
                 $installment->status = 'paid';
                 $installment->paid_date = Carbon::now();
                 $installment->save();
+
+                // Log full payment
+                InvoiceActivityLog::create([
+                    'invoice_id' => $invoice->id,
+                    'installment_schedule_id' => $installment->id,
+                    'user_id' => Auth::id(),
+                    'action_type' => 'payment_full',
+                    'description' => "تم دفع القسط رقم {$installment->installment_number} بالكامل بمبلغ " . number_format($remainingForInstallment, 0) . " د.ع بواسطة {$userName}",
+                    'amount' => $remainingForInstallment,
+                ]);
 
                 $overpayment = $paymentAmount - $remainingForInstallment;
 
@@ -422,6 +447,16 @@ class InvoiceController extends Controller
                 $installment->status = 'partial';
                 $installment->save();
 
+                // Log partial payment
+                InvoiceActivityLog::create([
+                    'invoice_id' => $invoice->id,
+                    'installment_schedule_id' => $installment->id,
+                    'user_id' => Auth::id(),
+                    'action_type' => 'payment_partial',
+                    'description' => "تم دفع جزء من القسط رقم {$installment->installment_number} بمبلغ " . number_format($paymentAmount, 0) . " د.ع من أصل " . number_format($installment->amount, 0) . " د.ع بواسطة {$userName}",
+                    'amount' => $paymentAmount,
+                ]);
+
                 // Find last unpaid installment
                 $lastInstallment = InstallmentSchedule::where('invoice_id', $invoice->id)
                     ->where('status', 'unpaid')
@@ -432,6 +467,16 @@ class InvoiceController extends Controller
                     $lastInstallment->amount += $shortfall;
                     $lastInstallment->notes = "Added shortfall of " . number_format($shortfall, 0) . " IQD from Installment #{$installment->installment_number}";
                     $lastInstallment->save();
+
+                    // Log shortfall added to last installment
+                    InvoiceActivityLog::create([
+                        'invoice_id' => $invoice->id,
+                        'installment_schedule_id' => $lastInstallment->id,
+                        'user_id' => Auth::id(),
+                        'action_type' => 'shortfall_added',
+                        'description' => "تمت إضافة المبلغ المتبقي " . number_format($shortfall, 0) . " د.ع من القسط رقم {$installment->installment_number} إلى القسط الأخير رقم {$lastInstallment->installment_number}",
+                        'amount' => $shortfall,
+                    ]);
                 }
             }
 
@@ -475,6 +520,37 @@ class InvoiceController extends Controller
             return response()->json([
                 'status' => 'error',
                 'msg' => 'Failed to process payment: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function getActivityLogs($id)
+    {
+        try {
+            $invoice = Invoice::findOrFail($id);
+
+            // Check if user has access to this invoice
+            if ($invoice->merchant_id !== Auth::user()->merchant_id) {
+                return response()->json([
+                    'status' => 'error',
+                    'msg' => 'Unauthorized access',
+                ], 403);
+            }
+
+            $activityLogs = InvoiceActivityLog::where('invoice_id', $id)
+                ->with(['user', 'installmentSchedule'])
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return response()->json([
+                'status' => 'ok',
+                'activity_logs' => $activityLogs,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'msg' => 'Failed to fetch activity logs: ' . $e->getMessage(),
             ], 500);
         }
     }

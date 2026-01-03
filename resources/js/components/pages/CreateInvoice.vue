@@ -369,8 +369,9 @@
                                       <p class="mb-1"><strong>المبلغ الإجمالي:</strong> {{ formatNumber(totalAmount) }} د.ع</p>
                                       <p class="mb-1" v-if="form.has_deposit"><strong>العربون:</strong> {{ formatNumber(form.deposit_amount || 0) }} د.ع</p>
                                       <p class="mb-1"><strong>المبلغ المُمَوَّل:</strong> {{ formatNumber(amountToFinance) }} د.ع</p>
-                                      <p class="mb-1"><strong>القسط الشهري:</strong> {{ formatNumber(monthlyInstallment) }} د.ع</p>
-                                      <p class="mb-0"><strong>عدد الأقساط:</strong> {{ form.installment_months }}</p>
+                                      <p class="mb-1"><strong>القسط الشهري ({{ parseInt(form.installment_months) - 1 }} شهر):</strong> {{ formatNumber(monthlyInstallment) }} د.ع</p>
+                                      <p class="mb-1"><strong>القسط الأخير (الشهر {{ parseInt(form.installment_months) }}):</strong> {{ formatNumber(lastMonthInstallment) }} د.ع</p>
+                                      <p class="mb-0"><strong>إجمالي عدد الأقساط:</strong> {{ parseInt(form.installment_months) }}</p>
                                   </div>
                               </div>
                           </template>
@@ -469,8 +470,21 @@ export default {
         },
 
         monthlyInstallment() {
-            if (this.form.installment_months > 0) {
-                return this.amountToFinance / this.form.installment_months;
+            const months = parseInt(this.form.installment_months);
+            if (months > 0) {
+                const baseAmount = this.amountToFinance / months;
+                // Round up to nearest 100 for a round figure
+                return Math.ceil(baseAmount / 100) * 100;
+            }
+            return 0;
+        },
+
+        lastMonthInstallment() {
+            const months = parseInt(this.form.installment_months);
+            if (months > 0) {
+                const regularMonths = months - 1;
+                const totalRegularPayments = this.monthlyInstallment * regularMonths;
+                return this.amountToFinance - totalRegularPayments;
             }
             return 0;
         }
@@ -554,7 +568,12 @@ export default {
             }).then(data => {
                 if (data.status == "ok") {
                     swal.fire("Success", data.msg, "success");
-                    this.resetForm();
+                    // Redirect to invoice details page
+                    if (data.invoice && data.invoice.id) {
+                        this.$router.push({ name: 'invoice.details', params: { id: data.invoice.id } });
+                    } else {
+                        this.resetForm();
+                    }
                 } else {
                     swal.fire("Failed", data.msg || "Failed to create invoice", "error");
                 }

@@ -214,7 +214,15 @@ export default {
     async loadStats() {
       try {
         const response = await axios.get('/dashboard/api/treasury');
-        this.stats = response.data;
+        // The backend returns { status: 'ok', stats: {...} }
+        this.stats = response.data.stats || {
+          current_month_income: 0,
+          current_month_expense: 0,
+          ytd_income: 0,
+          ytd_expense: 0,
+          current_balance: 0,
+          ytd_net: 0,
+        };
       } catch (error) {
         console.error('Error loading treasury stats:', error);
         swal.fire('خطأ', 'فشل تحميل إحصائيات الخزينة', 'error');
@@ -224,13 +232,23 @@ export default {
       this.loading = true;
       try {
         const params = new URLSearchParams();
-        if (this.filters.from_date) params.append('from_date', this.filters.from_date);
-        if (this.filters.to_date) params.append('to_date', this.filters.to_date);
+        if (this.filters.from_date) params.append('date_from', this.filters.from_date);
+        if (this.filters.to_date) params.append('date_to', this.filters.to_date);
         if (this.filters.type) params.append('type', this.filters.type);
         if (this.filters.category) params.append('category', this.filters.category);
 
         const response = await axios.get(`/dashboard/api/treasury/transactions?${params.toString()}`);
-        this.transactions = Array.isArray(response.data) ? response.data : [];
+        // The backend returns { status: 'ok', transactions: { data: [...], current_page: ..., ... } }
+        if (response.data.status === 'ok' && response.data.transactions) {
+          // Check if it's paginated data
+          if (response.data.transactions.data) {
+            this.transactions = response.data.transactions.data;
+          } else {
+            this.transactions = response.data.transactions;
+          }
+        } else {
+          this.transactions = [];
+        }
       } catch (error) {
         console.error('Error loading transactions:', error);
         this.transactions = [];
