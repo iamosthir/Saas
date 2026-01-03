@@ -47,7 +47,6 @@
                   <th>حالة الدفع</th>
                   <th>حالة الطلب</th>
                   <th>التاريخ</th>
-                  <th>العمليات</th>
                 </tr>
               </thead>
               <tbody>
@@ -81,25 +80,9 @@
                     <span class="badge bg-info text-dark">{{ sale.order_status }}</span>
                   </td>
                   <td>{{ sale.created_at | formatDate }}</td>
-                  <td>
-                    <a target="_blank"
-                      class="btn btn-outline-secondary btn-sm mb-1" :href="`/dashboard/print-salesinvoice/${sale.id}`">
-                      <i class="fas fa-print"></i> طباعة الفاتورة
-                    </a>
-                    <button v-if="dueAmount(sale) > 0"
-                      class="btn btn-sm btn-primary mb-1"
-                      @click="openPaymentModal(sale)">
-                      <i class="fas fa-plus"></i> إضافة دفعة
-                    </button>
-                    <button
-                      class="btn btn-sm btn-warning mb-1"
-                      @click="openViewPayments(sale)">
-                      <i class="fas fa-list"></i> عرض الدفعات
-                    </button>
-                  </td>
                 </tr>
                 <tr v-if="rows.length === 0">
-                  <td colspan="11" class="text-center text-muted">ماكو سجلات.</td>
+                  <td colspan="10" class="text-center text-muted">ماكو سجلات.</td>
                 </tr>
               </tbody>
             </table>

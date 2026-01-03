@@ -10,7 +10,7 @@
             <div class="row">
 
               <!-- Product Selection -->
-              <div class="col-md-5 mb-4">
+              <div class="col-md-4 mb-4">
                 <label class="form-label">أختيار المنتج</label>
                 <multiselect v-model="selectedProduct"
                   :options="products"
@@ -37,12 +37,12 @@
               </div>
 
               <!-- Quantity Input -->
-              <div class="col-md-2 mb-4">
+              <div class="col-md-3 mb-4">
                 <label class="form-label">العدد</label>
-                <div class="input-group input-group-lg">
-                  <button @click="productForm.qnt++" type="button" class="btn btn-success border-red-0">+</button>
-                  <input type="number" class="form-control form-control-lg text-center" v-model="productForm.qnt">
-                  <button @click="productForm.qnt = productForm.qnt > 1 ? productForm.qnt-1 : 1" type="button" class="btn btn-primary border-red-0">-</button>
+                <div class="input-group">
+                  <button @click="productForm.qnt = productForm.qnt > 1 ? productForm.qnt-1 : 1" type="button" class="btn btn-primary">-</button>
+                  <input type="number" class="form-control text-center" v-model="productForm.qnt">
+                  <button @click="productForm.qnt++" type="button" class="btn btn-success">+</button>
                 </div>
               </div>
 
@@ -158,7 +158,7 @@ export default {
   },
   methods: {
     async getProductList() {
-      await axios.get("/dashboard/api/product-list?supplier_id=" + this.supplier_id)
+      await axios.get("/dashboard/api/product-list?merchant_id=" + this.supplier_id)
         .then(resp => { this.products = resp.data })
         .catch(err => { console.error(err.response.data); });
     },

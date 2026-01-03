@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CustomerSaleInvoice;
+use App\Models\Invoice;
 use App\Models\ProductVariation;
 use Illuminate\Http\Request;
 
@@ -13,7 +14,9 @@ class CustomerSaleInvoiceController extends Controller
     public function index(Request $request)
     {
         $merchantId = auth()->user()->merchant_id;
-        $query = CustomerSaleInvoice::where('merchant_id', $merchantId);
+
+        // Query from invoices table (the main invoice system)
+        $query = Invoice::where('merchant_id', $merchantId);
 
         // Filter by from_date and to_date if provided
         if ($request->filled('from_date')) {
@@ -23,23 +26,44 @@ class CustomerSaleInvoiceController extends Controller
             $query->whereDate('created_at', '<=', $request->to_date);
         }
 
-        // Eager load customer and payments
-        $query->with(['customer:id,customer_name', 'payments']);
+        // Eager load customer and items
+        $query->with(['customer:id,customer_name', 'items']);
 
         $invoices = $query->orderBy('created_at', 'desc')->paginate(20);
 
         // Calculate total sales in the current month (regardless of filter)
         $now = now();
-        $total_sales_month = CustomerSaleInvoice::where('merchant_id', $merchantId)
+        $total_sales_month = Invoice::where('merchant_id', $merchantId)
             ->whereYear('created_at', $now->year)
             ->whereMonth('created_at', $now->month)
-            ->sum('total_price');
+            ->sum('total_amount');
 
-        // Add customer_name and total_paid to each item
+        // Transform data to match the frontend expectations
         $invoices->getCollection()->transform(function ($item) {
-            $item->customer_name = $item->customer->customer_name ?? null;
-            $item->total_paid = $item->payments->sum('amount');
-            return $item;
+            // Format products as JSON string for compatibility
+            $products = $item->items->map(function ($invoiceItem) {
+                return [
+                    'product_id' => $invoiceItem->product_id,
+                    'product_name' => $invoiceItem->product_name,
+                    'variant_id' => $invoiceItem->product_variation_id,
+                    'variant_name' => $invoiceItem->variation_name ?? 'N/A',
+                    'qnt' => $invoiceItem->quantity,
+                    'unit_price' => $invoiceItem->custom_price,
+                    'total_price' => $invoiceItem->line_total,
+                ];
+            })->toArray();
+
+            return [
+                'id' => $item->id,
+                'customer_name' => $item->customer->customer_name ?? 'N/A',
+                'products' => json_encode($products),
+                'total_price' => $item->total_amount,
+                'total_paid' => $item->paid_amount,
+                'payment_status' => $item->payment_status,
+                'order_status' => $item->payment_type === 'installment' ? 'تقسيط' : 'دفع كامل',
+                'created_at' => $item->created_at,
+                'payments' => [], // Can be expanded if needed
+            ];
         });
 
         $result = $invoices->toArray();

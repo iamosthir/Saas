@@ -158,22 +158,33 @@ class PurchaseInvoiceController extends Controller
         }
         $purchases = $purchaseQuery->sum('total_price');
 
-        // Sales total
-        $salesQuery = CustomerSaleInvoice::where('merchant_id', $merchantId);
+        // Sales total - using the main invoices table
+        $salesQuery = \App\Models\Invoice::where('merchant_id', $merchantId);
         if ($from_date) {
             $salesQuery->whereDate('created_at', '>=', $from_date);
         }
         if ($to_date) {
             $salesQuery->whereDate('created_at', '<=', $to_date);
         }
-        $sales = $salesQuery->sum('total_price');
+        $sales = $salesQuery->sum('total_amount');
 
-        // Profit/Loss
-        $profit_loss = $sales - $purchases;
+        // Expenses total
+        $expensesQuery = \App\Models\Expense::where('merchant_id', $merchantId);
+        if ($from_date) {
+            $expensesQuery->whereDate('created_at', '>=', $from_date);
+        }
+        if ($to_date) {
+            $expensesQuery->whereDate('created_at', '<=', $to_date);
+        }
+        $expenses = $expensesQuery->sum('amount');
+
+        // Profit/Loss = Sales - Purchases - Expenses
+        $profit_loss = $sales - $purchases - $expenses;
 
         return response()->json([
             'purchases' => $purchases,
             'sales' => $sales,
+            'expenses' => $expenses,
             'profit_loss' => $profit_loss,
         ]);
     }

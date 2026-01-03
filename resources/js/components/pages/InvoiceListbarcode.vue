@@ -7,39 +7,28 @@
                 <div>
                     <p>مجموع الطلبات: <strong>{{ orders.length }}</strong>
                          &nbsp;|&nbsp; عدد المنتجات :  <strong>{{ totalQuantity }}</strong>
-                         &nbsp;|&nbsp; السعر الكلي: <strong>IQD {{ totalPrice }}</strong></p>
+                         &nbsp;|&nbsp; السعر الكلي: <strong>{{ formatAmount(totalPrice) }} IQD</strong></p>
                 </div>
             </div>
             <div class="card-body">
                 <form class="row mb-4" @submit.prevent="getOrderById">
-                    <div class="col-md-3 mt-2">
-                        <div class="form-outline">
-                            <input type="search" class="form-control" placeholder="Invoice ID" id="invId" v-model="searchId">
-                            <label class="form-label" for="invId">  بحث عن طريق الباركود   </label>
-                        </div>
-                    </div>
-                    <!-- <div class="col-md-2 mt-2">
-                        <select class="form-select" v-model="form.status">
-                            <option value="">الكل</option>
-                            <option value="pending">جاري شحن</option>
-                            <option value="completed">واصل تم</option>
-                            <option value="canceled">راجع</option>
-                            <option value="delayed">مؤجل</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2 mt-2">
-                        <date-picker placeholder="من تاريخ" class="w-100" type="date" valueType="format" v-model="form.from_date"></date-picker>
-                    </div>
-                    <div class="col-md-2 mt-2">
-                        <date-picker placeholder="الى تاريخ" class="w-100" type="date" valueType="format" v-model="form.to_date"></date-picker>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label" for="invId">بحث عن طريق الباركود</label>
+                        <input
+                            type="search"
+                            class="form-control"
+                            placeholder="أدخل رقم الفاتورة"
+                            id="invId"
+                            v-model="searchId"
+                            ref="barcodeInput"
+                        >
                     </div>
 
-                    <div class="col-md-2 mt-2">
-                        <input class="form-control" placeholder="رقم الهاتف" type="number" v-model="form.phone">
-                    </div> -->
-
-                    <div class="col-12 mt-2">
-                        <button type="submit" class="btn btn-success">Add <i class="fas fa-plus"></i></button>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label d-block">&nbsp;</label>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-plus me-1"></i>إضافة
+                        </button>
                     </div>
                 </form>
                 <div class="table-responsive">
@@ -99,7 +88,7 @@
                                         <td>{{ order.address }}<br>{{ order.state }}, {{ order.city }}</td>
                                         <td><strong class="text-muted">{{ order.admin_name }}</strong></td>
                                         <td><strong class="text-muted">{{ order.qnt }}</strong></td>
-                                        <td><strong class="text-success">{{ order.price }} IQD</strong></td>
+                                        <td><strong class="text-success">{{ formatAmount(order.price) }} IQD</strong></td>
                                         <td>
                                             <span v-if="order.status=='pending'" class="badge badge-warning">Pending <i class="fas fa-history"></i></span>
                                             <span v-else-if="order.status=='canceled'" class="badge badge-danger">Canceled <i class="fas fa-times-circle"></i></span>
@@ -188,7 +177,28 @@ export default {
         }
     },
     methods: {
+        formatAmount(amount) {
+            const num = parseFloat(amount);
+            if (isNaN(num)) return '0';
+            const hasDecimals = num % 1 !== 0;
+            if (hasDecimals) {
+                return num.toLocaleString('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2
+                });
+            } else {
+                return num.toLocaleString('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                });
+            }
+        },
         async getOrderById() {
+            if (!this.searchId || this.searchId.trim() === '') {
+                swal.fire("خطأ", "الرجاء إدخال رقم الفاتورة", "warning");
+                return;
+            }
+
             axios.get('/dashboard/api/search-order-by-id',{
                 params: {
                     orderId: this.searchId
@@ -208,21 +218,32 @@ export default {
 
                     if(canPush) {
                         this.orders.push(data.data);
+                        swal.fire("تم", "تم إضافة الفاتورة بنجاح", "success");
+                    } else {
+                        swal.fire("تنبيه", "هذه الفاتورة موجودة بالفعل في القائمة", "info");
                     }
 
                     this.searchId = "";
+                    // Refocus on input for next scan
+                    this.$nextTick(() => {
+                        if (this.$refs.barcodeInput) {
+                            this.$refs.barcodeInput.focus();
+                        }
+                    });
                 }
                 else {
-                    swal.fire("Not found",data.msg,"error");
+                    swal.fire("غير موجود", data.msg || "لم يتم العثور على الفاتورة", "error");
+                    // Keep focus on input for retry
+                    this.$nextTick(() => {
+                        if (this.$refs.barcodeInput) {
+                            this.$refs.barcodeInput.select();
+                        }
+                    });
                 }
             }).catch(err=>{
                 console.error(err.response.data);
+                swal.fire("خطأ", "حدث خطأ أثناء البحث عن الفاتورة", "error");
             });
-        },
-        initMDB() {
-            var parent = this.$el;
-            var child = parent.querySelectorAll(".form-outline");
-            child.forEach(function(el) { new mdb.Input(el); });
         },
         toggleCheckBox() {
             var _self = this;
@@ -259,7 +280,12 @@ export default {
         }
     },
     mounted() {
-
+        // Auto-focus on barcode input for easier scanning
+        this.$nextTick(() => {
+            if (this.$refs.barcodeInput) {
+                this.$refs.barcodeInput.focus();
+            }
+        });
     },
     watch: {
         'orderSelect' : function(newVal) {

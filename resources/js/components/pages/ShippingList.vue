@@ -8,29 +8,23 @@
             </div>
             <div class="card-body">
                 <form @submit.prevent="addShipping" class="row">
-                    <div class="col-md-4 mb-4">
-                        <div class="form-outline">
-                            <input type="text" class="form-control-lg form-control" :class="{'is-invalid' : form.errors.has('name')}"
-                                placeholder="  أسم شركة  ..." v-model="form.name"/>
-                            <label class="form-label">أسم شركة</label>
-                            <HasError :form="form" field="name"/>
-                        </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">أسم شركة</label>
+                        <input type="text" class="form-control" :class="{'is-invalid' : form.errors.has('name')}"
+                            placeholder="أسم شركة الشحن" v-model="form.name"/>
+                        <HasError :form="form" field="name"/>
                     </div>
 
-                    <div class="col-md-4 mb-4">
-                        <div class="form-outline">
-                            <input type="text" class="form-control-lg form-control" :class="{'is-invalid' : form.errors.has('address')}"
-                                placeholder="العنوان  ..." v-model="form.address"/>
-                            <label class="form-label">العنوان</label>
-                            <HasError :form="form" field="address"/>
-                        </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">العنوان</label>
+                        <input type="text" class="form-control" :class="{'is-invalid' : form.errors.has('address')}"
+                            placeholder="العنوان" v-model="form.address"/>
+                        <HasError :form="form" field="address"/>
                     </div>
 
-                    <div class="col-md-12 mb-4">
-                        <div class="form-outline">
-                            <Button type="submit" :form="form" class="btn btn-success">أضافة</Button>
-                            <button type="button" @click="addMode=false" class="btn btn-danger">أللغاء</button>
-                        </div>
+                    <div class="col-md-12 mb-3">
+                        <Button type="submit" :form="form" class="btn btn-success">أضافة</Button>
+                        <button type="button" @click="addMode=false" class="btn btn-danger ms-2">أللغاء</button>
                     </div>
                 </form>
             </div>
@@ -44,29 +38,23 @@
             </div>
             <div class="card-body">
                 <form @submit.prevent="updateShipping" class="row">
-                    <div class="col-md-4 mb-4">
-                        <div class="form-outline">
-                            <input type="text" class="form-control-lg form-control" :class="{'is-invalid' : updateForm.errors.has('name')}"
-                                placeholder="Shipping name..." v-model="updateForm.name"/>
-                            <label class="form-label">أسم شركة</label>
-                            <HasError :form="updateForm" field="name"/>
-                        </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">أسم شركة</label>
+                        <input type="text" class="form-control" :class="{'is-invalid' : updateForm.errors.has('name')}"
+                            placeholder="أسم شركة الشحن" v-model="updateForm.name"/>
+                        <HasError :form="updateForm" field="name"/>
                     </div>
 
-                    <div class="col-md-4 mb-4">
-                        <div class="form-outline">
-                            <input type="text" class="form-control-lg form-control" :class="{'is-invalid' : updateForm.errors.has('address')}"
-                                placeholder="Shipping address..." v-model="updateForm.address"/>
-                            <label class="form-label">العنوان</label>
-                            <HasError :form="updateForm" field="address"/>
-                        </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">العنوان</label>
+                        <input type="text" class="form-control" :class="{'is-invalid' : updateForm.errors.has('address')}"
+                            placeholder="العنوان" v-model="updateForm.address"/>
+                        <HasError :form="updateForm" field="address"/>
                     </div>
 
-                    <div class="col-md-12 mb-4">
-                        <div class="form-outline">
-                            <Button type="submit" :form="updateForm" class="btn btn-success">تحديث</Button>
-                            <button type="button" @click="updateMode=false" class="btn btn-danger">غلق</button>
-                        </div>
+                    <div class="col-md-12 mb-3">
+                        <Button type="submit" :form="updateForm" class="btn btn-success">تحديث</Button>
+                        <button type="button" @click="updateMode=false" class="btn btn-danger ms-2">غلق</button>
                     </div>
                 </form>
             </div>
@@ -136,11 +124,6 @@ export default {
         }
     },
     methods: {
-        initMDB() {
-            var parent = this.$el;
-            var child = parent.querySelectorAll(".form-outline");
-            child.forEach(function(el) { new mdb.Input(el); });
-        },
         async deleteShipping(id,index) {
             swal.fire({
                 title: 'Are you sure?',
@@ -178,15 +161,10 @@ export default {
             })
         },
         toggleAddMode() {
-            var _self = this;
             this.addMode = true;
-            this.updateMode =false;
-            setTimeout(function(){
-                _self.initMDB();
-            })
+            this.updateMode = false;
         },
         toggleUpdateMode(index) {
-            var _self = this;
             var shipData = this.shippings[index];
             this.updateForm.shipId = shipData.id;
             this.updateForm.name = shipData.name;
@@ -195,9 +173,6 @@ export default {
 
             this.updateMode = true;
             this.addMode = false;
-            setTimeout(function(){
-                _self.initMDB();
-            })
         },
         async addShipping() {
             await this.form.post("/dashboard/api/store-shipping").then(resp=>{
@@ -236,9 +211,6 @@ export default {
         }
     },
     mounted() {
-        this.$nextTick(()=>{
-            this.initMDB();
-        })
         this.getShippingList();
     },
 }
