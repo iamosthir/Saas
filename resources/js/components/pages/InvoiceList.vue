@@ -7,7 +7,7 @@
                   <div>
                       <p>مجموع الطلبات: <strong>{{ paginateData.total }}</strong>
                            &nbsp;|&nbsp; عدد المنتجات :  <strong>{{ totalQuantity }}</strong>
-                           &nbsp;|&nbsp; السعر الكلي: <strong>IQD {{ totalPrice }}</strong></p>
+                           &nbsp;|&nbsp; السعر الكلي: <strong>IQD {{ formatAmount(totalPrice) }}</strong></p>
                   </div>
               </div>
               <div class="card-body">
@@ -146,7 +146,7 @@
                                             <span class="text-muted">لا توجد منتجات</span>
                                         </template>
                                     </td>
-                                    <td><strong class="text-success">{{ order.total_amount }} IQD</strong></td>
+                                    <td><strong class="text-success">{{ formatAmount(order.total_amount) }} IQD</strong></td>
                                     <td>
                                         <span v-if="order.payment_type == 'full_payment'" class="badge badge-info">دفع كامل</span>
                                         <span v-else-if="order.payment_type == 'installment'" class="badge badge-warning">تقسيط</span>
@@ -240,26 +240,26 @@
                                           <td>{{ item.product_name }}</td>
                                           <td>{{ item.variation_name || 'N/A' }}</td>
                                           <td>{{ item.quantity }}</td>
-                                          <td>{{ item.custom_price }} IQD</td>
-                                          <td>{{ item.line_total }} IQD</td>
+                                          <td>{{ formatAmount(item.custom_price) }} IQD</td>
+                                          <td>{{ formatAmount(item.line_total) }} IQD</td>
                                       </tr>
                                   </tbody>
                                   <tfoot class="bg-light">
                                       <tr>
                                           <td colspan="5" class="text-end"><strong>المجموع الفرعي:</strong></td>
-                                          <td><strong>{{ selectedOrder.subtotal }} IQD</strong></td>
+                                          <td><strong>{{ formatAmount(selectedOrder.subtotal) }} IQD</strong></td>
                                       </tr>
                                       <tr v-if="selectedOrder.discount_amount > 0">
                                           <td colspan="5" class="text-end"><strong>الخصم:</strong></td>
-                                          <td><strong class="text-danger">-{{ selectedOrder.discount_amount }} IQD</strong></td>
+                                          <td><strong class="text-danger">-{{ formatAmount(selectedOrder.discount_amount) }} IQD</strong></td>
                                       </tr>
                                       <tr v-if="selectedOrder.extra_charge > 0">
                                           <td colspan="5" class="text-end"><strong>رسوم إضافية:</strong></td>
-                                          <td><strong>{{ selectedOrder.extra_charge }} IQD</strong></td>
+                                          <td><strong>{{ formatAmount(selectedOrder.extra_charge) }} IQD</strong></td>
                                       </tr>
                                       <tr class="table-primary">
                                           <td colspan="5" class="text-end"><strong>المجموع الكلي:</strong></td>
-                                          <td><strong>{{ selectedOrder.total_amount }} IQD</strong></td>
+                                          <td><strong>{{ formatAmount(selectedOrder.total_amount) }} IQD</strong></td>
                                       </tr>
                                   </tfoot>
                               </table>
@@ -272,8 +272,8 @@
                                   <span v-if="selectedOrder.payment_type == 'full_payment'" class="badge badge-info">دفع كامل</span>
                                   <span v-else-if="selectedOrder.payment_type == 'installment'" class="badge badge-warning">تقسيط ({{ selectedOrder.installment_months }} شهر)</span>
                               </p>
-                              <p><strong>المبلغ المدفوع:</strong> {{ selectedOrder.paid_amount }} IQD</p>
-                              <p><strong>المبلغ المتبقي:</strong> {{ selectedOrder.remaining_amount }} IQD</p>
+                              <p><strong>المبلغ المدفوع:</strong> {{ formatAmount(selectedOrder.paid_amount) }} IQD</p>
+                              <p><strong>المبلغ المتبقي:</strong> {{ formatAmount(selectedOrder.remaining_amount) }} IQD</p>
                           </div>
                           <div class="col-md-6">
                               <p><strong>حالة الدفع:</strong>
@@ -342,6 +342,31 @@
           }
       },
       methods: {
+          formatAmount(amount) {
+              // Convert to number if it's a string
+              const num = parseFloat(amount);
+
+              // Return empty string if not a valid number
+              if (isNaN(num)) return '0';
+
+              // Check if the number has decimals
+              const hasDecimals = num % 1 !== 0;
+
+              // Format with thousand separators
+              if (hasDecimals) {
+                  // Show max 2 decimal places
+                  return num.toLocaleString('en-US', {
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 2
+                  });
+              } else {
+                  // No decimals, show as whole number
+                  return num.toLocaleString('en-US', {
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0
+                  });
+              }
+          },
           async getOrderList(page = 1) {
               this.form.page = page;
               this.isLoading = true;

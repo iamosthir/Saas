@@ -440,11 +440,13 @@ class InvoiceController extends Controller
                     $this->applyPaymentToInstallments($invoice, $overpayment);
                 }
             } else {
-                // PARTIAL PAYMENT - Add shortfall to LAST installment
+                // PARTIAL PAYMENT - Mark as paid and add shortfall to LAST installment
                 $shortfall = $remainingForInstallment - $paymentAmount;
 
-                $installment->paid_amount += $paymentAmount;
-                $installment->status = 'partial';
+                // Mark this installment as fully paid (even though it was partial)
+                $installment->paid_amount = $installment->amount; // Set to full amount
+                $installment->status = 'paid'; // Mark as paid
+                $installment->paid_date = Carbon::now();
                 $installment->save();
 
                 // Log partial payment
@@ -453,7 +455,7 @@ class InvoiceController extends Controller
                     'installment_schedule_id' => $installment->id,
                     'user_id' => Auth::id(),
                     'action_type' => 'payment_partial',
-                    'description' => "تم دفع جزء من القسط رقم {$installment->installment_number} بمبلغ " . number_format($paymentAmount, 0) . " د.ع من أصل " . number_format($installment->amount, 0) . " د.ع بواسطة {$userName}",
+                    'description' => "تم دفع جزء من القسط رقم {$installment->installment_number} بمبلغ " . number_format($paymentAmount, 0) . " د.ع من أصل " . number_format($installment->amount, 0) . " د.ع بواسطة {$userName} (المتبقي " . number_format($shortfall, 0) . " د.ع تم إضافته للقسط الأخير)",
                     'amount' => $paymentAmount,
                 ]);
 

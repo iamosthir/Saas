@@ -369,7 +369,7 @@
                                       <p class="mb-1"><strong>المبلغ الإجمالي:</strong> {{ formatNumber(totalAmount) }} د.ع</p>
                                       <p class="mb-1" v-if="form.has_deposit"><strong>العربون:</strong> {{ formatNumber(form.deposit_amount || 0) }} د.ع</p>
                                       <p class="mb-1"><strong>المبلغ المُمَوَّل:</strong> {{ formatNumber(amountToFinance) }} د.ع</p>
-                                      <p class="mb-1"><strong>القسط الشهري ({{ parseInt(form.installment_months) - 1 }} شهر):</strong> {{ formatNumber(monthlyInstallment) }} د.ع</p>
+                                      <p class="mb-1 text-success"><strong>القسط الشهري (أول {{ parseInt(form.installment_months) - 1 }} شهر):</strong> {{ formatNumber(monthlyInstallment) }} د.ع لكل شهر</p>
                                       <p class="mb-1"><strong>القسط الأخير (الشهر {{ parseInt(form.installment_months) }}):</strong> {{ formatNumber(lastMonthInstallment) }} د.ع</p>
                                       <p class="mb-0"><strong>إجمالي عدد الأقساط:</strong> {{ parseInt(form.installment_months) }}</p>
                                   </div>
@@ -470,21 +470,28 @@ export default {
         },
 
         monthlyInstallment() {
-            const months = parseInt(this.form.installment_months);
-            if (months > 0) {
-                const baseAmount = this.amountToFinance / months;
+            const months = parseInt(this.form.installment_months) || 0;
+            const financeAmount = parseFloat(this.amountToFinance) || 0;
+
+            if (months > 0 && financeAmount > 0) {
+                const baseAmount = financeAmount / months;
                 // Round up to nearest 100 for a round figure
-                return Math.ceil(baseAmount / 100) * 100;
+                const rounded = Math.ceil(baseAmount / 100) * 100;
+                return rounded;
             }
             return 0;
         },
 
         lastMonthInstallment() {
-            const months = parseInt(this.form.installment_months);
-            if (months > 0) {
+            const months = parseInt(this.form.installment_months) || 0;
+            const financeAmount = parseFloat(this.amountToFinance) || 0;
+
+            if (months > 0 && financeAmount > 0) {
                 const regularMonths = months - 1;
-                const totalRegularPayments = this.monthlyInstallment * regularMonths;
-                return this.amountToFinance - totalRegularPayments;
+                const monthlyAmount = this.monthlyInstallment;
+                const totalRegularPayments = monthlyAmount * regularMonths;
+                const lastAmount = financeAmount - totalRegularPayments;
+                return lastAmount > 0 ? lastAmount : 0;
             }
             return 0;
         }
@@ -739,8 +746,35 @@ export default {
         }
     },
 
-    mounted() {
+    async mounted() {
         this.loadProductList();
+
+        // Check if customer ID is passed from Quick Invoice
+        const customerId = this.$route.query.customerId;
+        if (customerId) {
+            try {
+                // Load customer data
+                const response = await axios.get('/dashboard/api/customers', {
+                    params: { search: '' }
+                });
+                const customer = response.data.find(c => c.id == customerId);
+
+                if (customer) {
+                    this.selectedCustomer = customer;
+                    this.useExistingCustomer = true;
+                    this.showCustomerForm = true;
+
+                    // Pre-fill customer form
+                    this.form.customer_name = customer.name;
+                    this.form.customer_phone1 = customer.phone1 || customer.phone;
+                    this.form.customer_phone2 = customer.phone2;
+                    this.form.customer_state = customer.state;
+                    this.form.customer_city = customer.city;
+                }
+            } catch (error) {
+                console.error('Error loading pre-selected customer:', error);
+            }
+        }
     }
 }
 </script>

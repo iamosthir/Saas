@@ -16,19 +16,20 @@
               <multiselect
                 v-model="selectedCustomer"
                 :options="customers"
-                label="customer_name"
+                label="name"
                 track-by="id"
                 placeholder="ابحث باسم العميل أو رقم الهاتف..."
                 :searchable="true"
                 :loading="loadingCustomers"
+                :internal-search="false"
                 @search-change="searchCustomers"
               >
                 <template slot="option" slot-scope="props">
                   <div>
-                    <strong>{{ props.option.customer_name }}</strong>
+                    <strong>{{ props.option.name }}</strong>
                     <br>
                     <small class="text-muted">
-                      <i class="fas fa-phone"></i> {{ props.option.phone1 }}
+                      <i class="fas fa-phone"></i> {{ props.option.phone1 || props.option.phone }}
                     </small>
                   </div>
                 </template>
@@ -55,7 +56,7 @@
         <div class="card-body">
           <h6 class="modern-card-title">
             <i class="fas fa-file-invoice-dollar"></i>
-            الفواتير المستحقة - {{ selectedCustomer.customer_name }}
+            الفواتير المستحقة - {{ selectedCustomer.name }}
           </h6>
 
           <!-- Summary Stats -->
@@ -346,9 +347,9 @@ export default {
     }
   },
   async mounted() {
-    // Load initial customers list
+    // Load initial customers list (first 20)
     try {
-      const response = await axios.get('/dashboard/api/customer-list');
+      const response = await axios.get('/dashboard/api/customers');
       this.customers = response.data;
     } catch (error) {
       console.error('Error loading customers:', error);

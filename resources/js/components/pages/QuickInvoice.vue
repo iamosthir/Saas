@@ -17,20 +17,21 @@
                 <multiselect
                   v-model="selectedCustomer"
                   :options="customers"
-                  label="customer_name"
+                  label="name"
                   track-by="id"
                   placeholder="ابحث عن عميل..."
                   :searchable="true"
                   :loading="loadingCustomers"
+                  :internal-search="false"
                   @search-change="searchCustomers"
                   @select="loadCustomerSummary"
                 >
                   <template slot="option" slot-scope="props">
                     <div>
-                      <strong>{{ props.option.customer_name }}</strong>
+                      <strong>{{ props.option.name }}</strong>
                       <br>
                       <small class="text-muted">
-                        <i class="fas fa-phone"></i> {{ props.option.phone1 }}
+                        <i class="fas fa-phone"></i> {{ props.option.phone1 || props.option.phone }}
                         <span v-if="props.option.phone2"> | {{ props.option.phone2 }}</span>
                       </small>
                     </div>
@@ -267,8 +268,8 @@ export default {
     proceedToInvoice() {
       // Navigate to create invoice page with pre-selected customer
       this.$router.push({
-        name: 'invoice.create',
-        params: {
+        name: 'create-invoice',
+        query: {
           customerId: this.summary.customer.id,
         },
       });
@@ -288,9 +289,9 @@ export default {
     }
   },
   async mounted() {
-    // Load initial customers list
+    // Load initial customers list (first 20)
     try {
-      const response = await axios.get('/dashboard/api/customer-list');
+      const response = await axios.get('/dashboard/api/customers');
       this.customers = response.data;
     } catch (error) {
       console.error('Error loading customers:', error);

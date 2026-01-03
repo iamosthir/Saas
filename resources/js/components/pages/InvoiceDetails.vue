@@ -138,52 +138,116 @@
                             </div>
                         </div>
 
-                        <!-- Installments Timeline -->
-                        <div class="card" v-if="invoice.payment_type == 'installment' && installments.length > 0">
+                        <!-- Tabbed View for Installments and Activity Logs -->
+                        <div class="card" v-if="invoice.payment_type == 'installment'">
                             <div class="card-body">
-                                <h5 class="card-title text-primary">جدول الأقساط</h5>
-                                <hr>
-                                <div class="timeline">
-                                    <div
-                                        v-for="(installment, idx) in installments"
-                                        :key="installment.id"
-                                        class="timeline-item"
-                                        :class="getInstallmentClass(installment)"
-                                        @click="openPaymentModal(installment)"
-                                        style="cursor: pointer;"
-                                    >
-                                        <div class="timeline-marker" :class="getMarkerClass(installment)">
-                                            <i :class="getMarkerIcon(installment)"></i>
-                                        </div>
-                                        <div class="timeline-content">
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <div>
-                                                    <h6 class="mb-1">
-                                                        القسط {{ installment.installment_number }}
-                                                        <span :class="getStatusBadgeClass(installment)">
-                                                            {{ getStatusText(installment.status) }}
-                                                        </span>
-                                                    </h6>
-                                                    <p class="text-muted mb-1">
-                                                        <i class="fas fa-calendar"></i>
-                                                        تاريخ الاستحقاق: {{ moment(installment.due_date).format("DD MMM YYYY") }}
-                                                    </p>
-                                                    <p class="mb-0" v-if="installment.paid_date">
-                                                        <i class="fas fa-check-circle text-success"></i>
-                                                        تاريخ الدفع: {{ moment(installment.paid_date).format("DD MMM YYYY") }}
-                                                    </p>
+                                <!-- Tabs Navigation -->
+                                <ul class="nav nav-tabs mb-4" role="tablist">
+                                    <li class="nav-item">
+                                        <a class="nav-link" :class="{ active: activeTab === 'installments' }" @click="activeTab = 'installments'" href="javascript:void(0)">
+                                            <i class="fas fa-calendar-alt"></i> جدول الأقساط
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" :class="{ active: activeTab === 'activity' }" @click="activeTab = 'activity'" href="javascript:void(0)">
+                                            <i class="fas fa-history"></i> سجل العمليات
+                                        </a>
+                                    </li>
+                                </ul>
+
+                                <!-- Tab Content -->
+                                <div class="tab-content">
+                                    <!-- Installments Tab -->
+                                    <div v-show="activeTab === 'installments'">
+                                        <div class="timeline" v-if="installments.length > 0">
+                                            <div
+                                                v-for="(installment, idx) in installments"
+                                                :key="installment.id"
+                                                class="timeline-item"
+                                                :class="getInstallmentClass(installment)"
+                                                @click="openPaymentModal(installment)"
+                                                style="cursor: pointer;"
+                                            >
+                                                <div class="timeline-marker" :class="getMarkerClass(installment)">
+                                                    <i :class="getMarkerIcon(installment)"></i>
                                                 </div>
-                                                <div class="text-end">
-                                                    <h5 class="mb-1">{{ installment.amount }} IQD</h5>
-                                                    <small class="text-muted">
-                                                        مدفوع: <strong class="text-success">{{ installment.paid_amount }} IQD</strong>
-                                                    </small>
-                                                    <br>
-                                                    <small class="text-muted">
-                                                        متبقي: <strong class="text-danger">{{ installment.amount - installment.paid_amount }} IQD</strong>
-                                                    </small>
+                                                <div class="timeline-content">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <h6 class="mb-1">
+                                                                القسط {{ installment.installment_number }}
+                                                                <span :class="getStatusBadgeClass(installment)">
+                                                                    {{ getStatusText(installment.status) }}
+                                                                </span>
+                                                            </h6>
+                                                            <p class="text-muted mb-1">
+                                                                <i class="fas fa-calendar"></i>
+                                                                تاريخ الاستحقاق: {{ moment(installment.due_date).format("DD MMM YYYY") }}
+                                                            </p>
+                                                            <p class="mb-0" v-if="installment.paid_date">
+                                                                <i class="fas fa-check-circle text-success"></i>
+                                                                تاريخ الدفع: {{ moment(installment.paid_date).format("DD MMM YYYY") }}
+                                                            </p>
+                                                            <p class="mb-0 text-muted" v-if="installment.notes">
+                                                                <small><i class="fas fa-info-circle"></i> {{ installment.notes }}</small>
+                                                            </p>
+                                                        </div>
+                                                        <div class="text-end">
+                                                            <h5 class="mb-1">{{ installment.amount }} IQD</h5>
+                                                            <small class="text-muted">
+                                                                مدفوع: <strong class="text-success">{{ installment.paid_amount }} IQD</strong>
+                                                            </small>
+                                                            <br>
+                                                            <small class="text-muted">
+                                                                متبقي: <strong class="text-danger">{{ installment.amount - installment.paid_amount }} IQD</strong>
+                                                            </small>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
+                                        </div>
+                                        <div v-else class="alert alert-info">
+                                            <i class="fas fa-info-circle"></i> لا توجد أقساط لهذه الفاتورة
+                                        </div>
+                                    </div>
+
+                                    <!-- Activity Logs Tab -->
+                                    <div v-show="activeTab === 'activity'">
+                                        <div v-if="loadingLogs" class="text-center py-5">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                        </div>
+                                        <div v-else-if="activityLogs.length > 0" class="table-responsive">
+                                            <table class="table table-bordered table-hover">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>#</th>
+                                                        <th>التاريخ</th>
+                                                        <th>نوع العملية</th>
+                                                        <th>الوصف</th>
+                                                        <th>المبلغ</th>
+                                                        <th>المستخدم</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="(log, index) in activityLogs" :key="log.id">
+                                                        <td>{{ index + 1 }}</td>
+                                                        <td>{{ moment(log.created_at).format("DD MMM YYYY, h:mm a") }}</td>
+                                                        <td>
+                                                            <span class="badge" :class="getActionTypeBadgeClass(log.action_type)">
+                                                                {{ getActionTypeLabel(log.action_type) }}
+                                                            </span>
+                                                        </td>
+                                                        <td>{{ log.description }}</td>
+                                                        <td><strong>{{ log.amount ? log.amount.toLocaleString() : '-' }} IQD</strong></td>
+                                                        <td>{{ log.user ? log.user.name : 'النظام' }}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div v-else class="alert alert-info">
+                                            <i class="fas fa-info-circle"></i> لا توجد عمليات مسجلة لهذه الفاتورة
                                         </div>
                                     </div>
                                 </div>
@@ -251,15 +315,25 @@ export default {
         return {
             invoice: {},
             installments: [],
+            activityLogs: [],
             isLoading: true,
             isProcessing: false,
+            loadingLogs: false,
             moment: moment,
             selectedInstallment: {},
             paymentAmount: 0,
+            activeTab: 'installments',
         }
     },
     mounted() {
         this.getInvoiceDetails();
+    },
+    watch: {
+        activeTab(newTab) {
+            if (newTab === 'activity' && this.activityLogs.length === 0) {
+                this.loadActivityLogs();
+            }
+        }
     },
     methods: {
         async getInvoiceDetails() {
@@ -352,6 +426,10 @@ export default {
                     this.paymentAmount = 0;
                     this.selectedInstallment = {};
                     await this.getInvoiceDetails(); // Refresh data
+                    // Reload activity logs if on that tab
+                    if (this.activeTab === 'activity') {
+                        this.loadActivityLogs();
+                    }
                 } else {
                     swal.fire("خطأ", response.data.msg, "error");
                 }
@@ -362,6 +440,41 @@ export default {
             }
         },
 
+        async loadActivityLogs() {
+            this.loadingLogs = true;
+            const invoiceId = this.$route.params.id;
+
+            try {
+                const response = await axios.get(`/dashboard/api/invoices/${invoiceId}/activity-logs`);
+                if (response.data.status === 'ok') {
+                    this.activityLogs = response.data.activity_logs;
+                }
+                this.loadingLogs = false;
+            } catch (error) {
+                this.loadingLogs = false;
+                console.error(error);
+                swal.fire("خطأ", "فشل في تحميل سجل العمليات", "error");
+            }
+        },
+
+        getActionTypeBadgeClass(actionType) {
+            const classes = {
+                'payment_full': 'bg-success',
+                'payment_partial': 'bg-warning',
+                'shortfall_added': 'bg-info',
+            };
+            return classes[actionType] || 'bg-secondary';
+        },
+
+        getActionTypeLabel(actionType) {
+            const labels = {
+                'payment_full': 'دفع كامل',
+                'payment_partial': 'دفع جزئي',
+                'shortfall_added': 'إضافة متبقي',
+            };
+            return labels[actionType] || actionType;
+        },
+
         printInvoice() {
             window.open(`/dashboard/print-new-invoice/${this.invoice.id}`, '_blank');
         }
@@ -370,6 +483,61 @@ export default {
 </script>
 
 <style scoped>
+/* Tabs Styling */
+.nav-tabs {
+    border-bottom: 2px solid #dee2e6;
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    color: #6c757d;
+    font-weight: 500;
+    padding: 12px 24px;
+    margin-bottom: -2px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.nav-tabs .nav-link:hover {
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.nav-tabs .nav-link.active {
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+    background: transparent;
+}
+
+.nav-tabs .nav-link i {
+    margin-right: 8px;
+}
+
+/* Table Styling */
+.table-responsive {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table thead th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
 .timeline {
     position: relative;
     padding: 30px 0 10px 0;
