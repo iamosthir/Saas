@@ -31,7 +31,7 @@
         }
 
         .navbar-brand img {
-            height: 50px;
+            height: 20px;
             transition: all 0.3s ease;
         }
 

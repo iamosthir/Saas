@@ -280,10 +280,7 @@ export default {
     },
 
     viewContract(contractId) {
-      this.$router.push({
-        name: 'contract-print',
-        params: { id: contractId }
-      });
+      window.location.href = `/dashboard/contracts/${contractId}/print`;
     },
 
     editContract(contractId) {
