@@ -35,6 +35,7 @@
         "mdb-ui-kit": "^6.0.1",
         "moment": "^2.29.4",
         "sweetalert2": "^11.4.24",
+        "toastr": "^2.1.4",
         "vform": "^2.1.2",
         "vue-carousel": "^0.18.0",
         "vue-moments-ago": "^0.2.0",

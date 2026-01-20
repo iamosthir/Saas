@@ -8,7 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Carbon\Carbon; 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
 
@@ -30,7 +30,7 @@ class MerchantRegistrationController extends Controller
 
         'user_name'            => 'required|string|max:255',
         'user_phone'           => 'required|string|max:255',
-        'user_password'        => 'required|string|min:8|confirmed',
+        'user_password'        => 'required|string|min:6|confirmed',
     ]);
 
     try {

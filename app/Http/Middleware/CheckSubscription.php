@@ -16,6 +16,11 @@ class CheckSubscription
      */
     public function handle(Request $request, Closure $next)
     {
+        // Skip subscription check for admin routes
+        if ($request->is('admin/*') || $request->is('admin')) {
+            return $next($request);
+        }
+
         if (auth()->check()) {
             $user = auth()->user();
 

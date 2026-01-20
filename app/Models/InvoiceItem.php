@@ -20,6 +20,7 @@ class InvoiceItem extends Model
         'custom_price',
         'unit_cost',
         'line_total',
+        'custom_fields',
     ];
 
     protected $casts = [
@@ -28,6 +29,7 @@ class InvoiceItem extends Model
         'custom_price' => 'decimal:2',
         'unit_cost' => 'decimal:2',
         'line_total' => 'decimal:2',
+        'custom_fields' => 'array',
     ];
 
     public function invoice()

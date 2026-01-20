@@ -67,5 +67,8 @@ class Kernel extends HttpKernel
         'check.subscription' => \App\Http\Middleware\CheckSubscription::class,
         'customer.auth' => \App\Http\Middleware\CustomerAuth::class,
         'customer.guest' => \App\Http\Middleware\RedirectIfCustomer::class,
+        'admin.auth' => \App\Http\Middleware\AdminAuth::class,
+        'admin.guest' => \App\Http\Middleware\RedirectIfAdmin::class,
+        'merchant.permission' => \App\Http\Middleware\CheckMerchantPermission::class,
     ];
 }

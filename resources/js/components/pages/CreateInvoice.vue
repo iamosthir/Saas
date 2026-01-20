@@ -115,6 +115,45 @@
 
                       <hr>
 
+                      <!-- قسم قالب الفاتورة -->
+                      <div class="row">
+                          <div class="col-md-12 mb-4">
+                              <h6 style="font-weight: 700; color: #2d3748;">قالب الفاتورة (اختياري)</h6>
+                          </div>
+
+                          <div class="col-md-6 mb-4">
+                              <div class="modern-form-group">
+                                  <label class="modern-form-label">اختر قالب الفاتورة</label>
+                                  <select v-model="selectedTemplateId" @change="onTemplateChange" class="modern-form-control">
+                                      <option :value="null">بدون قالب (فاتورة قياسية)</option>
+                                      <option
+                                          v-for="template in templates"
+                                          :key="template.id"
+                                          :value="template.id"
+                                      >
+                                          {{ template.name }}
+                                      </option>
+                                  </select>
+                                  <small class="text-muted">اختر قالباً لإضافة حقول مخصصة للفاتورة</small>
+                              </div>
+                          </div>
+
+                          <!-- Custom Header Fields -->
+                          <div v-if="selectedTemplate && selectedTemplate.header_fields && selectedTemplate.header_fields.length > 0" class="col-md-12 mb-4">
+                              <div class="modern-form-group">
+                                  <h6 style="font-weight: 600; color: #2d3748; margin-bottom: 1rem;">Additional Invoice Information</h6>
+                                  <DynamicCustomFields
+                                      :fields="selectedTemplate.header_fields"
+                                      :values="form.custom_fields"
+                                      @update="form.custom_fields = $event"
+                                      level="header"
+                                  />
+                              </div>
+                          </div>
+                      </div>
+
+                      <hr>
+
                       <!-- قسم المنتجات -->
                       <div class="row">
                           <div class="col-md-12 mb-4">
@@ -195,6 +234,19 @@
                                       <input type="number" class="modern-form-control" v-model="currentItem.quantity" style="text-align:center;" min="1">
                                       <button @click="currentItem.quantity++" type="button" class="modern-btn modern-btn-success">+</button>
                                   </div>
+                              </div>
+                          </div>
+
+                          <!-- Custom Item Fields -->
+                          <div v-if="selectedTemplate && selectedTemplate.item_fields && selectedTemplate.item_fields.length > 0" class="col-md-12 mb-4">
+                              <div class="modern-form-group">
+                                  <h6 style="font-weight: 600; color: #2d3748; margin-bottom: 1rem;">Additional Product Information</h6>
+                                  <DynamicCustomFields
+                                      :fields="selectedTemplate.item_fields"
+                                      :values="currentItem.custom_fields || {}"
+                                      @update="currentItem.custom_fields = $event"
+                                      level="item"
+                                  />
                               </div>
                           </div>
 
@@ -402,7 +454,13 @@
 
 
 <script>
+import DynamicCustomFields from '../common/DynamicCustomFields.vue';
+
 export default {
+    components: {
+        DynamicCustomFields
+    },
+
     data() {
         return {
             form: new Form({
@@ -421,6 +479,8 @@ export default {
                 discount_amount: 0,
                 extra_charge: 0,
                 notes: "",
+                invoice_template_id: null,
+                custom_fields: {},
                 items: [],
             }),
 
@@ -429,6 +489,10 @@ export default {
             selectedCustomer: null,
             customers: [],
             customerSearchTimeout: null,
+
+            templates: [],
+            selectedTemplateId: null,
+            selectedTemplate: null,
 
             products: [],
             selectedProduct: null,
@@ -440,6 +504,7 @@ export default {
                 product_variation_id: null,
                 quantity: 1,
                 custom_price: 0,
+                custom_fields: {},
             },
 
             invoiceItems: [],
@@ -600,6 +665,33 @@ export default {
             });
         },
 
+        async loadTemplates() {
+            try {
+                const response = await axios.get('/dashboard/api/invoices/templates/list');
+                if (response.data.status === 'ok') {
+                    this.templates = response.data.templates;
+
+                    // Auto-select default template
+                    const defaultTemplate = this.templates.find(t => t.is_default);
+                    if (defaultTemplate) {
+                        this.selectedTemplateId = defaultTemplate.id;
+                        this.onTemplateChange();
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load templates:', error);
+            }
+        },
+
+        onTemplateChange() {
+            this.selectedTemplate = this.templates.find(t => t.id === this.selectedTemplateId);
+            this.form.invoice_template_id = this.selectedTemplateId;
+
+            // Reset custom fields when template changes
+            this.form.custom_fields = {};
+            this.currentItem.custom_fields = {};
+        },
+
         async reloadProducts() {
             this.reloading = true;
             try {
@@ -748,6 +840,7 @@ export default {
 
     async mounted() {
         this.loadProductList();
+        this.loadTemplates();
 
         // Check if customer ID is passed from Quick Invoice
         const customerId = this.$route.query.customerId;

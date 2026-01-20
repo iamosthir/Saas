@@ -81,13 +81,18 @@ Route::group(["prefix" => "dashboard", "middleware" => "auth"],function(){
     // Barcode
     Route::get("/product-barcode/{id}","ProductController@barcode");
 
+
+    // Print contracts (requires contracts permission)
+    Route::get("/contracts/{id}/print","ContractController@print")->middleware('merchant.permission:contracts');
+
     Route::any("{any}", "DashboardController@dashboard")->where("any", "^(?!api/.*$).*$");
     // End
 
     // Api
     Route::group(["prefix" => "api"],function(){
 
-
+        // Get merchant permissions
+        Route::get("/get-merchant-permissions","DashboardController@getMerchantPermissions");
 
         Route::post("/create-invoice","OrderController@create");
 
@@ -118,6 +123,37 @@ Route::group(["prefix" => "dashboard", "middleware" => "auth"],function(){
         Route::get("/customers","InvoiceController@getCustomers");
         Route::post("/invoices/{id}/mark-paid","InvoiceController@markAsPaid");
         Route::post("/installments/{id}/pay","InvoiceController@payInstallment");
+        Route::get("/invoices/templates/list","InvoiceController@getTemplates");
+
+        // Invoice Template Management
+        Route::get("/invoice-templates","InvoiceTemplateController@index");
+        Route::post("/invoice-templates","InvoiceTemplateController@store");
+        Route::get("/invoice-templates/{id}","InvoiceTemplateController@show");
+        Route::put("/invoice-templates/{id}","InvoiceTemplateController@update");
+        Route::delete("/invoice-templates/{id}","InvoiceTemplateController@destroy");
+        Route::post("/invoice-templates/{id}/toggle-active","InvoiceTemplateController@toggleActive");
+
+        // Contract Template Management (requires contracts permission)
+        Route::middleware('merchant.permission:contracts')->group(function() {
+            Route::prefix('contract-templates')->group(function() {
+                Route::get('/', 'ContractTemplateController@index');
+                Route::post('/', 'ContractTemplateController@store');
+                Route::get('/{id}', 'ContractTemplateController@show');
+                Route::put('/{id}', 'ContractTemplateController@update');
+                Route::delete('/{id}', 'ContractTemplateController@destroy');
+                Route::post('/{id}/toggle-active', 'ContractTemplateController@toggleActive');
+            });
+
+            // Contract Management
+            Route::prefix('contracts')->group(function() {
+                Route::get('/', 'ContractController@index');
+                Route::post('/', 'ContractController@store');
+                Route::get('/{id}', 'ContractController@show');
+                Route::put('/{id}', 'ContractController@update');
+                Route::delete('/{id}', 'ContractController@destroy');
+                Route::patch('/{id}/status', 'ContractController@updateStatus');
+            });
+        });
 
         // User
         Route::post("/add-user","UserController@add");
@@ -289,6 +325,80 @@ Route::group(["prefix" => "dashboard", "middleware" => "auth"],function(){
         Route::post('/suppliers/{id}/update', 'SupplierController@update');
         Route::delete('/suppliers/{id}', 'SupplierController@delete');
         // End
+
+        // POS System Routes (requires pos permission)
+        Route::group(['prefix' => 'pos', 'namespace' => 'Pos', 'middleware' => 'merchant.permission:pos'], function() {
+            // Initialize
+            Route::get('/initialize', 'PosController@initialize');
+
+            // Products
+            Route::get('/products/search', 'PosProductController@search');
+            Route::get('/products/popular', 'PosProductController@popular');
+            Route::get('/products/barcode/{barcode}', 'PosProductController@scanBarcode');
+            Route::get('/products/category/{categoryId}', 'PosProductController@byCategory');
+            Route::get('/products/{id}', 'PosProductController@show');
+            Route::get('/products/{id}/stock', 'PosProductController@checkStock');
+
+            // Sales
+            Route::get('/sales', 'PosSaleController@index');
+            Route::post('/sales', 'PosSaleController@store');
+            Route::get('/sales/parked', 'PosSaleController@getParkedSales');
+            Route::get('/sales/drafts', 'PosSaleController@getDrafts');
+            Route::get('/sales/{id}', 'PosSaleController@show');
+            Route::put('/sales/{id}', 'PosSaleController@update');
+            Route::delete('/sales/{id}', 'PosSaleController@destroy');
+            Route::post('/sales/{id}/items', 'PosSaleController@addItem');
+            Route::put('/sales/{saleId}/items/{itemId}', 'PosSaleController@updateItem');
+            Route::delete('/sales/{saleId}/items/{itemId}', 'PosSaleController@removeItem');
+            Route::post('/sales/{id}/complete', 'PosSaleController@complete');
+            Route::post('/sales/{id}/park', 'PosSaleController@park');
+            Route::post('/sales/{id}/unpark', 'PosSaleController@unpark');
+            Route::post('/sales/{id}/void', 'PosSaleController@void');
+
+            // Refunds
+            Route::get('/sales/{id}/refundable-items', 'PosSaleController@getRefundableItems');
+            Route::post('/sales/{id}/refund-full', 'PosSaleController@refundFull');
+            Route::post('/sales/{id}/refund-partial', 'PosSaleController@refundPartial');
+
+            // Payments
+            Route::post('/payments', 'PosPaymentController@process');
+            Route::get('/payments/{saleId}/summary', 'PosPaymentController@summary');
+            Route::get('/payments/{saleId}/quick-amounts', 'PosPaymentController@quickAmounts');
+
+            // Customers
+            Route::get('/customers', 'PosCustomerController@index');
+            Route::post('/customers', 'PosCustomerController@store');
+            Route::get('/customers/find-by-phone', 'PosCustomerController@findByPhone');
+            Route::get('/customers/{id}', 'PosCustomerController@show');
+            Route::get('/customers/{id}/history', 'PosCustomerController@purchaseHistory');
+
+            // Inventory
+            Route::post('/inventory/adjust', 'PosInventoryController@adjust');
+            Route::get('/inventory/movements', 'PosInventoryController@movements');
+            Route::get('/inventory/low-stock', 'PosInventoryController@lowStock');
+            Route::get('/inventory/{productId}/stock', 'PosInventoryController@stockLevel');
+
+            // Settings
+            Route::get('/settings', 'PosSettingsController@show');
+            Route::put('/settings', 'PosSettingsController@update');
+            Route::post('/settings/reset', 'PosSettingsController@reset');
+
+            // Sync (Offline)
+            Route::post('/sync/upload', 'PosSyncController@upload');
+            Route::get('/sync/pending', 'PosSyncController@pending');
+            Route::post('/sync/process', 'PosSyncController@process');
+            Route::post('/sync/retry', 'PosSyncController@retry');
+            Route::get('/sync/status', 'PosSyncController@status');
+
+            // Print
+            Route::get('/print/{saleId}/receipt', 'PosPrintController@receipt');
+            Route::get('/print/{saleId}/escpos', 'PosPrintController@escpos');
+            Route::get('/print/{saleId}/html', 'PosPrintController@html');
+            Route::get('/print/{saleId}', 'PosPrintController@print');
+            Route::post('/print/{saleId}/whatsapp', 'PosPrintController@sendWhatsApp');
+            Route::get('/print/whatsapp/status', 'PosPrintController@whatsappStatus');
+        });
+        // End POS
 
     });
     // End

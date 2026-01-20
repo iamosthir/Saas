@@ -503,6 +503,20 @@
                                 </router-link>
                             </li>
                             @endif
+                            @if(auth()->user()->merchant && auth()->user()->merchant->canAccessPos())
+                            <li class="nav-item">
+                                <router-link :to="{name: 'pos'}" class="nav-link">
+                                    <i class="fas fa-cash-register"></i> نقطة البيع
+                                </router-link>
+                            </li>
+                            @endif
+                            @if(auth()->user()->merchant && auth()->user()->merchant->canAccessContracts())
+                            <li class="nav-item">
+                                <router-link :to="{name: 'contracts.list'}" class="nav-link">
+                                    <i class="fas fa-file-contract"></i> العقود
+                                </router-link>
+                            </li>
+                            @endif
                         </ul>
                     </div>
 
@@ -651,6 +665,10 @@
     <script>
         // window.permission =
     </script>
+
+    {{-- TinyMCE WYSIWYG Editor CDN --}}
+    <script src="https://cdn.tiny.cloud/1/8hgwz05ibupwpkaf95wj0q1h0dflp1fiivbr4ip2q0jr2343/tinymce/8/tinymce.min.js" referrerpolicy="origin" crossorigin="anonymous"></script>
+
     {{-- script --}}
     <script type="text/javascript" src="{{ asset("js/app.js") }}"></script>
 

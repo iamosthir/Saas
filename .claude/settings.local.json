@@ -8,7 +8,10 @@
       "Bash(ls:*)",
       "Bash(test:*)",
       "Bash(composer require:*)",
-      "Bash(composer remove:*)"
+      "Bash(composer remove:*)",
+      "Bash(git -C /c/Users/mdeas/OneDrive/Desktop/Saas log --oneline)",
+      "Bash(grep:*)",
+      "Bash(npm install:*)"
     ]
   }
 }

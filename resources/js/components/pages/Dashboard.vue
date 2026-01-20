@@ -31,7 +31,7 @@
     </div>
 
     <!-- Main Content -->
-    <div class="container dashboard-content">
+    <div class="container dashboard-content" v-if="!loading">
       <!-- Quick Actions Section -->
       <div class="section-header">
         <h2><i class="fas fa-bolt"></i> الإجراءات السريعة</h2>
@@ -59,6 +59,34 @@
             </div>
             <h3 class="card-title">قائمة الفواتير</h3>
             <p class="card-description">عرض وإدارة جميع الفواتير</p>
+            <div class="card-arrow">
+              <i class="fas fa-arrow-left"></i>
+            </div>
+          </router-link>
+        </div>
+
+        <!-- قوالب الفواتير -->
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <router-link :to="{name: 'invoice-templates'}" class="dashboard-card gradient-purple">
+            <div class="card-icon">
+              <i class="fas fa-file-alt"></i>
+            </div>
+            <h3 class="card-title">Invoice Templates</h3>
+            <p class="card-description">Manage custom invoice templates</p>
+            <div class="card-arrow">
+              <i class="fas fa-arrow-left"></i>
+            </div>
+          </router-link>
+        </div>
+
+        <!-- إنشاء فاتورة مخصصة -->
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <router-link :to="{name: 'custom-invoice-create'}" class="dashboard-card gradient-blue">
+            <div class="card-icon">
+              <i class="fas fa-file-invoice"></i>
+            </div>
+            <h3 class="card-title">Create Custom Invoice</h3>
+            <p class="card-description">Create invoice using templates</p>
             <div class="card-arrow">
               <i class="fas fa-arrow-left"></i>
             </div>
@@ -129,6 +157,76 @@
             </div>
             <h3 class="card-title">دفعات جملة</h3>
             <p class="card-description">تسديد عدة فواتير دفعة واحدة</p>
+            <div class="card-arrow">
+              <i class="fas fa-arrow-left"></i>
+            </div>
+          </router-link>
+        </div>
+
+        <!-- نقطة البيع -->
+        <div class="col-lg-3 col-md-4 col-sm-6" v-if="canAccessPos">
+          <router-link :to="{name: 'pos'}" class="dashboard-card pos-card">
+            <div class="card-icon">
+              <i class="fas fa-cash-register"></i>
+            </div>
+            <h3 class="card-title">نقطة البيع</h3>
+            <p class="card-description">نظام البيع السريع POS</p>
+            <div class="card-arrow">
+              <i class="fas fa-arrow-left"></i>
+            </div>
+          </router-link>
+        </div>
+
+        <!-- سجل المبيعات والمرتجعات -->
+        <div class="col-lg-3 col-md-4 col-sm-6" v-if="canAccessPos">
+          <router-link :to="{name: 'pos.history'}" class="dashboard-card gradient-orange">
+            <div class="card-icon">
+              <i class="fas fa-history"></i>
+            </div>
+            <h3 class="card-title">سجل المبيعات</h3>
+            <p class="card-description">عرض المبيعات والمرتجعات</p>
+            <div class="card-arrow">
+              <i class="fas fa-arrow-left"></i>
+            </div>
+          </router-link>
+        </div>
+
+        <!-- إعدادات نقطة البيع -->
+        <div class="col-lg-3 col-md-4 col-sm-6" v-if="role == 'super' && canAccessPos">
+          <router-link :to="{name: 'pos.settings'}" class="dashboard-card info">
+            <div class="card-icon">
+              <i class="fas fa-cog"></i>
+            </div>
+            <h3 class="card-title">إعدادات POS</h3>
+            <p class="card-description">تهيئة نظام نقطة البيع</p>
+            <div class="card-arrow">
+              <i class="fas fa-arrow-left"></i>
+            </div>
+          </router-link>
+        </div>
+
+        <!-- قوالب العقود -->
+        <div class="col-lg-3 col-md-4 col-sm-6" v-if="canAccessContracts">
+          <router-link :to="{name: 'contract-templates'}" class="dashboard-card gradient-purple">
+            <div class="card-icon">
+              <i class="fas fa-file-contract"></i>
+            </div>
+            <h3 class="card-title">قوالب العقود</h3>
+            <p class="card-description">إدارة قوالب العقود المخصصة</p>
+            <div class="card-arrow">
+              <i class="fas fa-arrow-left"></i>
+            </div>
+          </router-link>
+        </div>
+
+        <!-- العقود -->
+        <div class="col-lg-3 col-md-4 col-sm-6" v-if="canAccessContracts">
+          <router-link :to="{name: 'contracts.list'}" class="dashboard-card gradient-blue">
+            <div class="card-icon">
+              <i class="fas fa-file-signature"></i>
+            </div>
+            <h3 class="card-title">العقود</h3>
+            <p class="card-description">عرض وإدارة جميع العقود</p>
             <div class="card-arrow">
               <i class="fas fa-arrow-left"></i>
             </div>
@@ -434,14 +532,28 @@ export default {
     data() {
         return{
             role: role,
+            permissions: {
+                can_access_pos: false,
+                can_access_contracts: false
+            },
+            loading: true,
             settingData: {
                 product_stock: 0,
                 total_price: 0
             }
         }
     },
+    computed: {
+        canAccessPos() {
+            return this.permissions.can_access_pos;
+        },
+        canAccessContracts() {
+            return this.permissions.can_access_contracts;
+        }
+    },
     mounted() {
         this.getSettingData();
+        this.getMerchantPermissions();
     },
     methods: {
         async getSettingData() {
@@ -452,6 +564,21 @@ export default {
                 }
             } catch(err) {
                 console.error('Error fetching setting data:', err);
+            }
+        },
+        async getMerchantPermissions() {
+            try {
+                const response = await axios.get("/dashboard/api/get-merchant-permissions");
+                console.log('Merchant permissions response:', response.data);
+                if(response.data) {
+                    this.permissions = response.data;
+                    console.log('Permissions set to:', this.permissions);
+                }
+            } catch(err) {
+                console.error('Error fetching merchant permissions:', err);
+                // Keep default false values if API fails
+            } finally {
+                this.loading = false;
             }
         },
         printStatement() {
@@ -707,6 +834,14 @@ export default {
     background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
 }
 
+.dashboard-card.gradient-orange .card-icon {
+    background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+}
+
+.dashboard-card.pos-card .card-icon {
+    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+}
+
 /* Hover Color Effects */
 .dashboard-card.primary:hover {
     border-color: #667eea;
@@ -738,6 +873,14 @@ export default {
 
 .dashboard-card.gradient-purple:hover {
     border-color: #8b5cf6;
+}
+
+.dashboard-card.gradient-orange:hover {
+    border-color: #fb923c;
+}
+
+.dashboard-card.pos-card:hover {
+    border-color: #14b8a6;
 }
 
 /* Responsive */

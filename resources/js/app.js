@@ -18,6 +18,9 @@ import moment from "moment";
 
 import Swal from "sweetalert2";
 
+import toastr from "toastr";
+import 'toastr/build/toastr.min.css';
+
 import DashboardRouter from "./routes/dashboard";
 
 //
@@ -26,6 +29,8 @@ window.Form = Form;
 window.moment = moment;
 //
 window.swal = Swal;
+//
+window.toastr = toastr;
 //
 // Vue.component('example-component', require('./components/ExampleComponent.vue').default);
 Vue.component('skeleton', require('./components/helper/CustomSkeleton.vue').default);
@@ -57,6 +62,13 @@ DashboardRouter.beforeEach((to, from, next) => {
         dashboard.pageTitle = to.meta.pageTitle || to.meta.title || 'لوحة التحكم';
         dashboard.pageIcon = to.meta.pageIcon || 'fas fa-tachometer-alt';
         dashboard.pageSubtitle = to.meta.pageSubtitle || '';
+    }
+
+    // Check if permission is defined in route meta
+    if(!to.meta || !to.meta.permission)
+    {
+        next();
+        return;
     }
 
     if(to.meta.permission.includes("all"))

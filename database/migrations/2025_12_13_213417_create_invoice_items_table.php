@@ -16,8 +16,8 @@ return new class extends Migration
         Schema::create('invoice_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('invoice_id')->constrained()->onDelete('cascade');
-            $table->foreignId('product_id')->constrained()->onDelete('cascade');
-            $table->foreignId('product_variation_id')->nullable()->constrained()->onDelete('set null');
+            $table->unsignedBigInteger('product_id')->nullable(); // Temporarily removed FK constraint
+            $table->unsignedBigInteger('product_variation_id')->nullable(); // Temporarily removed FK constraint
 
             $table->string('product_name');
             $table->string('variation_name')->nullable();

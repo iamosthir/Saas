@@ -200,6 +200,33 @@
         @endif
     </div>
 
+    <!-- Custom Invoice Header Fields -->
+    @if($invoice->template && $invoice->custom_fields)
+    <div class="divider"></div>
+
+    <div class="info-section">
+        <div style="margin-bottom: 10px;">
+            <strong>{{ $invoice->template->name }}</strong>
+        </div>
+        @foreach($invoice->template->headerFields as $field)
+            @if(isset($invoice->custom_fields[$field->field_key]))
+            <div class="info-row">
+                <div class="info-label">{{ $field->field_label }}:</div>
+                <div class="info-value">
+                    @if($field->field_type === 'date')
+                        {{ \Carbon\Carbon::parse($invoice->custom_fields[$field->field_key])->format('Y-m-d') }}
+                    @elseif($field->field_type === 'number')
+                        {{ number_format($invoice->custom_fields[$field->field_key], 0) }}
+                    @else
+                        {{ $invoice->custom_fields[$field->field_key] }}
+                    @endif
+                </div>
+            </div>
+            @endif
+        @endforeach
+    </div>
+    @endif
+
     <div class="divider"></div>
 
     <!-- Products Table -->
@@ -209,6 +236,9 @@
                 <th style="width: 50px;">#</th>
                 <th>اسم المنتج</th>
                 <th>المتغير</th>
+                @if($invoice->template && $invoice->template->itemFields->count() > 0)
+                    <th>معلومات إضافية</th>
+                @endif
                 <th style="width: 80px;">الكمية</th>
                 <th style="width: 100px;">السعر</th>
                 <th style="width: 120px;">المجموع</th>
@@ -220,6 +250,28 @@
                 <td>{{ $index + 1 }}</td>
                 <td>{{ $item->product_name }}</td>
                 <td>{{ $item->variation_name ?? '-' }}</td>
+
+                @if($invoice->template && $invoice->template->itemFields->count() > 0)
+                <td style="font-size: 11px;">
+                    @if($item->custom_fields)
+                        @foreach($invoice->template->itemFields as $field)
+                            @if(isset($item->custom_fields[$field->field_key]))
+                                <div>
+                                    <strong>{{ $field->field_label }}:</strong>
+                                    @if($field->field_type === 'date')
+                                        {{ \Carbon\Carbon::parse($item->custom_fields[$field->field_key])->format('Y-m-d') }}
+                                    @elseif($field->field_type === 'number')
+                                        {{ number_format($item->custom_fields[$field->field_key], 0) }}
+                                    @else
+                                        {{ $item->custom_fields[$field->field_key] }}
+                                    @endif
+                                </div>
+                            @endif
+                        @endforeach
+                    @endif
+                </td>
+                @endif
+
                 <td>{{ $item->quantity }}</td>
                 <td>{{ number_format($item->custom_price, 0) }}</td>
                 <td>{{ number_format($item->line_total, 0) }}</td>

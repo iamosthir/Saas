@@ -15,6 +15,11 @@ import InvoiceListcomplate from "../components/pages/InvoiceListcomplate.vue";
 import InvoiceListpadding from "../components/pages/InvoiceListpadding.vue";
 import InvoiceListbarcode from "../components/pages/InvoiceListbarcode.vue";
 import EditInvoice from "../components/pages/EditInvoice.vue";
+import InvoiceTemplateManager from "../components/pages/InvoiceTemplateManager.vue";
+import InvoiceTemplateForm from "../components/pages/InvoiceTemplateForm.vue";
+import InvoiceTemplateBuilder from "../components/pages/InvoiceTemplateBuilder.vue";
+import CustomInvoiceCreate from "../components/pages/CustomInvoiceCreate.vue";
+import CustomInvoicePrint from "../components/pages/CustomInvoicePrint.vue";
 import NoPermission from "../components/pages/NoPermission.vue";
 import CreateUser from "../components/pages/user/Create.vue";
 import ListUser from "../components/pages/user/List.vue";
@@ -59,6 +64,18 @@ import QuickInvoice from "../components/pages/QuickInvoice.vue";
 import PartnerList from "../components/pages/PartnerList.vue";
 import PartnerSettlements from "../components/pages/PartnerSettlements.vue";
 import PartnerProfitBreakdown from "../components/pages/PartnerProfitBreakdown.vue";
+
+// Contract Management
+import ContractTemplateManager from "../components/pages/contracts/ContractTemplateManager.vue";
+import ContractTemplateForm from "../components/pages/contracts/ContractTemplateForm.vue";
+import ContractCreate from "../components/pages/contracts/ContractCreate.vue";
+import ContractPrint from "../components/pages/contracts/ContractPrint.vue";
+import ContractList from "../components/pages/contracts/ContractList.vue";
+
+// POS System
+const PosMain = () => import("../components/pages/pos/PosMain.vue");
+const PosSettings = () => import("../components/pages/pos/PosSettings.vue");
+const PosSalesHistory = () => import("../components/pages/pos/PosSalesHistory.vue");
 //
 
 const router = new VueRouter({
@@ -148,6 +165,78 @@ const router = new VueRouter({
             meta: {
                 title: "Edit Invoice",
                 permission: ["super","staff"],
+            }
+        },
+        {
+            path: prefix + "invoice-templates",
+            name: "invoice-templates",
+            component: InvoiceTemplateManager,
+            meta: {
+                title: "Invoice Templates",
+                pageTitle: "قوالب الفواتير",
+                pageIcon: "fas fa-file-alt",
+                pageSubtitle: "إدارة قوالب الفواتير المخصصة",
+                permission: ["all"]
+            }
+        },
+        {
+            path: prefix + "invoice-templates/create",
+            name: "invoice-template-create",
+            component: InvoiceTemplateForm,
+            meta: {
+                title: "Create Invoice Template",
+                pageTitle: "إنشاء قالب جديد",
+                pageIcon: "fas fa-plus-circle",
+                pageSubtitle: "إنشاء قالب فاتورة مخصص",
+                permission: ["all"]
+            }
+        },
+        {
+            path: prefix + "invoice-templates/:id/edit",
+            name: "invoice-template-edit",
+            component: InvoiceTemplateForm,
+            meta: {
+                title: "Edit Invoice Template",
+                pageTitle: "تعديل القالب",
+                pageIcon: "fas fa-edit",
+                pageSubtitle: "تعديل قالب الفاتورة",
+                permission: ["all"]
+            }
+        },
+        {
+            path: prefix + "invoice-templates/builder/:id?",
+            name: "invoice-template-builder",
+            component: InvoiceTemplateBuilder,
+            meta: {
+                title: "Invoice Template Builder",
+                pageTitle: "بناء قالب الفاتورة",
+                pageIcon: "fas fa-tools",
+                pageSubtitle: "تصميم وتخصيص قالب الفاتورة",
+                permission: ["all"]
+            }
+        },
+        {
+            path: prefix + "invoices/custom/create",
+            name: "custom-invoice-create",
+            component: CustomInvoiceCreate,
+            meta: {
+                title: "Create Custom Invoice",
+                pageTitle: "إنشاء فاتورة مخصصة",
+                pageIcon: "fas fa-file-invoice",
+                pageSubtitle: "إنشاء فاتورة باستخدام القوالب",
+                permission: ["all"]
+            }
+        },
+        {
+            path: prefix + "invoices/custom/:id/print",
+            name: "custom-invoice-print",
+            component: CustomInvoicePrint,
+            meta: {
+                title: "Print Custom Invoice",
+                pageTitle: "طباعة الفاتورة",
+                pageIcon: "fas fa-print",
+                pageSubtitle: "عرض وطباعة الفاتورة المخصصة",
+                permission: ["all"]
             }
         },
         {
@@ -458,7 +547,126 @@ const router = new VueRouter({
                 pageSubtitle: "تحليل مفصل للأرباح",
                 permission: ['super'],
             }
+        },
+        // POS System Routes
+        {
+            path: prefix + "pos",
+            name: "pos",
+            component: PosMain,
+            meta: {
+                title: "Point of Sale",
+                pageTitle: "نقطة البيع",
+                pageIcon: "fas fa-cash-register",
+                pageSubtitle: "نظام نقطة البيع السريع",
+                permission: ['all'],
+            }
+        },
+        {
+            path: prefix + "pos/settings",
+            name: "pos.settings",
+            component: PosSettings,
+            meta: {
+                title: "POS Settings",
+                pageTitle: "إعدادات نقطة البيع",
+                pageIcon: "fas fa-cog",
+                pageSubtitle: "إعدادات وتهيئة نظام نقطة البيع",
+                permission: ['super'],
+            }
+        },
+        {
+            path: prefix + "pos/history",
+            name: "pos.history",
+            component: PosSalesHistory,
+            meta: {
+                title: "POS Sales History",
+                pageTitle: "سجل المبيعات",
+                pageIcon: "fas fa-history",
+                pageSubtitle: "عرض سجل مبيعات نقطة البيع",
+                permission: ['all'],
+            }
+        },
+        // Contract Management Routes
+        {
+            path: prefix + "contracts",
+            name: "contracts.list",
+            component: ContractList,
+            meta: {
+                title: "Contracts",
+                pageTitle: "العقود",
+                pageIcon: "fas fa-file-contract",
+                pageSubtitle: "إدارة العقود",
+                permission: ["all"]
+            }
+        },
+        {
+            path: prefix + "contracts/create",
+            name: "contract-create",
+            component: ContractCreate,
+            meta: {
+                title: "Create Contract",
+                pageTitle: "إنشاء عقد جديد",
+                pageIcon: "fas fa-plus-circle",
+                pageSubtitle: "إنشاء عقد من قالب",
+                permission: ["all"]
+            }
+        },
+        {
+            path: prefix + "contracts/create/:template_id",
+            name: "contract-create-from-template",
+            component: ContractCreate,
+            meta: {
+                title: "Create Contract",
+                pageTitle: "إنشاء عقد",
+                pageIcon: "fas fa-plus-circle",
+                permission: ["all"]
+            }
+        },
+        // {
+        //     path: prefix + "contracts/:id/print",
+        //     name: "contract-print",
+        //     component: ContractPrint,
+        //     meta: {
+        //         title: "Print Contract",
+        //         pageTitle: "طباعة العقد",
+        //         pageIcon: "fas fa-print",
+        //         permission: ["all"]
+        //     }
+        // },
+        {
+            path: prefix + "contract-templates",
+            name: "contract-templates",
+            component: ContractTemplateManager,
+            meta: {
+                title: "Contract Templates",
+                pageTitle: "قوالب العقود",
+                pageIcon: "fas fa-file-alt",
+                pageSubtitle: "إدارة قوالب العقود",
+                permission: ["all"]
+            }
+        },
+        {
+            path: prefix + "contract-templates/create",
+            name: "contract-template-create",
+            component: ContractTemplateForm,
+            meta: {
+                title: "Create Template",
+                pageTitle: "إنشاء قالب عقد",
+                pageIcon: "fas fa-plus-circle",
+                permission: ["all"]
+            }
+        },
+        {
+            path: prefix + "contract-templates/:id/edit",
+            name: "contract-template-edit",
+            component: ContractTemplateForm,
+            meta: {
+                title: "Edit Template",
+                pageTitle: "تعديل قالب العقد",
+                pageIcon: "fas fa-edit",
+                permission: ["all"]
+            }
         }
+
     ]
 })
 

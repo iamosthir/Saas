@@ -14,6 +14,7 @@ class Invoice extends Model
         'merchant_id',
         'customer_id',
         'invoice_number',
+        'invoice_template_id',
         'subtotal',
         'discount_type',
         'discount_amount',
@@ -28,6 +29,7 @@ class Invoice extends Model
         'payment_status',
         'is_fully_paid',
         'notes',
+        'custom_fields',
         'created_by',
     ];
 
@@ -40,6 +42,7 @@ class Invoice extends Model
         'remaining_amount' => 'decimal:2',
         'is_fully_paid' => 'boolean',
         'installment_months' => 'integer',
+        'custom_fields' => 'array',
     ];
 
     public function merchant()
@@ -70,6 +73,16 @@ class Invoice extends Model
     public function activityLogs()
     {
         return $this->hasMany(InvoiceActivityLog::class)->orderBy('created_at', 'desc');
+    }
+
+    public function template()
+    {
+        return $this->belongsTo(InvoiceTemplate::class, 'invoice_template_id');
+    }
+
+    public function hasCustomFields()
+    {
+        return !is_null($this->invoice_template_id) && !empty($this->custom_fields);
     }
 
     public static function generateInvoiceNumber()

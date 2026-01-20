@@ -60,6 +60,26 @@
                             </div>
                         </div>
 
+                        <!-- Custom Invoice Header Fields -->
+                        <div v-if="invoice.template && invoice.custom_fields && Object.keys(invoice.custom_fields).length > 0" class="row mb-4">
+                            <div class="col-md-12">
+                                <div class="card border">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-primary">{{ invoice.template.name }} - Additional Information</h5>
+                                        <hr>
+                                        <div class="row">
+                                            <div v-for="field in invoice.template.header_fields" :key="field.id" class="col-md-6">
+                                                <p v-if="invoice.custom_fields[field.field_key]">
+                                                    <strong>{{ field.field_label }}:</strong>
+                                                    {{ formatCustomFieldValue(invoice.custom_fields[field.field_key], field.field_type) }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Products Table -->
                         <div class="card mb-4">
                             <div class="card-body">
@@ -72,6 +92,7 @@
                                                 <th>#</th>
                                                 <th>اسم المنتج</th>
                                                 <th>المتغير</th>
+                                                <th v-if="hasItemCustomFields">Additional Info</th>
                                                 <th>الكمية</th>
                                                 <th>السعر</th>
                                                 <th>الإجمالي</th>
@@ -82,6 +103,16 @@
                                                 <td>{{ idx + 1 }}</td>
                                                 <td>{{ item.product_name }}</td>
                                                 <td>{{ item.variation_name || 'N/A' }}</td>
+                                                <td v-if="hasItemCustomFields" class="small">
+                                                    <div v-if="item.custom_fields">
+                                                        <div v-for="field in invoice.template.item_fields" :key="field.id">
+                                                            <span v-if="item.custom_fields[field.field_key]">
+                                                                <strong>{{ field.field_label }}:</strong>
+                                                                {{ formatCustomFieldValue(item.custom_fields[field.field_key], field.field_type) }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </td>
                                                 <td>{{ item.quantity }}</td>
                                                 <td>{{ item.custom_price }} IQD</td>
                                                 <td>{{ item.line_total }} IQD</td>
@@ -89,19 +120,19 @@
                                         </tbody>
                                         <tfoot class="bg-light">
                                             <tr>
-                                                <td colspan="5" class="text-end"><strong>المجموع الفرعي:</strong></td>
+                                                <td :colspan="hasItemCustomFields ? 6 : 5" class="text-end"><strong>المجموع الفرعي:</strong></td>
                                                 <td><strong>{{ invoice.subtotal }} IQD</strong></td>
                                             </tr>
                                             <tr v-if="invoice.discount_amount > 0">
-                                                <td colspan="5" class="text-end"><strong>الخصم:</strong></td>
+                                                <td :colspan="hasItemCustomFields ? 6 : 5" class="text-end"><strong>الخصم:</strong></td>
                                                 <td><strong class="text-danger">-{{ invoice.discount_amount }} IQD</strong></td>
                                             </tr>
                                             <tr v-if="invoice.extra_charge > 0">
-                                                <td colspan="5" class="text-end"><strong>رسوم إضافية:</strong></td>
+                                                <td :colspan="hasItemCustomFields ? 6 : 5" class="text-end"><strong>رسوم إضافية:</strong></td>
                                                 <td><strong>{{ invoice.extra_charge }} IQD</strong></td>
                                             </tr>
                                             <tr class="table-primary">
-                                                <td colspan="5" class="text-end"><strong>المجموع الكلي:</strong></td>
+                                                <td :colspan="hasItemCustomFields ? 6 : 5" class="text-end"><strong>المجموع الكلي:</strong></td>
                                                 <td><strong>{{ invoice.total_amount }} IQD</strong></td>
                                             </tr>
                                         </tfoot>
@@ -335,7 +366,24 @@ export default {
             }
         }
     },
+    computed: {
+        hasItemCustomFields() {
+            return this.invoice.template &&
+                   this.invoice.template.item_fields &&
+                   this.invoice.template.item_fields.length > 0;
+        }
+    },
     methods: {
+        formatCustomFieldValue(value, type) {
+            if (!value) return '-';
+            if (type === 'date') {
+                return this.moment(value).format('DD MMM YYYY');
+            }
+            if (type === 'number') {
+                return Number(value).toLocaleString();
+            }
+            return value;
+        },
         async getInvoiceDetails() {
             this.isLoading = true;
             const invoiceId = this.$route.params.id;

@@ -1,0 +1,773 @@
+<template>
+    <div class="pos-history-page">
+        <div class="page-header">
+            <h2><i class="fas fa-history"></i> POS Sales History</h2>
+            <router-link to="/dashboard/pos" class="btn btn-primary">
+                <i class="fas fa-cash-register"></i> Open POS
+            </router-link>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-card">
+            <div class="filters-row">
+                <div class="filter-group">
+                    <label>Status</label>
+                    <select v-model="filters.status" @change="loadSales" class="form-control">
+                        <option value="">All Status</option>
+                        <option value="completed">Completed</option>
+                        <option value="voided">Voided</option>
+                        <option value="parked">Parked</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>From Date</label>
+                    <input type="date" v-model="filters.from_date" @change="loadSales" class="form-control" />
+                </div>
+                <div class="filter-group">
+                    <label>To Date</label>
+                    <input type="date" v-model="filters.to_date" @change="loadSales" class="form-control" />
+                </div>
+                <div class="filter-group">
+                    <label>&nbsp;</label>
+                    <button class="btn btn-secondary" @click="clearFilters">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards" v-if="!loading">
+            <div class="summary-card">
+                <div class="summary-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="summary-info">
+                    <div class="summary-value">{{ summary.total_sales }}</div>
+                    <div class="summary-label">Total Sales</div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon revenue">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="summary-info">
+                    <div class="summary-value">{{ formatCurrency(summary.total_revenue) }}</div>
+                    <div class="summary-label">Total Revenue</div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon items">
+                    <i class="fas fa-box"></i>
+                </div>
+                <div class="summary-info">
+                    <div class="summary-value">{{ summary.total_items }}</div>
+                    <div class="summary-label">Items Sold</div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon avg">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="summary-info">
+                    <div class="summary-value">{{ formatCurrency(summary.average_sale) }}</div>
+                    <div class="summary-label">Average Sale</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales Table -->
+        <div class="sales-table-card">
+            <div v-if="loading" class="loading-state">
+                <i class="fas fa-spinner fa-spin"></i> Loading sales...
+            </div>
+            <div v-else-if="sales.length === 0" class="empty-state">
+                <i class="fas fa-receipt"></i>
+                <p>No sales found</p>
+            </div>
+            <table v-else class="sales-table">
+                <thead>
+                    <tr>
+                        <th>Sale #</th>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="sale in sales" :key="sale.id" @click="viewSale(sale)">
+                        <td class="sale-number">{{ sale.sale_number }}</td>
+                        <td>{{ formatDate(sale.created_at) }}</td>
+                        <td>{{ sale.customer?.customer_name || '-' }}</td>
+                        <td>{{ sale.items?.length || 0 }}</td>
+                        <td class="sale-total">{{ formatCurrency(sale.total_amount) }}</td>
+                        <td>
+                            <span class="status-badge" :class="sale.status">
+                                {{ sale.status }}
+                            </span>
+                        </td>
+                        <td class="actions">
+                            <button class="btn-action" @click.stop="viewSale(sale)" title="View">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn-action" @click.stop="printReceipt(sale)" title="Print">
+                                <i class="fas fa-print"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div v-if="pagination.last_page > 1" class="pagination">
+                <button
+                    class="page-btn"
+                    :disabled="pagination.current_page <= 1"
+                    @click="goToPage(pagination.current_page - 1)"
+                >
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="page-info">
+                    Page {{ pagination.current_page }} of {{ pagination.last_page }}
+                </span>
+                <button
+                    class="page-btn"
+                    :disabled="pagination.current_page >= pagination.last_page"
+                    @click="goToPage(pagination.current_page + 1)"
+                >
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Sale Detail Modal -->
+        <div v-if="showDetailModal" class="modal-overlay" @click.self="showDetailModal = false">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5>Sale Details - {{ selectedSale?.sale_number }}</h5>
+                    <button class="close-btn" @click="showDetailModal = false">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body" v-if="selectedSale">
+                    <div class="detail-section">
+                        <div class="detail-row">
+                            <span>Date:</span>
+                            <span>{{ formatDateTime(selectedSale.created_at) }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Status:</span>
+                            <span class="status-badge" :class="selectedSale.status">
+                                {{ selectedSale.status }}
+                            </span>
+                        </div>
+                        <div class="detail-row" v-if="selectedSale.customer">
+                            <span>Customer:</span>
+                            <span>{{ selectedSale.customer.customer_name }}</span>
+                        </div>
+                        <div class="detail-row" v-if="selectedSale.created_by">
+                            <span>Cashier:</span>
+                            <span>{{ selectedSale.created_by.name }}</span>
+                        </div>
+                    </div>
+
+                    <div class="items-section">
+                        <h6>Items</h6>
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Qty</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in selectedSale.items" :key="item.id">
+                                    <td>
+                                        {{ item.product_name }}
+                                        <span v-if="item.variation_name" class="variation">
+                                            ({{ item.variation_name }})
+                                        </span>
+                                    </td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>{{ formatCurrency(item.unit_price) }}</td>
+                                    <td>{{ formatCurrency(item.line_total) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="totals-section">
+                        <div class="total-row">
+                            <span>Subtotal:</span>
+                            <span>{{ formatCurrency(selectedSale.subtotal) }}</span>
+                        </div>
+                        <div class="total-row" v-if="selectedSale.discount_value > 0">
+                            <span>Discount:</span>
+                            <span class="text-success">-{{ formatCurrency(selectedSale.discount_value) }}</span>
+                        </div>
+                        <div class="total-row" v-if="selectedSale.tax_amount > 0">
+                            <span>Tax ({{ selectedSale.tax_rate }}%):</span>
+                            <span>{{ formatCurrency(selectedSale.tax_amount) }}</span>
+                        </div>
+                        <div class="total-row grand-total">
+                            <span>Total:</span>
+                            <span>{{ formatCurrency(selectedSale.total_amount) }}</span>
+                        </div>
+                    </div>
+
+                    <div class="payments-section" v-if="selectedSale.payments?.length">
+                        <h6>Payments</h6>
+                        <div class="payment-row" v-for="payment in selectedSale.payments" :key="payment.id">
+                            <span>{{ getMethodLabel(payment.payment_method) }}</span>
+                            <span>{{ formatCurrency(payment.amount) }}</span>
+                        </div>
+                        <div class="payment-row" v-if="selectedSale.change_amount > 0">
+                            <span>Change Given:</span>
+                            <span>{{ formatCurrency(selectedSale.change_amount) }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @click="printReceipt(selectedSale)">
+                        <i class="fas fa-print"></i> Print Receipt
+                    </button>
+                    <button class="btn btn-primary" @click="showDetailModal = false">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+import axios from 'axios';
+
+export default {
+    name: 'PosSalesHistory',
+    data() {
+        return {
+            loading: true,
+            sales: [],
+            pagination: {
+                current_page: 1,
+                last_page: 1,
+                per_page: 20,
+                total: 0,
+            },
+            filters: {
+                status: '',
+                from_date: '',
+                to_date: '',
+            },
+            summary: {
+                total_sales: 0,
+                total_revenue: 0,
+                total_items: 0,
+                average_sale: 0,
+            },
+            showDetailModal: false,
+            selectedSale: null,
+        };
+    },
+    methods: {
+        async loadSales(page = 1) {
+            this.loading = true;
+            try {
+                const params = {
+                    page,
+                    per_page: this.pagination.per_page,
+                    ...this.filters,
+                };
+
+                const response = await axios.get('/dashboard/api/pos/sales', { params });
+                const data = response.data.data;
+
+                this.sales = data.data || [];
+                this.pagination = {
+                    current_page: data.current_page,
+                    last_page: data.last_page,
+                    per_page: data.per_page,
+                    total: data.total,
+                };
+
+                this.calculateSummary();
+            } catch (error) {
+                console.error('Failed to load sales:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        calculateSummary() {
+            const completedSales = this.sales.filter(s => s.status === 'completed');
+
+            this.summary = {
+                total_sales: completedSales.length,
+                total_revenue: completedSales.reduce((sum, s) => sum + parseFloat(s.total_amount || 0), 0),
+                total_items: completedSales.reduce((sum, s) => sum + (s.items?.length || 0), 0),
+                average_sale: completedSales.length > 0
+                    ? completedSales.reduce((sum, s) => sum + parseFloat(s.total_amount || 0), 0) / completedSales.length
+                    : 0,
+            };
+        },
+
+        goToPage(page) {
+            if (page >= 1 && page <= this.pagination.last_page) {
+                this.loadSales(page);
+            }
+        },
+
+        clearFilters() {
+            this.filters = {
+                status: '',
+                from_date: '',
+                to_date: '',
+            };
+            this.loadSales();
+        },
+
+        async viewSale(sale) {
+            try {
+                const response = await axios.get(`/dashboard/api/pos/sales/${sale.id}`);
+                this.selectedSale = response.data.data;
+                this.showDetailModal = true;
+            } catch (error) {
+                console.error('Failed to load sale details:', error);
+            }
+        },
+
+        async printReceipt(sale) {
+            try {
+                const response = await axios.get(`/dashboard/api/pos/print/${sale.id}/html`, {
+                    responseType: 'text',
+                });
+
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(response.data);
+                printWindow.document.close();
+                printWindow.print();
+            } catch (error) {
+                console.error('Failed to print receipt:', error);
+            }
+        },
+
+        formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            }).format(amount || 0);
+        },
+
+        formatDate(dateString) {
+            if (!dateString) return '-';
+            return new Date(dateString).toLocaleDateString();
+        },
+
+        formatDateTime(dateString) {
+            if (!dateString) return '-';
+            return new Date(dateString).toLocaleString();
+        },
+
+        getMethodLabel(method) {
+            const labels = {
+                cash: 'Cash',
+                card: 'Card',
+                wallet: 'Wallet',
+                bank_transfer: 'Bank Transfer',
+            };
+            return labels[method] || method;
+        },
+    },
+    mounted() {
+        // Set default date range to today
+        const today = new Date().toISOString().split('T')[0];
+        this.filters.from_date = today;
+        this.filters.to_date = today;
+        this.loadSales();
+    },
+};
+</script>
+
+<style scoped>
+.pos-history-page {
+    padding: 20px;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.page-header h2 {
+    margin: 0;
+}
+
+/* Filters */
+.filters-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.filters-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 150px;
+}
+
+.filter-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+/* Summary Cards */
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.summary-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.summary-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e3f2fd;
+    color: #2196f3;
+    font-size: 20px;
+}
+
+.summary-icon.revenue {
+    background: #e8f5e9;
+    color: #4caf50;
+}
+
+.summary-icon.items {
+    background: #fff3e0;
+    color: #ff9800;
+}
+
+.summary-icon.avg {
+    background: #f3e5f5;
+    color: #9c27b0;
+}
+
+.summary-value {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.summary-label {
+    font-size: 14px;
+    color: #666;
+}
+
+/* Sales Table */
+.sales-table-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.loading-state, .empty-state {
+    text-align: center;
+    padding: 60px;
+    color: #888;
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}
+
+.sales-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.sales-table th,
+.sales-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.sales-table th {
+    background: #f5f5f5;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.sales-table tbody tr {
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.sales-table tbody tr:hover {
+    background: #f9f9f9;
+}
+
+.sale-number {
+    font-weight: 600;
+    color: #2196f3;
+}
+
+.sale-total {
+    font-weight: 600;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.status-badge.completed {
+    background: #e8f5e9;
+    color: #4caf50;
+}
+
+.status-badge.voided {
+    background: #ffebee;
+    color: #f44336;
+}
+
+.status-badge.parked {
+    background: #fff3e0;
+    color: #ff9800;
+}
+
+.status-badge.draft {
+    background: #e0e0e0;
+    color: #666;
+}
+
+.actions {
+    display: flex;
+    gap: 5px;
+}
+
+.btn-action {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 6px;
+    background: #f0f0f0;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-action:hover {
+    background: #e0e0e0;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.page-btn {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.page-btn:hover:not(:disabled) {
+    background: #f5f5f5;
+}
+
+.page-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.page-info {
+    color: #666;
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-header h5 {
+    margin: 0;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #888;
+}
+
+.modal-body {
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 15px 20px;
+    border-top: 1px solid #e0e0e0;
+}
+
+/* Detail Sections */
+.detail-section {
+    margin-bottom: 20px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.items-section, .payments-section {
+    margin-bottom: 20px;
+}
+
+.items-section h6, .payments-section h6 {
+    margin-bottom: 10px;
+    color: #666;
+}
+
+.items-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.items-table th, .items-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.items-table th {
+    background: #f5f5f5;
+}
+
+.variation {
+    font-size: 12px;
+    color: #888;
+}
+
+.totals-section {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+}
+
+.total-row.grand-total {
+    font-size: 18px;
+    font-weight: 700;
+    border-top: 1px solid #e0e0e0;
+    margin-top: 10px;
+    padding-top: 10px;
+}
+
+.payment-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
+    background: #f5f5f5;
+    border-radius: 6px;
+    margin-bottom: 5px;
+}
+
+.text-success {
+    color: #4caf50;
+}
+</style>

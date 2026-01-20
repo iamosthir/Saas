@@ -38,11 +38,14 @@ class InvoiceController extends Controller
             'discount_amount' => 'nullable|numeric|min:0',
             'extra_charge' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
+            'invoice_template_id' => 'nullable|exists:invoice_templates,id',
+            'custom_fields' => 'nullable|array',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.product_variation_id' => 'nullable|exists:product_variations,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.custom_price' => 'nullable|numeric|min:0',
+            'items.*.custom_fields' => 'nullable|array',
         ]);
 
         DB::beginTransaction();
@@ -104,6 +107,7 @@ class InvoiceController extends Controller
                 'merchant_id' => $merchantId,
                 'customer_id' => $customer->id,
                 'invoice_number' => Invoice::generateInvoiceNumber(),
+                'invoice_template_id' => $request->invoice_template_id,
                 'subtotal' => $subtotal,
                 'discount_type' => $request->discount_type ?? 'fixed',
                 'discount_amount' => $request->discount_amount ?? 0,
@@ -118,6 +122,7 @@ class InvoiceController extends Controller
                 'payment_status' => $depositAmount > 0 ? 'partial' : 'unpaid',
                 'is_fully_paid' => false,
                 'notes' => $request->notes,
+                'custom_fields' => $request->custom_fields,
                 'created_by' => $user->id,
             ]);
 
@@ -144,6 +149,7 @@ class InvoiceController extends Controller
                     'original_price' => $priceToUse,
                     'custom_price' => $finalPrice,
                     'line_total' => $finalPrice * $item['quantity'],
+                    'custom_fields' => $item['custom_fields'] ?? null,
                 ]);
             }
 
@@ -367,8 +373,14 @@ class InvoiceController extends Controller
     public function show($id)
     {
         try {
-            $invoice = Invoice::with(['customer', 'items', 'installmentSchedules', 'createdBy'])
-                ->findOrFail($id);
+            $invoice = Invoice::with([
+                'customer',
+                'items',
+                'installmentSchedules',
+                'createdBy',
+                'template.headerFields',
+                'template.itemFields'
+            ])->findOrFail($id);
 
             // Check if user has access to this invoice
             if ($invoice->merchant_id !== Auth::user()->merchant_id) {
@@ -561,8 +573,14 @@ class InvoiceController extends Controller
     {
         try {
             // Load invoice with all relationships
-            $invoice = Invoice::with(['customer', 'items', 'installmentSchedules', 'createdBy'])
-                ->findOrFail($id);
+            $invoice = Invoice::with([
+                'customer',
+                'items',
+                'installmentSchedules',
+                'createdBy',
+                'template.headerFields',
+                'template.itemFields'
+            ])->findOrFail($id);
 
             // Check if user has access to this invoice
             if ($invoice->merchant_id !== Auth::user()->merchant_id) {
@@ -581,5 +599,28 @@ class InvoiceController extends Controller
         } catch (\Exception $e) {
             abort(404, 'Invoice not found');
         }
+    }
+
+    public function getTemplates()
+    {
+        $merchantId = Auth::user()->merchant_id;
+
+        $templates = \Illuminate\Support\Facades\Cache::remember(
+            "merchant_{$merchantId}_invoice_templates",
+            3600, // 1 hour
+            function () use ($merchantId) {
+                return \App\Models\InvoiceTemplate::where('merchant_id', $merchantId)
+                    ->where('is_active', true)
+                    ->with(['headerFields', 'itemFields'])
+                    ->orderBy('is_default', 'desc')
+                    ->orderBy('name')
+                    ->get();
+            }
+        );
+
+        return response()->json([
+            'status' => 'ok',
+            'templates' => $templates,
+        ]);
     }
 }
