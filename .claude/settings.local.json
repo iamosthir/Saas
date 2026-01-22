@@ -11,7 +11,10 @@
       "Bash(composer remove:*)",
       "Bash(git -C /c/Users/mdeas/OneDrive/Desktop/Saas log --oneline)",
       "Bash(grep:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(php check_user.php:*)",
+      "Bash(php test_login.php:*)",
+      "Bash(php check_all_users.php:*)"
     ]
   }
 }

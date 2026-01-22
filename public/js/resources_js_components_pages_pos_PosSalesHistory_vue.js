@@ -47,8 +47,14 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         average_sale: 0
       },
       showDetailModal: false,
-      selectedSale: null
+      selectedSale: null,
+      isMobileView: false
     };
+  },
+  computed: {
+    isMobile: function isMobile() {
+      return this.isMobileView;
+    }
   },
   methods: {
     loadSales: function loadSales() {
@@ -208,6 +214,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         bank_transfer: 'Bank Transfer'
       };
       return labels[method] || method;
+    },
+    checkMobileView: function checkMobileView() {
+      this.isMobileView = window.innerWidth <= 480;
     }
   },
   mounted: function mounted() {
@@ -216,6 +225,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     this.filters.from_date = today;
     this.filters.to_date = today;
     this.loadSales();
+
+    // Check mobile view on mount and window resize
+    this.checkMobileView();
+    window.addEventListener('resize', this.checkMobileView);
+  },
+  beforeUnmount: function beforeUnmount() {
+    window.removeEventListener('resize', this.checkMobileView);
   }
 });
 
@@ -387,7 +403,7 @@ var render = function render() {
     staticClass: "empty-state"
   }, [_c("i", {
     staticClass: "fas fa-receipt"
-  }), _vm._v(" "), _c("p", [_vm._v("No sales found")])]) : _c("table", {
+  }), _vm._v(" "), _c("p", [_vm._v("No sales found")])]) : !_vm.isMobile ? _c("table", {
     staticClass: "sales-table"
   }, [_vm._m(5), _vm._v(" "), _c("tbody", _vm._l(_vm.sales, function (sale) {
     var _sale$customer, _sale$items;
@@ -434,7 +450,75 @@ var render = function render() {
     }, [_c("i", {
       staticClass: "fas fa-print"
     })])])]);
-  }), 0)]), _vm._v(" "), _vm.pagination.last_page > 1 ? _c("div", {
+  }), 0)]) : _c("div", {
+    staticClass: "sales-cards-mobile"
+  }, _vm._l(_vm.sales, function (sale) {
+    var _sale$customer2, _sale$items2;
+    return _c("div", {
+      key: sale.id,
+      staticClass: "sale-card-mobile",
+      on: {
+        click: function click($event) {
+          return _vm.viewSale(sale);
+        }
+      }
+    }, [_c("div", {
+      staticClass: "sale-card-header"
+    }, [_c("span", {
+      staticClass: "sale-number-mobile"
+    }, [_vm._v(_vm._s(sale.sale_number))]), _vm._v(" "), _c("span", {
+      staticClass: "status-badge",
+      "class": sale.status
+    }, [_vm._v("\n                        " + _vm._s(sale.status) + "\n                    ")])]), _vm._v(" "), _c("div", {
+      staticClass: "sale-card-body"
+    }, [_c("div", {
+      staticClass: "sale-card-row"
+    }, [_c("span", {
+      staticClass: "label"
+    }, [_vm._v("Date:")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.formatDate(sale.created_at)))])]), _vm._v(" "), _c("div", {
+      staticClass: "sale-card-row"
+    }, [_c("span", {
+      staticClass: "label"
+    }, [_vm._v("Customer:")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(((_sale$customer2 = sale.customer) === null || _sale$customer2 === void 0 ? void 0 : _sale$customer2.customer_name) || "-"))])]), _vm._v(" "), _c("div", {
+      staticClass: "sale-card-row"
+    }, [_c("span", {
+      staticClass: "label"
+    }, [_vm._v("Items:")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(((_sale$items2 = sale.items) === null || _sale$items2 === void 0 ? void 0 : _sale$items2.length) || 0))])]), _vm._v(" "), _c("div", {
+      staticClass: "sale-card-row total-row-mobile"
+    }, [_c("span", {
+      staticClass: "label"
+    }, [_vm._v("Total:")]), _vm._v(" "), _c("span", {
+      staticClass: "sale-total-mobile"
+    }, [_vm._v(_vm._s(_vm.formatCurrency(sale.total_amount)))])])]), _vm._v(" "), _c("div", {
+      staticClass: "sale-card-actions"
+    }, [_c("button", {
+      staticClass: "btn-action-mobile",
+      attrs: {
+        title: "View"
+      },
+      on: {
+        click: function click($event) {
+          $event.stopPropagation();
+          return _vm.viewSale(sale);
+        }
+      }
+    }, [_c("i", {
+      staticClass: "fas fa-eye"
+    }), _vm._v(" View\n                    ")]), _vm._v(" "), _c("button", {
+      staticClass: "btn-action-mobile",
+      attrs: {
+        title: "Print"
+      },
+      on: {
+        click: function click($event) {
+          $event.stopPropagation();
+          return _vm.printReceipt(sale);
+        }
+      }
+    }, [_c("i", {
+      staticClass: "fas fa-print"
+    }), _vm._v(" Print\n                    ")])])]);
+  }), 0), _vm._v(" "), _vm.pagination.last_page > 1 ? _c("div", {
     staticClass: "pagination"
   }, [_c("button", {
     staticClass: "page-btn",
@@ -500,7 +584,7 @@ var render = function render() {
     staticClass: "detail-row"
   }, [_c("span", [_vm._v("Cashier:")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.selectedSale.created_by.name))])]) : _vm._e()]), _vm._v(" "), _c("div", {
     staticClass: "items-section"
-  }, [_c("h6", [_vm._v("Items")]), _vm._v(" "), _c("table", {
+  }, [_c("h6", [_vm._v("Items")]), _vm._v(" "), !_vm.isMobile ? _c("table", {
     staticClass: "items-table"
   }, [_vm._m(6), _vm._v(" "), _c("tbody", _vm._l(_vm.selectedSale.items, function (item) {
     return _c("tr", {
@@ -508,7 +592,22 @@ var render = function render() {
     }, [_c("td", [_vm._v("\n                                    " + _vm._s(item.product_name) + "\n                                    "), item.variation_name ? _c("span", {
       staticClass: "variation"
     }, [_vm._v("\n                                        (" + _vm._s(item.variation_name) + ")\n                                    ")]) : _vm._e()]), _vm._v(" "), _c("td", [_vm._v(_vm._s(item.quantity))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm.formatCurrency(item.unit_price)))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm.formatCurrency(item.line_total)))])]);
-  }), 0)])]), _vm._v(" "), _c("div", {
+  }), 0)]) : _c("div", {
+    staticClass: "items-cards-mobile"
+  }, _vm._l(_vm.selectedSale.items, function (item) {
+    return _c("div", {
+      key: item.id,
+      staticClass: "item-card-mobile"
+    }, [_c("div", {
+      staticClass: "item-name-mobile"
+    }, [_vm._v("\n                                " + _vm._s(item.product_name) + "\n                                "), item.variation_name ? _c("span", {
+      staticClass: "variation"
+    }, [_vm._v("\n                                    (" + _vm._s(item.variation_name) + ")\n                                ")]) : _vm._e()]), _vm._v(" "), _c("div", {
+      staticClass: "item-details-mobile"
+    }, [_c("span", [_vm._v("Qty: " + _vm._s(item.quantity))]), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.formatCurrency(item.unit_price)))]), _vm._v(" "), _c("span", {
+      staticClass: "item-total-mobile"
+    }, [_vm._v(_vm._s(_vm.formatCurrency(item.line_total)))])])]);
+  }), 0)]), _vm._v(" "), _c("div", {
     staticClass: "totals-section"
   }, [_c("div", {
     staticClass: "total-row"
@@ -617,7 +716,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_laravel_mix_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n.pos-history-page[data-v-a8766a0a] {\n    padding: 20px;\n}\n.page-header[data-v-a8766a0a] {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    margin-bottom: 20px;\n}\n.page-header h2[data-v-a8766a0a] {\n    margin: 0;\n}\n\n/* Filters */\n.filters-card[data-v-a8766a0a] {\n    background: white;\n    padding: 20px;\n    border-radius: 12px;\n    margin-bottom: 20px;\n    box-shadow: 0 2px 8px rgba(0,0,0,0.05);\n}\n.filters-row[data-v-a8766a0a] {\n    display: flex;\n    gap: 20px;\n    flex-wrap: wrap;\n}\n.filter-group[data-v-a8766a0a] {\n    flex: 1;\n    min-width: 150px;\n}\n.filter-group label[data-v-a8766a0a] {\n    display: block;\n    margin-bottom: 5px;\n    font-weight: 500;\n    font-size: 14px;\n}\n.form-control[data-v-a8766a0a] {\n    width: 100%;\n    padding: 10px 12px;\n    border: 1px solid #ddd;\n    border-radius: 8px;\n    font-size: 14px;\n}\n\n/* Summary Cards */\n.summary-cards[data-v-a8766a0a] {\n    display: grid;\n    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));\n    gap: 20px;\n    margin-bottom: 20px;\n}\n.summary-card[data-v-a8766a0a] {\n    background: white;\n    padding: 20px;\n    border-radius: 12px;\n    display: flex;\n    align-items: center;\n    gap: 15px;\n    box-shadow: 0 2px 8px rgba(0,0,0,0.05);\n}\n.summary-icon[data-v-a8766a0a] {\n    width: 50px;\n    height: 50px;\n    border-radius: 12px;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    background: #e3f2fd;\n    color: #2196f3;\n    font-size: 20px;\n}\n.summary-icon.revenue[data-v-a8766a0a] {\n    background: #e8f5e9;\n    color: #4caf50;\n}\n.summary-icon.items[data-v-a8766a0a] {\n    background: #fff3e0;\n    color: #ff9800;\n}\n.summary-icon.avg[data-v-a8766a0a] {\n    background: #f3e5f5;\n    color: #9c27b0;\n}\n.summary-value[data-v-a8766a0a] {\n    font-size: 24px;\n    font-weight: 700;\n}\n.summary-label[data-v-a8766a0a] {\n    font-size: 14px;\n    color: #666;\n}\n\n/* Sales Table */\n.sales-table-card[data-v-a8766a0a] {\n    background: white;\n    border-radius: 12px;\n    overflow: hidden;\n    box-shadow: 0 2px 8px rgba(0,0,0,0.05);\n}\n.loading-state[data-v-a8766a0a], .empty-state[data-v-a8766a0a] {\n    text-align: center;\n    padding: 60px;\n    color: #888;\n}\n.empty-state i[data-v-a8766a0a] {\n    font-size: 48px;\n    margin-bottom: 10px;\n    opacity: 0.5;\n}\n.sales-table[data-v-a8766a0a] {\n    width: 100%;\n    border-collapse: collapse;\n}\n.sales-table th[data-v-a8766a0a],\n.sales-table td[data-v-a8766a0a] {\n    padding: 15px;\n    text-align: left;\n    border-bottom: 1px solid #e0e0e0;\n}\n.sales-table th[data-v-a8766a0a] {\n    background: #f5f5f5;\n    font-weight: 600;\n    font-size: 14px;\n}\n.sales-table tbody tr[data-v-a8766a0a] {\n    cursor: pointer;\n    transition: background 0.2s;\n}\n.sales-table tbody tr[data-v-a8766a0a]:hover {\n    background: #f9f9f9;\n}\n.sale-number[data-v-a8766a0a] {\n    font-weight: 600;\n    color: #2196f3;\n}\n.sale-total[data-v-a8766a0a] {\n    font-weight: 600;\n}\n.status-badge[data-v-a8766a0a] {\n    display: inline-block;\n    padding: 4px 12px;\n    border-radius: 20px;\n    font-size: 12px;\n    font-weight: 500;\n    text-transform: capitalize;\n}\n.status-badge.completed[data-v-a8766a0a] {\n    background: #e8f5e9;\n    color: #4caf50;\n}\n.status-badge.voided[data-v-a8766a0a] {\n    background: #ffebee;\n    color: #f44336;\n}\n.status-badge.parked[data-v-a8766a0a] {\n    background: #fff3e0;\n    color: #ff9800;\n}\n.status-badge.draft[data-v-a8766a0a] {\n    background: #e0e0e0;\n    color: #666;\n}\n.actions[data-v-a8766a0a] {\n    display: flex;\n    gap: 5px;\n}\n.btn-action[data-v-a8766a0a] {\n    width: 32px;\n    height: 32px;\n    border: none;\n    border-radius: 6px;\n    background: #f0f0f0;\n    cursor: pointer;\n    transition: all 0.2s;\n}\n.btn-action[data-v-a8766a0a]:hover {\n    background: #e0e0e0;\n}\n\n/* Pagination */\n.pagination[data-v-a8766a0a] {\n    display: flex;\n    justify-content: center;\n    align-items: center;\n    gap: 15px;\n    padding: 20px;\n    border-top: 1px solid #e0e0e0;\n}\n.page-btn[data-v-a8766a0a] {\n    width: 36px;\n    height: 36px;\n    border: 1px solid #ddd;\n    border-radius: 8px;\n    background: white;\n    cursor: pointer;\n    transition: all 0.2s;\n}\n.page-btn[data-v-a8766a0a]:hover:not(:disabled) {\n    background: #f5f5f5;\n}\n.page-btn[data-v-a8766a0a]:disabled {\n    opacity: 0.5;\n    cursor: not-allowed;\n}\n.page-info[data-v-a8766a0a] {\n    color: #666;\n}\n\n/* Modal */\n.modal-overlay[data-v-a8766a0a] {\n    position: fixed;\n    top: 0;\n    left: 0;\n    right: 0;\n    bottom: 0;\n    background: rgba(0,0,0,0.5);\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    z-index: 1000;\n}\n.modal-content[data-v-a8766a0a] {\n    background: white;\n    border-radius: 12px;\n    width: 90%;\n    max-width: 600px;\n    max-height: 90vh;\n    overflow: hidden;\n    display: flex;\n    flex-direction: column;\n}\n.modal-header[data-v-a8766a0a] {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    padding: 15px 20px;\n    border-bottom: 1px solid #e0e0e0;\n}\n.modal-header h5[data-v-a8766a0a] {\n    margin: 0;\n}\n.close-btn[data-v-a8766a0a] {\n    background: none;\n    border: none;\n    font-size: 20px;\n    cursor: pointer;\n    color: #888;\n}\n.modal-body[data-v-a8766a0a] {\n    padding: 20px;\n    overflow-y: auto;\n}\n.modal-footer[data-v-a8766a0a] {\n    display: flex;\n    justify-content: flex-end;\n    gap: 10px;\n    padding: 15px 20px;\n    border-top: 1px solid #e0e0e0;\n}\n\n/* Detail Sections */\n.detail-section[data-v-a8766a0a] {\n    margin-bottom: 20px;\n}\n.detail-row[data-v-a8766a0a] {\n    display: flex;\n    justify-content: space-between;\n    padding: 8px 0;\n    border-bottom: 1px solid #f0f0f0;\n}\n.items-section[data-v-a8766a0a], .payments-section[data-v-a8766a0a] {\n    margin-bottom: 20px;\n}\n.items-section h6[data-v-a8766a0a], .payments-section h6[data-v-a8766a0a] {\n    margin-bottom: 10px;\n    color: #666;\n}\n.items-table[data-v-a8766a0a] {\n    width: 100%;\n    border-collapse: collapse;\n    font-size: 14px;\n}\n.items-table th[data-v-a8766a0a], .items-table td[data-v-a8766a0a] {\n    padding: 10px;\n    text-align: left;\n    border-bottom: 1px solid #e0e0e0;\n}\n.items-table th[data-v-a8766a0a] {\n    background: #f5f5f5;\n}\n.variation[data-v-a8766a0a] {\n    font-size: 12px;\n    color: #888;\n}\n.totals-section[data-v-a8766a0a] {\n    background: #f9f9f9;\n    padding: 15px;\n    border-radius: 8px;\n    margin-bottom: 20px;\n}\n.total-row[data-v-a8766a0a] {\n    display: flex;\n    justify-content: space-between;\n    padding: 5px 0;\n}\n.total-row.grand-total[data-v-a8766a0a] {\n    font-size: 18px;\n    font-weight: 700;\n    border-top: 1px solid #e0e0e0;\n    margin-top: 10px;\n    padding-top: 10px;\n}\n.payment-row[data-v-a8766a0a] {\n    display: flex;\n    justify-content: space-between;\n    padding: 8px;\n    background: #f5f5f5;\n    border-radius: 6px;\n    margin-bottom: 5px;\n}\n.text-success[data-v-a8766a0a] {\n    color: #4caf50;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n.pos-history-page[data-v-a8766a0a] {\n    padding: 20px;\n}\n.page-header[data-v-a8766a0a] {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    margin-bottom: 20px;\n}\n.page-header h2[data-v-a8766a0a] {\n    margin: 0;\n}\n\n/* Filters */\n.filters-card[data-v-a8766a0a] {\n    background: white;\n    padding: 20px;\n    border-radius: 12px;\n    margin-bottom: 20px;\n    box-shadow: 0 2px 8px rgba(0,0,0,0.05);\n}\n.filters-row[data-v-a8766a0a] {\n    display: flex;\n    gap: 20px;\n    flex-wrap: wrap;\n}\n.filter-group[data-v-a8766a0a] {\n    flex: 1;\n    min-width: 150px;\n}\n.filter-group label[data-v-a8766a0a] {\n    display: block;\n    margin-bottom: 5px;\n    font-weight: 500;\n    font-size: 14px;\n}\n.form-control[data-v-a8766a0a] {\n    width: 100%;\n    padding: 10px 12px;\n    border: 1px solid #ddd;\n    border-radius: 8px;\n    font-size: 14px;\n}\n\n/* Summary Cards */\n.summary-cards[data-v-a8766a0a] {\n    display: grid;\n    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));\n    gap: 20px;\n    margin-bottom: 20px;\n}\n.summary-card[data-v-a8766a0a] {\n    background: white;\n    padding: 20px;\n    border-radius: 12px;\n    display: flex;\n    align-items: center;\n    gap: 15px;\n    box-shadow: 0 2px 8px rgba(0,0,0,0.05);\n}\n.summary-icon[data-v-a8766a0a] {\n    width: 50px;\n    height: 50px;\n    border-radius: 12px;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    background: #e3f2fd;\n    color: #2196f3;\n    font-size: 20px;\n}\n.summary-icon.revenue[data-v-a8766a0a] {\n    background: #e8f5e9;\n    color: #4caf50;\n}\n.summary-icon.items[data-v-a8766a0a] {\n    background: #fff3e0;\n    color: #ff9800;\n}\n.summary-icon.avg[data-v-a8766a0a] {\n    background: #f3e5f5;\n    color: #9c27b0;\n}\n.summary-value[data-v-a8766a0a] {\n    font-size: 24px;\n    font-weight: 700;\n}\n.summary-label[data-v-a8766a0a] {\n    font-size: 14px;\n    color: #666;\n}\n\n/* Sales Table */\n.sales-table-card[data-v-a8766a0a] {\n    background: white;\n    border-radius: 12px;\n    overflow: hidden;\n    box-shadow: 0 2px 8px rgba(0,0,0,0.05);\n}\n.loading-state[data-v-a8766a0a], .empty-state[data-v-a8766a0a] {\n    text-align: center;\n    padding: 60px;\n    color: #888;\n}\n.empty-state i[data-v-a8766a0a] {\n    font-size: 48px;\n    margin-bottom: 10px;\n    opacity: 0.5;\n}\n.sales-table[data-v-a8766a0a] {\n    width: 100%;\n    border-collapse: collapse;\n}\n.sales-table th[data-v-a8766a0a],\n.sales-table td[data-v-a8766a0a] {\n    padding: 15px;\n    text-align: left;\n    border-bottom: 1px solid #e0e0e0;\n}\n.sales-table th[data-v-a8766a0a] {\n    background: #f5f5f5;\n    font-weight: 600;\n    font-size: 14px;\n}\n.sales-table tbody tr[data-v-a8766a0a] {\n    cursor: pointer;\n    transition: background 0.2s;\n}\n.sales-table tbody tr[data-v-a8766a0a]:hover {\n    background: #f9f9f9;\n}\n.sale-number[data-v-a8766a0a] {\n    font-weight: 600;\n    color: #2196f3;\n}\n.sale-total[data-v-a8766a0a] {\n    font-weight: 600;\n}\n.status-badge[data-v-a8766a0a] {\n    display: inline-block;\n    padding: 4px 12px;\n    border-radius: 20px;\n    font-size: 12px;\n    font-weight: 500;\n    text-transform: capitalize;\n}\n.status-badge.completed[data-v-a8766a0a] {\n    background: #e8f5e9;\n    color: #4caf50;\n}\n.status-badge.voided[data-v-a8766a0a] {\n    background: #ffebee;\n    color: #f44336;\n}\n.status-badge.parked[data-v-a8766a0a] {\n    background: #fff3e0;\n    color: #ff9800;\n}\n.status-badge.draft[data-v-a8766a0a] {\n    background: #e0e0e0;\n    color: #666;\n}\n.actions[data-v-a8766a0a] {\n    display: flex;\n    gap: 5px;\n}\n.btn-action[data-v-a8766a0a] {\n    width: 32px;\n    height: 32px;\n    border: none;\n    border-radius: 6px;\n    background: #f0f0f0;\n    cursor: pointer;\n    transition: all 0.2s;\n}\n.btn-action[data-v-a8766a0a]:hover {\n    background: #e0e0e0;\n}\n\n/* Pagination */\n.pagination[data-v-a8766a0a] {\n    display: flex;\n    justify-content: center;\n    align-items: center;\n    gap: 15px;\n    padding: 20px;\n    border-top: 1px solid #e0e0e0;\n}\n.page-btn[data-v-a8766a0a] {\n    width: 36px;\n    height: 36px;\n    border: 1px solid #ddd;\n    border-radius: 8px;\n    background: white;\n    cursor: pointer;\n    transition: all 0.2s;\n}\n.page-btn[data-v-a8766a0a]:hover:not(:disabled) {\n    background: #f5f5f5;\n}\n.page-btn[data-v-a8766a0a]:disabled {\n    opacity: 0.5;\n    cursor: not-allowed;\n}\n.page-info[data-v-a8766a0a] {\n    color: #666;\n}\n\n/* Modal */\n.modal-overlay[data-v-a8766a0a] {\n    position: fixed;\n    top: 0;\n    left: 0;\n    right: 0;\n    bottom: 0;\n    background: rgba(0,0,0,0.5);\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    z-index: 1000;\n}\n.modal-content[data-v-a8766a0a] {\n    background: white;\n    border-radius: 12px;\n    width: 90%;\n    max-width: 600px;\n    max-height: 90vh;\n    overflow: hidden;\n    display: flex;\n    flex-direction: column;\n}\n.modal-header[data-v-a8766a0a] {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    padding: 15px 20px;\n    border-bottom: 1px solid #e0e0e0;\n}\n.modal-header h5[data-v-a8766a0a] {\n    margin: 0;\n}\n.close-btn[data-v-a8766a0a] {\n    background: none;\n    border: none;\n    font-size: 20px;\n    cursor: pointer;\n    color: #888;\n}\n.modal-body[data-v-a8766a0a] {\n    padding: 20px;\n    overflow-y: auto;\n}\n.modal-footer[data-v-a8766a0a] {\n    display: flex;\n    justify-content: flex-end;\n    gap: 10px;\n    padding: 15px 20px;\n    border-top: 1px solid #e0e0e0;\n}\n\n/* Detail Sections */\n.detail-section[data-v-a8766a0a] {\n    margin-bottom: 20px;\n}\n.detail-row[data-v-a8766a0a] {\n    display: flex;\n    justify-content: space-between;\n    padding: 8px 0;\n    border-bottom: 1px solid #f0f0f0;\n}\n.items-section[data-v-a8766a0a], .payments-section[data-v-a8766a0a] {\n    margin-bottom: 20px;\n}\n.items-section h6[data-v-a8766a0a], .payments-section h6[data-v-a8766a0a] {\n    margin-bottom: 10px;\n    color: #666;\n}\n.items-table[data-v-a8766a0a] {\n    width: 100%;\n    border-collapse: collapse;\n    font-size: 14px;\n}\n.items-table th[data-v-a8766a0a], .items-table td[data-v-a8766a0a] {\n    padding: 10px;\n    text-align: left;\n    border-bottom: 1px solid #e0e0e0;\n}\n.items-table th[data-v-a8766a0a] {\n    background: #f5f5f5;\n}\n.variation[data-v-a8766a0a] {\n    font-size: 12px;\n    color: #888;\n}\n.totals-section[data-v-a8766a0a] {\n    background: #f9f9f9;\n    padding: 15px;\n    border-radius: 8px;\n    margin-bottom: 20px;\n}\n.total-row[data-v-a8766a0a] {\n    display: flex;\n    justify-content: space-between;\n    padding: 5px 0;\n}\n.total-row.grand-total[data-v-a8766a0a] {\n    font-size: 18px;\n    font-weight: 700;\n    border-top: 1px solid #e0e0e0;\n    margin-top: 10px;\n    padding-top: 10px;\n}\n.payment-row[data-v-a8766a0a] {\n    display: flex;\n    justify-content: space-between;\n    padding: 8px;\n    background: #f5f5f5;\n    border-radius: 6px;\n    margin-bottom: 5px;\n}\n.text-success[data-v-a8766a0a] {\n    color: #4caf50;\n}\n\n/* ============================================\n   MOBILE RESPONSIVE STYLES\n============================================ */\n\n/* Tablet and below */\n@media (max-width: 768px) {\n.pos-history-page[data-v-a8766a0a] {\n        padding: 15px;\n}\n.page-header[data-v-a8766a0a] {\n        flex-direction: column;\n        gap: 15px;\n        align-items: flex-start;\n}\n.page-header h2[data-v-a8766a0a] {\n        font-size: 20px;\n}\n.page-header .btn[data-v-a8766a0a] {\n        width: 100%;\n        justify-content: center;\n}\n\n    /* Filters */\n.filters-card[data-v-a8766a0a] {\n        padding: 15px;\n}\n.filters-row[data-v-a8766a0a] {\n        flex-direction: column;\n        gap: 15px;\n}\n.filter-group[data-v-a8766a0a] {\n        min-width: 100%;\n}\n.filter-group button[data-v-a8766a0a] {\n        width: 100%;\n        padding: 12px;\n        font-size: 14px;\n}\n\n    /* Better touch targets */\n.btn[data-v-a8766a0a] {\n        min-height: 44px;\n        padding: 12px 20px;\n}\n\n    /* Summary cards */\n.summary-cards[data-v-a8766a0a] {\n        grid-template-columns: repeat(2, 1fr);\n        gap: 15px;\n}\n.summary-card[data-v-a8766a0a] {\n        padding: 15px;\n}\n.summary-icon[data-v-a8766a0a] {\n        width: 45px;\n        height: 45px;\n        font-size: 18px;\n}\n.summary-value[data-v-a8766a0a] {\n        font-size: 20px;\n}\n.summary-label[data-v-a8766a0a] {\n        font-size: 12px;\n}\n\n    /* Table - Make it scrollable on tablet */\n.sales-table-card[data-v-a8766a0a] {\n        overflow-x: auto;\n        -webkit-overflow-scrolling: touch;\n}\n.sales-table[data-v-a8766a0a] {\n        min-width: 700px;\n}\n.sales-table th[data-v-a8766a0a],\n    .sales-table td[data-v-a8766a0a] {\n        padding: 12px 10px;\n        font-size: 13px;\n        white-space: nowrap;\n}\n.sales-table th[data-v-a8766a0a]:first-child,\n    .sales-table td[data-v-a8766a0a]:first-child {\n        position: sticky;\n        left: 0;\n        background: white;\n        z-index: 1;\n}\n.sales-table th[data-v-a8766a0a]:first-child {\n        background: #f5f5f5;\n}\n\n    /* Modal adjustments */\n.modal-content[data-v-a8766a0a] {\n        width: 95%;\n        max-height: 95vh;\n}\n.modal-body[data-v-a8766a0a] {\n        padding: 15px;\n}\n.modal-footer[data-v-a8766a0a] {\n        flex-direction: column-reverse;\n        gap: 8px;\n}\n.modal-footer .btn[data-v-a8766a0a] {\n        width: 100%;\n}\n.items-table[data-v-a8766a0a] {\n        font-size: 12px;\n}\n.items-table th[data-v-a8766a0a],\n    .items-table td[data-v-a8766a0a] {\n        padding: 8px 5px;\n}\n.detail-row[data-v-a8766a0a] {\n        font-size: 14px;\n}\n.total-row.grand-total[data-v-a8766a0a] {\n        font-size: 16px;\n}\n}\n\n/* Mobile phones */\n@media (max-width: 480px) {\n.pos-history-page[data-v-a8766a0a] {\n        padding: 10px;\n}\n.page-header h2[data-v-a8766a0a] {\n        font-size: 18px;\n}\n.page-header h2 i[data-v-a8766a0a] {\n        font-size: 16px;\n}\n.filters-card[data-v-a8766a0a] {\n        padding: 12px;\n}\n.form-control[data-v-a8766a0a] {\n        padding: 8px 10px;\n        font-size: 13px;\n}\n\n    /* Summary cards - stack in single column */\n.summary-cards[data-v-a8766a0a] {\n        grid-template-columns: 1fr;\n        gap: 12px;\n}\n.summary-card[data-v-a8766a0a] {\n        padding: 12px;\n        gap: 12px;\n}\n.summary-icon[data-v-a8766a0a] {\n        width: 40px;\n        height: 40px;\n        font-size: 16px;\n}\n.summary-value[data-v-a8766a0a] {\n        font-size: 18px;\n}\n.summary-label[data-v-a8766a0a] {\n        font-size: 11px;\n}\n\n    /* Sales table card adjustments for mobile */\n.sales-table-card[data-v-a8766a0a] {\n        background: transparent;\n        box-shadow: none;\n}\n\n    /* Mobile Card View Styles */\n.sales-cards-mobile[data-v-a8766a0a] {\n        padding: 10px;\n}\n.loading-state[data-v-a8766a0a],\n    .empty-state[data-v-a8766a0a] {\n        background: white;\n        border-radius: 8px;\n        padding: 40px 20px;\n        margin: 10px;\n}\n.sale-card-mobile[data-v-a8766a0a] {\n        background: white;\n        border-radius: 8px;\n        padding: 12px;\n        margin-bottom: 12px;\n        box-shadow: 0 2px 4px rgba(0,0,0,0.05);\n        cursor: pointer;\n        transition: all 0.2s;\n}\n.sale-card-mobile[data-v-a8766a0a]:hover {\n        background: #f9f9f9;\n        box-shadow: 0 4px 8px rgba(0,0,0,0.1);\n}\n.sale-card-header[data-v-a8766a0a] {\n        display: flex;\n        justify-content: space-between;\n        align-items: center;\n        padding-bottom: 10px;\n        margin-bottom: 10px;\n        border-bottom: 1px solid #f0f0f0;\n}\n.sale-number-mobile[data-v-a8766a0a] {\n        font-size: 16px;\n        font-weight: 700;\n        color: #2196f3;\n}\n.sale-card-body[data-v-a8766a0a] {\n        margin-bottom: 10px;\n}\n.sale-card-row[data-v-a8766a0a] {\n        display: flex;\n        justify-content: space-between;\n        padding: 5px 0;\n        font-size: 13px;\n}\n.sale-card-row .label[data-v-a8766a0a] {\n        color: #666;\n        font-weight: 500;\n}\n.sale-card-row.total-row-mobile[data-v-a8766a0a] {\n        margin-top: 8px;\n        padding-top: 8px;\n        border-top: 1px solid #f0f0f0;\n}\n.sale-total-mobile[data-v-a8766a0a] {\n        font-size: 16px;\n        font-weight: 700;\n        color: #2196f3;\n}\n.sale-card-actions[data-v-a8766a0a] {\n        display: flex;\n        gap: 8px;\n        padding-top: 10px;\n        border-top: 1px solid #f0f0f0;\n}\n.btn-action-mobile[data-v-a8766a0a] {\n        flex: 1;\n        padding: 10px;\n        border: 1px solid #ddd;\n        border-radius: 6px;\n        background: white;\n        cursor: pointer;\n        font-size: 13px;\n        font-weight: 500;\n        transition: all 0.2s;\n        display: flex;\n        align-items: center;\n        justify-content: center;\n        gap: 6px;\n}\n.btn-action-mobile[data-v-a8766a0a]:hover {\n        background: #f5f5f5;\n        border-color: #2196f3;\n        color: #2196f3;\n}\n\n    /* Pagination */\n.pagination[data-v-a8766a0a] {\n        padding: 15px 10px;\n}\n.page-btn[data-v-a8766a0a] {\n        width: 44px;\n        height: 44px;\n        font-size: 16px;\n}\n.page-info[data-v-a8766a0a] {\n        font-size: 13px;\n        font-weight: 500;\n}\n\n    /* Full screen modals on mobile */\n.modal-content[data-v-a8766a0a] {\n        width: 100%;\n        max-width: 100%;\n        height: 100vh;\n        max-height: 100vh;\n        border-radius: 0;\n}\n.modal-header[data-v-a8766a0a] {\n        padding: 12px 15px;\n}\n.modal-header h5[data-v-a8766a0a] {\n        font-size: 16px;\n}\n.modal-body[data-v-a8766a0a] {\n        padding: 12px;\n}\n.modal-footer[data-v-a8766a0a] {\n        padding: 12px 15px;\n}\n\n    /* Detail sections */\n.detail-row[data-v-a8766a0a] {\n        font-size: 13px;\n        flex-direction: column;\n        gap: 4px;\n        align-items: flex-start;\n}\n.items-section h6[data-v-a8766a0a],\n    .payments-section h6[data-v-a8766a0a] {\n        font-size: 14px;\n}\n\n    /* Mobile Items Card View */\n.items-cards-mobile[data-v-a8766a0a] {\n        display: flex;\n        flex-direction: column;\n        gap: 10px;\n}\n.item-card-mobile[data-v-a8766a0a] {\n        background: #f9f9f9;\n        border-radius: 6px;\n        padding: 10px;\n}\n.item-name-mobile[data-v-a8766a0a] {\n        font-weight: 600;\n        font-size: 13px;\n        margin-bottom: 6px;\n        color: #333;\n}\n.item-details-mobile[data-v-a8766a0a] {\n        display: flex;\n        justify-content: space-between;\n        align-items: center;\n        font-size: 12px;\n        color: #666;\n        gap: 10px;\n}\n.item-total-mobile[data-v-a8766a0a] {\n        font-weight: 600;\n        color: #2196f3;\n        font-size: 13px;\n}\n.variation[data-v-a8766a0a] {\n        font-size: 11px;\n        color: #888;\n}\n.totals-section[data-v-a8766a0a] {\n        padding: 12px;\n}\n.total-row[data-v-a8766a0a] {\n        font-size: 13px;\n}\n.total-row.grand-total[data-v-a8766a0a] {\n        font-size: 15px;\n}\n.payment-row[data-v-a8766a0a] {\n        padding: 6px 10px;\n        font-size: 13px;\n}\n.status-badge[data-v-a8766a0a] {\n        font-size: 11px;\n        padding: 3px 10px;\n}\n}\n\n/* Very small phones */\n@media (max-width: 360px) {\n.page-header h2[data-v-a8766a0a] {\n        font-size: 16px;\n}\n.summary-value[data-v-a8766a0a] {\n        font-size: 16px;\n}\n.summary-label[data-v-a8766a0a] {\n        font-size: 10px;\n}\n.summary-icon[data-v-a8766a0a] {\n        width: 35px;\n        height: 35px;\n        font-size: 14px;\n}\n.sale-number[data-v-a8766a0a] {\n        font-size: 14px;\n}\n.sale-total[data-v-a8766a0a] {\n        font-size: 14px;\n}\n}\n\n/* Landscape mode for tablets */\n@media (max-width: 1024px) and (orientation: landscape) {\n.summary-cards[data-v-a8766a0a] {\n        grid-template-columns: repeat(4, 1fr);\n}\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

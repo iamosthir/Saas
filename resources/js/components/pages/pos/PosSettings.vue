@@ -352,6 +352,7 @@ export default {
     width: 18px;
     height: 18px;
     cursor: pointer;
+    flex-shrink: 0;
 }
 
 .text-muted {
@@ -451,5 +452,200 @@ export default {
 .loading-state i {
     font-size: 32px;
     margin-bottom: 10px;
+}
+
+/* ============================================
+   MOBILE RESPONSIVE STYLES
+============================================ */
+
+/* Tablet and below */
+@media (max-width: 768px) {
+    .pos-settings-page {
+        padding: 15px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .page-header h2 {
+        font-size: 20px;
+    }
+
+    .page-header .btn {
+        width: 100%;
+        justify-content: center;
+        min-height: 44px;
+    }
+
+    .settings-card {
+        padding: 15px;
+    }
+
+    .settings-card h4 {
+        font-size: 16px;
+    }
+
+    .payment-methods-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .settings-actions {
+        flex-direction: column-reverse;
+    }
+
+    .settings-actions .btn {
+        width: 100%;
+        min-height: 48px;
+    }
+}
+
+/* Mobile phones */
+@media (max-width: 480px) {
+    .pos-settings-page {
+        padding: 10px;
+        max-width: 100%;
+    }
+
+    .page-header h2 {
+        font-size: 18px;
+    }
+
+    .page-header h2 i {
+        font-size: 16px;
+    }
+
+    .settings-container {
+        gap: 15px;
+    }
+
+    .settings-card {
+        padding: 12px;
+        border-radius: 8px;
+    }
+
+    .settings-card h4 {
+        font-size: 15px;
+        margin-bottom: 15px;
+    }
+
+    .settings-card h4 i {
+        margin-right: 8px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        font-size: 14px;
+    }
+
+    .form-control {
+        padding: 12px;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+
+    .checkbox-label {
+        font-size: 14px;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+    }
+
+    .text-muted {
+        font-size: 11px;
+    }
+
+    /* Payment Methods - Single column on small screens */
+    .payment-methods-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .method-box {
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .method-box i {
+        font-size: 20px;
+        margin-bottom: 0;
+    }
+
+    /* Shortcuts - Better mobile layout */
+    .shortcuts-table {
+        gap: 8px;
+    }
+
+    .shortcut-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 12px;
+    }
+
+    .shortcut-key {
+        padding: 6px 12px;
+        font-size: 13px;
+        min-width: auto;
+    }
+
+    .shortcut-action {
+        font-size: 13px;
+        padding-left: 0;
+    }
+
+    /* Action buttons */
+    .settings-actions {
+        padding-top: 15px;
+        gap: 10px;
+    }
+
+    .settings-actions .btn {
+        font-size: 15px;
+        padding: 14px 20px;
+    }
+}
+
+/* Very small phones */
+@media (max-width: 360px) {
+    .pos-settings-page {
+        padding: 8px;
+    }
+
+    .page-header h2 {
+        font-size: 16px;
+    }
+
+    .settings-card {
+        padding: 10px;
+    }
+
+    .settings-card h4 {
+        font-size: 14px;
+    }
+
+    .form-control {
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .method-box {
+        padding: 10px;
+    }
+}
+
+/* Landscape mode for tablets */
+@media (max-width: 1024px) and (orientation: landscape) {
+    .payment-methods-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
 }
 </style>

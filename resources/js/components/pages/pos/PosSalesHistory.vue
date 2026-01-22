@@ -85,7 +85,8 @@
                 <i class="fas fa-receipt"></i>
                 <p>No sales found</p>
             </div>
-            <table v-else class="sales-table">
+            <!-- Desktop Table View -->
+            <table v-else-if="!isMobile" class="sales-table">
                 <thead>
                     <tr>
                         <th>Sale #</th>
@@ -120,6 +121,49 @@
                     </tr>
                 </tbody>
             </table>
+
+            <!-- Mobile Card View -->
+            <div v-else class="sales-cards-mobile">
+                <div
+                    v-for="sale in sales"
+                    :key="sale.id"
+                    class="sale-card-mobile"
+                    @click="viewSale(sale)"
+                >
+                    <div class="sale-card-header">
+                        <span class="sale-number-mobile">{{ sale.sale_number }}</span>
+                        <span class="status-badge" :class="sale.status">
+                            {{ sale.status }}
+                        </span>
+                    </div>
+                    <div class="sale-card-body">
+                        <div class="sale-card-row">
+                            <span class="label">Date:</span>
+                            <span>{{ formatDate(sale.created_at) }}</span>
+                        </div>
+                        <div class="sale-card-row">
+                            <span class="label">Customer:</span>
+                            <span>{{ sale.customer?.customer_name || '-' }}</span>
+                        </div>
+                        <div class="sale-card-row">
+                            <span class="label">Items:</span>
+                            <span>{{ sale.items?.length || 0 }}</span>
+                        </div>
+                        <div class="sale-card-row total-row-mobile">
+                            <span class="label">Total:</span>
+                            <span class="sale-total-mobile">{{ formatCurrency(sale.total_amount) }}</span>
+                        </div>
+                    </div>
+                    <div class="sale-card-actions">
+                        <button class="btn-action-mobile" @click.stop="viewSale(sale)" title="View">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                        <button class="btn-action-mobile" @click.stop="printReceipt(sale)" title="Print">
+                            <i class="fas fa-print"></i> Print
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             <!-- Pagination -->
             <div v-if="pagination.last_page > 1" class="pagination">
@@ -176,7 +220,8 @@
 
                     <div class="items-section">
                         <h6>Items</h6>
-                        <table class="items-table">
+                        <!-- Desktop Table -->
+                        <table v-if="!isMobile" class="items-table">
                             <thead>
                                 <tr>
                                     <th>Product</th>
@@ -199,6 +244,22 @@
                                 </tr>
                             </tbody>
                         </table>
+                        <!-- Mobile Card -->
+                        <div v-else class="items-cards-mobile">
+                            <div v-for="item in selectedSale.items" :key="item.id" class="item-card-mobile">
+                                <div class="item-name-mobile">
+                                    {{ item.product_name }}
+                                    <span v-if="item.variation_name" class="variation">
+                                        ({{ item.variation_name }})
+                                    </span>
+                                </div>
+                                <div class="item-details-mobile">
+                                    <span>Qty: {{ item.quantity }}</span>
+                                    <span>{{ formatCurrency(item.unit_price) }}</span>
+                                    <span class="item-total-mobile">{{ formatCurrency(item.line_total) }}</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="totals-section">
@@ -273,7 +334,13 @@ export default {
             },
             showDetailModal: false,
             selectedSale: null,
+            isMobileView: false,
         };
+    },
+    computed: {
+        isMobile() {
+            return this.isMobileView;
+        }
     },
     methods: {
         async loadSales(page = 1) {
@@ -383,6 +450,10 @@ export default {
             };
             return labels[method] || method;
         },
+
+        checkMobileView() {
+            this.isMobileView = window.innerWidth <= 480;
+        },
     },
     mounted() {
         // Set default date range to today
@@ -390,6 +461,13 @@ export default {
         this.filters.from_date = today;
         this.filters.to_date = today;
         this.loadSales();
+
+        // Check mobile view on mount and window resize
+        this.checkMobileView();
+        window.addEventListener('resize', this.checkMobileView);
+    },
+    beforeUnmount() {
+        window.removeEventListener('resize', this.checkMobileView);
     },
 };
 </script>
@@ -769,5 +847,453 @@ export default {
 
 .text-success {
     color: #4caf50;
+}
+
+/* ============================================
+   MOBILE RESPONSIVE STYLES
+============================================ */
+
+/* Tablet and below */
+@media (max-width: 768px) {
+    .pos-history-page {
+        padding: 15px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .page-header h2 {
+        font-size: 20px;
+    }
+
+    .page-header .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Filters */
+    .filters-card {
+        padding: 15px;
+    }
+
+    .filters-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .filter-group {
+        min-width: 100%;
+    }
+
+    .filter-group button {
+        width: 100%;
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    /* Better touch targets */
+    .btn {
+        min-height: 44px;
+        padding: 12px 20px;
+    }
+
+    /* Summary cards */
+    .summary-cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .summary-card {
+        padding: 15px;
+    }
+
+    .summary-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
+    }
+
+    .summary-value {
+        font-size: 20px;
+    }
+
+    .summary-label {
+        font-size: 12px;
+    }
+
+    /* Table - Make it scrollable on tablet */
+    .sales-table-card {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .sales-table {
+        min-width: 700px;
+    }
+
+    .sales-table th,
+    .sales-table td {
+        padding: 12px 10px;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    .sales-table th:first-child,
+    .sales-table td:first-child {
+        position: sticky;
+        left: 0;
+        background: white;
+        z-index: 1;
+    }
+
+    .sales-table th:first-child {
+        background: #f5f5f5;
+    }
+
+    /* Modal adjustments */
+    .modal-content {
+        width: 95%;
+        max-height: 95vh;
+    }
+
+    .modal-body {
+        padding: 15px;
+    }
+
+    .modal-footer {
+        flex-direction: column-reverse;
+        gap: 8px;
+    }
+
+    .modal-footer .btn {
+        width: 100%;
+    }
+
+    .items-table {
+        font-size: 12px;
+    }
+
+    .items-table th,
+    .items-table td {
+        padding: 8px 5px;
+    }
+
+    .detail-row {
+        font-size: 14px;
+    }
+
+    .total-row.grand-total {
+        font-size: 16px;
+    }
+}
+
+/* Mobile phones */
+@media (max-width: 480px) {
+    .pos-history-page {
+        padding: 10px;
+    }
+
+    .page-header h2 {
+        font-size: 18px;
+    }
+
+    .page-header h2 i {
+        font-size: 16px;
+    }
+
+    .filters-card {
+        padding: 12px;
+    }
+
+    .form-control {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+
+    /* Summary cards - stack in single column */
+    .summary-cards {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .summary-card {
+        padding: 12px;
+        gap: 12px;
+    }
+
+    .summary-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+
+    .summary-value {
+        font-size: 18px;
+    }
+
+    .summary-label {
+        font-size: 11px;
+    }
+
+    /* Sales table card adjustments for mobile */
+    .sales-table-card {
+        background: transparent;
+        box-shadow: none;
+    }
+
+    /* Mobile Card View Styles */
+    .sales-cards-mobile {
+        padding: 10px;
+    }
+
+    .loading-state,
+    .empty-state {
+        background: white;
+        border-radius: 8px;
+        padding: 40px 20px;
+        margin: 10px;
+    }
+
+    .sale-card-mobile {
+        background: white;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .sale-card-mobile:hover {
+        background: #f9f9f9;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .sale-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .sale-number-mobile {
+        font-size: 16px;
+        font-weight: 700;
+        color: #2196f3;
+    }
+
+    .sale-card-body {
+        margin-bottom: 10px;
+    }
+
+    .sale-card-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 0;
+        font-size: 13px;
+    }
+
+    .sale-card-row .label {
+        color: #666;
+        font-weight: 500;
+    }
+
+    .sale-card-row.total-row-mobile {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .sale-total-mobile {
+        font-size: 16px;
+        font-weight: 700;
+        color: #2196f3;
+    }
+
+    .sale-card-actions {
+        display: flex;
+        gap: 8px;
+        padding-top: 10px;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .btn-action-mobile {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        background: white;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .btn-action-mobile:hover {
+        background: #f5f5f5;
+        border-color: #2196f3;
+        color: #2196f3;
+    }
+
+    /* Pagination */
+    .pagination {
+        padding: 15px 10px;
+    }
+
+    .page-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 16px;
+    }
+
+    .page-info {
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    /* Full screen modals on mobile */
+    .modal-content {
+        width: 100%;
+        max-width: 100%;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+
+    .modal-header {
+        padding: 12px 15px;
+    }
+
+    .modal-header h5 {
+        font-size: 16px;
+    }
+
+    .modal-body {
+        padding: 12px;
+    }
+
+    .modal-footer {
+        padding: 12px 15px;
+    }
+
+    /* Detail sections */
+    .detail-row {
+        font-size: 13px;
+        flex-direction: column;
+        gap: 4px;
+        align-items: flex-start;
+    }
+
+    .items-section h6,
+    .payments-section h6 {
+        font-size: 14px;
+    }
+
+    /* Mobile Items Card View */
+    .items-cards-mobile {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .item-card-mobile {
+        background: #f9f9f9;
+        border-radius: 6px;
+        padding: 10px;
+    }
+
+    .item-name-mobile {
+        font-weight: 600;
+        font-size: 13px;
+        margin-bottom: 6px;
+        color: #333;
+    }
+
+    .item-details-mobile {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        color: #666;
+        gap: 10px;
+    }
+
+    .item-total-mobile {
+        font-weight: 600;
+        color: #2196f3;
+        font-size: 13px;
+    }
+
+    .variation {
+        font-size: 11px;
+        color: #888;
+    }
+
+    .totals-section {
+        padding: 12px;
+    }
+
+    .total-row {
+        font-size: 13px;
+    }
+
+    .total-row.grand-total {
+        font-size: 15px;
+    }
+
+    .payment-row {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+
+    .status-badge {
+        font-size: 11px;
+        padding: 3px 10px;
+    }
+}
+
+/* Very small phones */
+@media (max-width: 360px) {
+    .page-header h2 {
+        font-size: 16px;
+    }
+
+    .summary-value {
+        font-size: 16px;
+    }
+
+    .summary-label {
+        font-size: 10px;
+    }
+
+    .summary-icon {
+        width: 35px;
+        height: 35px;
+        font-size: 14px;
+    }
+
+    .sale-number {
+        font-size: 14px;
+    }
+
+    .sale-total {
+        font-size: 14px;
+    }
+}
+
+/* Landscape mode for tablets */
+@media (max-width: 1024px) and (orientation: landscape) {
+    .summary-cards {
+        grid-template-columns: repeat(4, 1fr);
+    }
 }
 </style>

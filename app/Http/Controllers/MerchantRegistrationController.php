@@ -29,7 +29,7 @@ class MerchantRegistrationController extends Controller
         'subscription_plan_id' => 'required|exists:subscription_plans,id',
 
         'user_name'            => 'required|string|max:255',
-        'user_phone'           => 'required|string|max:255',
+        'user_phone'           => 'required|string|max:255|unique:users,phone',
         'user_password'        => 'required|string|min:6|confirmed',
     ]);
 
