@@ -475,6 +475,8 @@ export default {
 <style scoped>
 .pos-history-page {
     padding: 20px;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 .page-header {
@@ -482,10 +484,13 @@ export default {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .page-header h2 {
     margin: 0;
+    word-break: break-word;
 }
 
 /* Filters */
@@ -495,6 +500,8 @@ export default {
     border-radius: 12px;
     margin-bottom: 20px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .filters-row {
@@ -529,6 +536,7 @@ export default {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
     margin-bottom: 20px;
+    max-width: 100%;
 }
 
 .summary-card {
@@ -584,6 +592,7 @@ export default {
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    max-width: 100%;
 }
 
 .loading-state, .empty-state {
@@ -941,18 +950,6 @@ export default {
         white-space: nowrap;
     }
 
-    .sales-table th:first-child,
-    .sales-table td:first-child {
-        position: sticky;
-        left: 0;
-        background: white;
-        z-index: 1;
-    }
-
-    .sales-table th:first-child {
-        background: #f5f5f5;
-    }
-
     /* Modal adjustments */
     .modal-content {
         width: 95%;
@@ -994,6 +991,10 @@ export default {
 @media (max-width: 480px) {
     .pos-history-page {
         padding: 10px;
+    }
+
+    .pos-history-page * {
+        max-width: 100%;
     }
 
     .page-header h2 {
@@ -1038,30 +1039,33 @@ export default {
         font-size: 11px;
     }
 
-    /* Sales table card adjustments for mobile */
+    /* Sales table card - remove card styling on mobile */
     .sales-table-card {
         background: transparent;
         box-shadow: none;
+        padding: 0;
+        border-radius: 0;
     }
 
-    /* Mobile Card View Styles */
-    .sales-cards-mobile {
-        padding: 10px;
-    }
-
+    /* Loading and empty states */
     .loading-state,
     .empty-state {
         background: white;
         border-radius: 8px;
         padding: 40px 20px;
-        margin: 10px;
+    }
+
+    /* Mobile Card View Styles */
+    .sales-cards-mobile {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
     }
 
     .sale-card-mobile {
         background: white;
         border-radius: 8px;
         padding: 12px;
-        margin-bottom: 12px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         cursor: pointer;
         transition: all 0.2s;
@@ -1146,7 +1150,8 @@ export default {
 
     /* Pagination */
     .pagination {
-        padding: 15px 10px;
+        padding: 15px 0;
+        background: transparent;
     }
 
     .page-btn {

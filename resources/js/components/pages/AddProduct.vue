@@ -177,12 +177,23 @@
                   <small class="text-muted" v-if="form.discount_type === 'percentage'">النسبة المئوية</small>
                   <small class="text-muted" v-if="form.discount_type === 'fixed'">المبلغ الثابت</small>
                 </div>
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">الكمية الأولية</label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    v-model="form.initial_stock"
+                    placeholder="0"
+                    min="0"
+                  >
+                  <small class="text-muted">للمنتجات بدون متغيرات</small>
+                </div>
               </div>
             </div>
 
             <!-- Attributes/Variations Section -->
             <div class="section-container mb-4">
-              <h6 class="section-title"><i class="fas fa-sliders-h"></i> الخصائص والمتغيرات</h6>
+              <h6 class="section-title"><i class="fas fa-sliders-h"></i> الخصائص والمتغيرات (اختياري)</h6>
 
               <div class="mb-3">
                 <label class="form-label">اختر الخصائص</label>
@@ -315,7 +326,7 @@
 
               <div v-else class="alert alert-info">
                 <i class="fas fa-info-circle"></i>
-                الرجاء اختيار الخصائص أولاً لإنشاء متغيرات المنتج
+                لإضافة منتج بسيط بدون متغيرات، اترك هذا القسم فارغاً. أو اختر الخصائص لإنشاء متغيرات المنتج
               </div>
             </div>
 
@@ -353,6 +364,7 @@ export default {
         installment_price: "",
         discount_type: null,
         discount_amount: 0,
+        initial_stock: 0,
         supplier_id: null,
         variations: [],
         variant_data: "",
@@ -459,41 +471,45 @@ export default {
       }, 0);
     },
     async addProduct() {
-      // Validate variations
-      if (!this.selectedAttributes.length) {
-        swal.fire("خطأ", "الرجاء اختيار الخصائص وإضافة المتغيرات", "error");
-        return;
-      }
+      let variationsData = [];
 
-      if (!this.form.variations.length) {
-        swal.fire("خطأ", "الرجاء إضافة متغير واحد على الأقل", "error");
-        return;
-      }
+      // If variations exist, validate and prepare them
+      if (this.selectedAttributes.length && this.form.variations.length) {
+        // Validate each variation
+        for (let i = 0; i < this.form.variations.length; i++) {
+          const variation = this.form.variations[i];
 
-      // Validate each variation
-      for (let i = 0; i < this.form.variations.length; i++) {
-        const variation = this.form.variations[i];
+          if (!variation.var_name) {
+            swal.fire("خطأ", `الرجاء إدخال قيم الخصائص للمتغير ${i + 1}`, "error");
+            return;
+          }
 
-        if (!variation.var_name) {
-          swal.fire("خطأ", `الرجاء إدخال قيم الخصائص للمتغير ${i + 1}`, "error");
-          return;
+          if (!variation.purchase_price || !variation.sell_price || !variation.quantity) {
+            swal.fire("خطأ", `الرجاء إدخال السعر والكمية للمتغير ${i + 1}`, "error");
+            return;
+          }
         }
 
-        if (!variation.purchase_price || !variation.sell_price || !variation.quantity) {
-          swal.fire("خطأ", `الرجاء إدخال السعر والكمية للمتغير ${i + 1}`, "error");
-          return;
-        }
+        // Prepare variations data
+        variationsData = this.form.variations.map(v => ({
+          var_name: v.var_name,
+          attribute_values: v.attributes,
+          purchase_price: parseFloat(v.purchase_price) || 0,
+          sell_price: parseFloat(v.sell_price) || 0,
+          installment_price: parseFloat(v.installment_price) || 0,
+          quantity: parseInt(v.quantity) || 0
+        }));
+      } else {
+        // No variations selected - create a default variation
+        variationsData = [{
+          var_name: "افتراضي",
+          attribute_values: {},
+          purchase_price: parseFloat(this.form.purchase_price) || 0,
+          sell_price: parseFloat(this.form.sell_price) || 0,
+          installment_price: parseFloat(this.form.installment_price) || 0,
+          quantity: parseInt(this.form.initial_stock) || 0
+        }];
       }
-
-      // Prepare variations data
-      const variationsData = this.form.variations.map(v => ({
-        var_name: v.var_name,
-        attribute_values: v.attributes,
-        purchase_price: parseFloat(v.purchase_price) || 0,
-        sell_price: parseFloat(v.sell_price) || 0,
-        installment_price: parseFloat(v.installment_price) || 0,
-        quantity: parseInt(v.quantity) || 0
-      }));
 
       this.form.variant_data = JSON.stringify(variationsData);
 
@@ -528,6 +544,7 @@ export default {
       this.form.discount_type = null;
       this.form.category_id = null;
       this.form.sub_category_id = null;
+      this.form.initial_stock = 0;
     }
   },
   mounted() {
