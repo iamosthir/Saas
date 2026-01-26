@@ -1,18 +1,18 @@
 <template>
     <div class="pos-settings-page">
         <div class="page-header">
-            <h2><i class="fas fa-cog"></i> POS Settings</h2>
+            <h2><i class="fas fa-cog"></i> إعدادات نقطة البيع</h2>
             <router-link to="/dashboard/pos" class="btn btn-outline-primary">
-                <i class="fas fa-arrow-left"></i> Back to POS
+                <i class="fas fa-arrow-left"></i> العودة لنقطة البيع
             </router-link>
         </div>
 
         <div class="settings-container" v-if="!loading">
             <!-- Tax Settings -->
             <div class="settings-card">
-                <h4><i class="fas fa-percent"></i> Tax Settings</h4>
+                <h4><i class="fas fa-percent"></i> إعدادات الضريبة</h4>
                 <div class="form-group">
-                    <label>Tax Rate (%)</label>
+                    <label>نسبة الضريبة (%)</label>
                     <input
                         type="number"
                         v-model.number="settings.tax_rate"
@@ -21,77 +21,77 @@
                         max="100"
                         step="0.01"
                     />
-                    <small class="text-muted">Applied to all sales. Set to 0 for no tax.</small>
+                    <small class="text-muted">يتم تطبيقها على جميع المبيعات. اجعلها 0 لعدم تطبيق الضريبة.</small>
                 </div>
             </div>
 
             <!-- Inventory Settings -->
             <div class="settings-card">
-                <h4><i class="fas fa-boxes"></i> Inventory Settings</h4>
+                <h4><i class="fas fa-boxes"></i> إعدادات المخزون</h4>
                 <div class="form-group">
-                    <label>Costing Method</label>
+                    <label>طريقة التكلفة</label>
                     <select v-model="settings.costing_method" class="form-control">
-                        <option value="average">Average Cost</option>
-                        <option value="fifo">FIFO (First In, First Out)</option>
+                        <option value="average">متوسط التكلفة</option>
+                        <option value="fifo">الوارد أولاً صادر أولاً (FIFO)</option>
                     </select>
-                    <small class="text-muted">Method used to calculate cost of goods sold.</small>
+                    <small class="text-muted">الطريقة المستخدمة لحساب تكلفة البضائع المباعة.</small>
                 </div>
                 <div class="form-group">
                     <label class="checkbox-label">
                         <input type="checkbox" v-model="settings.allow_negative_stock" />
-                        <span>Allow Negative Stock</span>
+                        <span>السماح بالمخزون السالب</span>
                     </label>
-                    <small class="text-muted">Allow sales even when stock is insufficient.</small>
+                    <small class="text-muted">السماح بالبيع حتى عند عدم كفاية المخزون.</small>
                 </div>
                 <div class="form-group">
                     <label class="checkbox-label">
                         <input type="checkbox" v-model="settings.show_stock_warning" />
-                        <span>Show Low Stock Warning</span>
+                        <span>عرض تحذير المخزون المنخفض</span>
                     </label>
-                    <small class="text-muted">Display warning when product stock is low.</small>
+                    <small class="text-muted">عرض تحذير عندما يكون مخزون المنتج منخفضاً.</small>
                 </div>
             </div>
 
             <!-- Receipt Settings -->
             <div class="settings-card">
-                <h4><i class="fas fa-receipt"></i> Receipt Settings</h4>
+                <h4><i class="fas fa-receipt"></i> إعدادات الإيصال</h4>
                 <div class="form-group">
-                    <label>Receipt Header</label>
+                    <label>رأس الإيصال</label>
                     <input
                         type="text"
                         v-model="settings.receipt_header"
                         class="form-control"
-                        placeholder="Store name or custom header"
+                        placeholder="اسم المتجر أو رأس مخصص"
                     />
                 </div>
                 <div class="form-group">
-                    <label>Receipt Footer</label>
+                    <label>تذييل الإيصال</label>
                     <input
                         type="text"
                         v-model="settings.receipt_footer"
                         class="form-control"
-                        placeholder="Thank you message"
+                        placeholder="رسالة شكر"
                     />
                 </div>
                 <div class="form-group">
-                    <label>Receipt Size</label>
+                    <label>حجم الإيصال</label>
                     <select v-model="settings.receipt_size" class="form-control">
-                        <option value="58mm">58mm (Small)</option>
-                        <option value="80mm">80mm (Standard)</option>
+                        <option value="58mm">58 ملم (صغير)</option>
+                        <option value="80mm">80 ملم (قياسي)</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label class="checkbox-label">
                         <input type="checkbox" v-model="settings.print_receipt_auto" />
-                        <span>Auto-Print Receipt</span>
+                        <span>طباعة تلقائية للإيصال</span>
                     </label>
-                    <small class="text-muted">Automatically print receipt after sale completion.</small>
+                    <small class="text-muted">طباعة الإيصال تلقائياً بعد إتمام البيع.</small>
                 </div>
             </div>
 
             <!-- Payment Methods -->
             <div class="settings-card">
-                <h4><i class="fas fa-credit-card"></i> Payment Methods</h4>
+                <h4><i class="fas fa-credit-card"></i> طرق الدفع</h4>
                 <div class="payment-methods-grid">
                     <label class="payment-method-option" v-for="method in allPaymentMethods" :key="method.value">
                         <input
@@ -109,41 +109,41 @@
 
             <!-- General Settings -->
             <div class="settings-card">
-                <h4><i class="fas fa-sliders-h"></i> General Settings</h4>
+                <h4><i class="fas fa-sliders-h"></i> الإعدادات العامة</h4>
                 <div class="form-group">
                     <label class="checkbox-label">
                         <input type="checkbox" v-model="settings.require_customer" />
-                        <span>Require Customer Selection</span>
+                        <span>طلب اختيار العميل</span>
                     </label>
-                    <small class="text-muted">Customer must be selected before completing sale.</small>
+                    <small class="text-muted">يجب اختيار العميل قبل إتمام البيع.</small>
                 </div>
             </div>
 
             <!-- Keyboard Shortcuts -->
             <div class="settings-card">
-                <h4><i class="fas fa-keyboard"></i> Keyboard Shortcuts</h4>
+                <h4><i class="fas fa-keyboard"></i> اختصارات لوحة المفاتيح</h4>
                 <div class="shortcuts-table">
                     <div class="shortcut-row" v-for="(action, key) in defaultShortcuts" :key="key">
                         <span class="shortcut-key">{{ key }}</span>
                         <span class="shortcut-action">{{ formatAction(action) }}</span>
                     </div>
                 </div>
-                <small class="text-muted">Keyboard shortcuts cannot be customized at this time.</small>
+                <small class="text-muted">لا يمكن تخصيص اختصارات لوحة المفاتيح في الوقت الحالي.</small>
             </div>
 
             <!-- Actions -->
             <div class="settings-actions">
                 <button class="btn btn-secondary" @click="resetSettings" :disabled="saving">
-                    <i class="fas fa-undo"></i> Reset to Defaults
+                    <i class="fas fa-undo"></i> إعادة تعيين للافتراضي
                 </button>
                 <button class="btn btn-primary" @click="saveSettings" :disabled="saving">
-                    <i class="fas fa-save"></i> {{ saving ? 'Saving...' : 'Save Settings' }}
+                    <i class="fas fa-save"></i> {{ saving ? 'جاري الحفظ...' : 'حفظ الإعدادات' }}
                 </button>
             </div>
         </div>
 
         <div v-else class="loading-state">
-            <i class="fas fa-spinner fa-spin"></i> Loading settings...
+            <i class="fas fa-spinner fa-spin"></i> جاري تحميل الإعدادات...
         </div>
     </div>
 </template>
@@ -171,10 +171,10 @@ export default {
                 keyboard_shortcuts: {},
             },
             allPaymentMethods: [
-                { value: 'cash', label: 'Cash', icon: 'fas fa-money-bill-wave' },
-                { value: 'card', label: 'Card', icon: 'fas fa-credit-card' },
-                { value: 'wallet', label: 'Wallet', icon: 'fas fa-wallet' },
-                { value: 'bank_transfer', label: 'Bank Transfer', icon: 'fas fa-university' },
+                { value: 'cash', label: 'نقدي', icon: 'fas fa-money-bill-wave' },
+                { value: 'card', label: 'بطاقة', icon: 'fas fa-credit-card' },
+                { value: 'wallet', label: 'محفظة', icon: 'fas fa-wallet' },
+                { value: 'bank_transfer', label: 'تحويل بنكي', icon: 'fas fa-university' },
             ],
             defaultShortcuts: {
                 'F1': 'focus_search',
@@ -212,7 +212,7 @@ export default {
                 };
             } catch (error) {
                 console.error('Failed to load settings:', error);
-                this.$toast?.error('Failed to load settings');
+                this.$toast?.error('فشل تحميل الإعدادات');
             } finally {
                 this.loading = false;
             }
@@ -222,26 +222,26 @@ export default {
             this.saving = true;
             try {
                 await axios.put('/dashboard/api/pos/settings', this.settings);
-                this.$toast?.success('Settings saved successfully');
+                this.$toast?.success('تم حفظ الإعدادات بنجاح');
             } catch (error) {
                 console.error('Failed to save settings:', error);
-                this.$toast?.error('Failed to save settings');
+                this.$toast?.error('فشل حفظ الإعدادات');
             } finally {
                 this.saving = false;
             }
         },
 
         async resetSettings() {
-            if (!confirm('Reset all settings to defaults?')) return;
+            if (!confirm('إعادة تعيين جميع الإعدادات للافتراضي؟')) return;
 
             this.saving = true;
             try {
                 const response = await axios.post('/dashboard/api/pos/settings/reset');
                 this.settings = response.data.data;
-                this.$toast?.success('Settings reset to defaults');
+                this.$toast?.success('تم إعادة تعيين الإعدادات للافتراضي');
             } catch (error) {
                 console.error('Failed to reset settings:', error);
-                this.$toast?.error('Failed to reset settings');
+                this.$toast?.error('فشل إعادة تعيين الإعدادات');
             } finally {
                 this.saving = false;
             }
@@ -249,17 +249,17 @@ export default {
 
         formatAction(action) {
             const labels = {
-                focus_search: 'Focus product search',
-                new_cart: 'Create new cart',
-                switch_cart: 'Switch to next cart',
-                park_sale: 'Park current sale',
-                view_parked: 'View parked sales',
-                apply_discount: 'Apply discount',
-                select_customer: 'Select customer',
-                open_payment: 'Open payment modal',
-                quick_cash: 'Quick cash payment',
-                cancel: 'Cancel / Close',
-                remove_item: 'Remove selected item',
+                focus_search: 'التركيز على بحث المنتجات',
+                new_cart: 'إنشاء سلة جديدة',
+                switch_cart: 'التبديل للسلة التالية',
+                park_sale: 'تأجيل البيع الحالي',
+                view_parked: 'عرض المبيعات المؤجلة',
+                apply_discount: 'تطبيق خصم',
+                select_customer: 'اختيار عميل',
+                open_payment: 'فتح نافذة الدفع',
+                quick_cash: 'دفع نقدي سريع',
+                cancel: 'إلغاء / إغلاق',
+                remove_item: 'حذف الصنف المحدد',
             };
             return labels[action] || action;
         },

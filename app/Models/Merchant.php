@@ -24,6 +24,7 @@ class Merchant extends Model
         'is_active',
         'can_access_pos',
         'can_access_contracts',
+        'can_access_manufacturing',
         'subscription_plan_id',
     ];
 
@@ -33,6 +34,7 @@ class Merchant extends Model
         'is_active' => 'boolean',
         'can_access_pos' => 'boolean',
         'can_access_contracts' => 'boolean',
+        'can_access_manufacturing' => 'boolean',
     ];
 
     public function subscriptionPlan()
@@ -72,5 +74,13 @@ class Merchant extends Model
     public function canAccessContracts(): bool
     {
         return $this->can_access_contracts ?? false;
+    }
+
+    /**
+     * Check if merchant can access Manufacturing system.
+     */
+    public function canAccessManufacturing(): bool
+    {
+        return $this->can_access_manufacturing ?? false;
     }
 }

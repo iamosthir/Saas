@@ -208,10 +208,10 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
     getMethodLabel: function getMethodLabel(method) {
       var labels = {
-        cash: 'Cash',
-        card: 'Card',
-        wallet: 'Wallet',
-        bank_transfer: 'Bank Transfer'
+        cash: 'نقدي',
+        card: 'بطاقة',
+        wallet: 'محفظة',
+        bank_transfer: 'تحويل بنكي'
       };
       return labels[method] || method;
     },
@@ -263,13 +263,13 @@ var render = function render() {
     }
   }, [_c("i", {
     staticClass: "fas fa-cash-register"
-  }), _vm._v(" Open POS\n        ")])], 1), _vm._v(" "), _c("div", {
+  }), _vm._v(" فتح نقطة البيع\n        ")])], 1), _vm._v(" "), _c("div", {
     staticClass: "filters-card"
   }, [_c("div", {
     staticClass: "filters-row"
   }, [_c("div", {
     staticClass: "filter-group"
-  }, [_c("label", [_vm._v("Status")]), _vm._v(" "), _c("select", {
+  }, [_c("label", [_vm._v("الحالة")]), _vm._v(" "), _c("select", {
     directives: [{
       name: "model",
       rawName: "v-model",
@@ -292,21 +292,21 @@ var render = function render() {
     attrs: {
       value: ""
     }
-  }, [_vm._v("All Status")]), _vm._v(" "), _c("option", {
+  }, [_vm._v("جميع الحالات")]), _vm._v(" "), _c("option", {
     attrs: {
       value: "completed"
     }
-  }, [_vm._v("Completed")]), _vm._v(" "), _c("option", {
+  }, [_vm._v("مكتملة")]), _vm._v(" "), _c("option", {
     attrs: {
       value: "voided"
     }
-  }, [_vm._v("Voided")]), _vm._v(" "), _c("option", {
+  }, [_vm._v("ملغاة")]), _vm._v(" "), _c("option", {
     attrs: {
       value: "parked"
     }
-  }, [_vm._v("Parked")])])]), _vm._v(" "), _c("div", {
+  }, [_vm._v("مؤجلة")])])]), _vm._v(" "), _c("div", {
     staticClass: "filter-group"
-  }, [_c("label", [_vm._v("From Date")]), _vm._v(" "), _c("input", {
+  }, [_c("label", [_vm._v("من تاريخ")]), _vm._v(" "), _c("input", {
     directives: [{
       name: "model",
       rawName: "v-model",
@@ -329,7 +329,7 @@ var render = function render() {
     }
   })]), _vm._v(" "), _c("div", {
     staticClass: "filter-group"
-  }, [_c("label", [_vm._v("To Date")]), _vm._v(" "), _c("input", {
+  }, [_c("label", [_vm._v("إلى تاريخ")]), _vm._v(" "), _c("input", {
     directives: [{
       name: "model",
       rawName: "v-model",
@@ -359,7 +359,7 @@ var render = function render() {
     }
   }, [_c("i", {
     staticClass: "fas fa-times"
-  }), _vm._v(" Clear\n                ")])])])]), _vm._v(" "), !_vm.loading ? _c("div", {
+  }), _vm._v(" مسح\n                ")])])])]), _vm._v(" "), !_vm.loading ? _c("div", {
     staticClass: "summary-cards"
   }, [_c("div", {
     staticClass: "summary-card"
@@ -369,7 +369,7 @@ var render = function render() {
     staticClass: "summary-value"
   }, [_vm._v(_vm._s(_vm.summary.total_sales))]), _vm._v(" "), _c("div", {
     staticClass: "summary-label"
-  }, [_vm._v("Total Sales")])])]), _vm._v(" "), _c("div", {
+  }, [_vm._v("إجمالي المبيعات")])])]), _vm._v(" "), _c("div", {
     staticClass: "summary-card"
   }, [_vm._m(2), _vm._v(" "), _c("div", {
     staticClass: "summary-info"
@@ -377,7 +377,7 @@ var render = function render() {
     staticClass: "summary-value"
   }, [_vm._v(_vm._s(_vm.formatCurrency(_vm.summary.total_revenue)))]), _vm._v(" "), _c("div", {
     staticClass: "summary-label"
-  }, [_vm._v("Total Revenue")])])]), _vm._v(" "), _c("div", {
+  }, [_vm._v("إجمالي الإيرادات")])])]), _vm._v(" "), _c("div", {
     staticClass: "summary-card"
   }, [_vm._m(3), _vm._v(" "), _c("div", {
     staticClass: "summary-info"
@@ -385,7 +385,7 @@ var render = function render() {
     staticClass: "summary-value"
   }, [_vm._v(_vm._s(_vm.summary.total_items))]), _vm._v(" "), _c("div", {
     staticClass: "summary-label"
-  }, [_vm._v("Items Sold")])])]), _vm._v(" "), _c("div", {
+  }, [_vm._v("الأصناف المباعة")])])]), _vm._v(" "), _c("div", {
     staticClass: "summary-card"
   }, [_vm._m(4), _vm._v(" "), _c("div", {
     staticClass: "summary-info"
@@ -393,17 +393,17 @@ var render = function render() {
     staticClass: "summary-value"
   }, [_vm._v(_vm._s(_vm.formatCurrency(_vm.summary.average_sale)))]), _vm._v(" "), _c("div", {
     staticClass: "summary-label"
-  }, [_vm._v("Average Sale")])])])]) : _vm._e(), _vm._v(" "), _c("div", {
+  }, [_vm._v("متوسط البيع")])])])]) : _vm._e(), _vm._v(" "), _c("div", {
     staticClass: "sales-table-card"
   }, [_vm.loading ? _c("div", {
     staticClass: "loading-state"
   }, [_c("i", {
     staticClass: "fas fa-spinner fa-spin"
-  }), _vm._v(" Loading sales...\n        ")]) : _vm.sales.length === 0 ? _c("div", {
+  }), _vm._v(" جاري تحميل المبيعات...\n        ")]) : _vm.sales.length === 0 ? _c("div", {
     staticClass: "empty-state"
   }, [_c("i", {
     staticClass: "fas fa-receipt"
-  }), _vm._v(" "), _c("p", [_vm._v("No sales found")])]) : !_vm.isMobile ? _c("table", {
+  }), _vm._v(" "), _c("p", [_vm._v("لم يتم العثور على مبيعات")])]) : !_vm.isMobile ? _c("table", {
     staticClass: "sales-table"
   }, [_vm._m(5), _vm._v(" "), _c("tbody", _vm._l(_vm.sales, function (sale) {
     var _sale$customer, _sale$items;
@@ -426,7 +426,7 @@ var render = function render() {
     }, [_c("button", {
       staticClass: "btn-action",
       attrs: {
-        title: "View"
+        title: "عرض"
       },
       on: {
         click: function click($event) {
@@ -439,7 +439,7 @@ var render = function render() {
     })]), _vm._v(" "), _c("button", {
       staticClass: "btn-action",
       attrs: {
-        title: "Print"
+        title: "طباعة"
       },
       on: {
         click: function click($event) {
@@ -475,26 +475,26 @@ var render = function render() {
       staticClass: "sale-card-row"
     }, [_c("span", {
       staticClass: "label"
-    }, [_vm._v("Date:")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.formatDate(sale.created_at)))])]), _vm._v(" "), _c("div", {
+    }, [_vm._v("التاريخ:")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.formatDate(sale.created_at)))])]), _vm._v(" "), _c("div", {
       staticClass: "sale-card-row"
     }, [_c("span", {
       staticClass: "label"
-    }, [_vm._v("Customer:")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(((_sale$customer2 = sale.customer) === null || _sale$customer2 === void 0 ? void 0 : _sale$customer2.customer_name) || "-"))])]), _vm._v(" "), _c("div", {
+    }, [_vm._v("العميل:")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(((_sale$customer2 = sale.customer) === null || _sale$customer2 === void 0 ? void 0 : _sale$customer2.customer_name) || "-"))])]), _vm._v(" "), _c("div", {
       staticClass: "sale-card-row"
     }, [_c("span", {
       staticClass: "label"
-    }, [_vm._v("Items:")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(((_sale$items2 = sale.items) === null || _sale$items2 === void 0 ? void 0 : _sale$items2.length) || 0))])]), _vm._v(" "), _c("div", {
+    }, [_vm._v("الأصناف:")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(((_sale$items2 = sale.items) === null || _sale$items2 === void 0 ? void 0 : _sale$items2.length) || 0))])]), _vm._v(" "), _c("div", {
       staticClass: "sale-card-row total-row-mobile"
     }, [_c("span", {
       staticClass: "label"
-    }, [_vm._v("Total:")]), _vm._v(" "), _c("span", {
+    }, [_vm._v("الإجمالي:")]), _vm._v(" "), _c("span", {
       staticClass: "sale-total-mobile"
     }, [_vm._v(_vm._s(_vm.formatCurrency(sale.total_amount)))])])]), _vm._v(" "), _c("div", {
       staticClass: "sale-card-actions"
     }, [_c("button", {
       staticClass: "btn-action-mobile",
       attrs: {
-        title: "View"
+        title: "عرض"
       },
       on: {
         click: function click($event) {
@@ -504,10 +504,10 @@ var render = function render() {
       }
     }, [_c("i", {
       staticClass: "fas fa-eye"
-    }), _vm._v(" View\n                    ")]), _vm._v(" "), _c("button", {
+    }), _vm._v(" عرض\n                    ")]), _vm._v(" "), _c("button", {
       staticClass: "btn-action-mobile",
       attrs: {
-        title: "Print"
+        title: "طباعة"
       },
       on: {
         click: function click($event) {
@@ -517,7 +517,7 @@ var render = function render() {
       }
     }, [_c("i", {
       staticClass: "fas fa-print"
-    }), _vm._v(" Print\n                    ")])])]);
+    }), _vm._v(" طباعة\n                    ")])])]);
   }), 0), _vm._v(" "), _vm.pagination.last_page > 1 ? _c("div", {
     staticClass: "pagination"
   }, [_c("button", {
@@ -534,7 +534,7 @@ var render = function render() {
     staticClass: "fas fa-chevron-left"
   })]), _vm._v(" "), _c("span", {
     staticClass: "page-info"
-  }, [_vm._v("\n                Page " + _vm._s(_vm.pagination.current_page) + " of " + _vm._s(_vm.pagination.last_page) + "\n            ")]), _vm._v(" "), _c("button", {
+  }, [_vm._v("\n                صفحة " + _vm._s(_vm.pagination.current_page) + " من " + _vm._s(_vm.pagination.last_page) + "\n            ")]), _vm._v(" "), _c("button", {
     staticClass: "page-btn",
     attrs: {
       disabled: _vm.pagination.current_page >= _vm.pagination.last_page
@@ -558,7 +558,7 @@ var render = function render() {
     staticClass: "modal-content"
   }, [_c("div", {
     staticClass: "modal-header"
-  }, [_c("h5", [_vm._v("Sale Details - " + _vm._s((_vm$selectedSale = _vm.selectedSale) === null || _vm$selectedSale === void 0 ? void 0 : _vm$selectedSale.sale_number))]), _vm._v(" "), _c("button", {
+  }, [_c("h5", [_vm._v("تفاصيل البيع - " + _vm._s((_vm$selectedSale = _vm.selectedSale) === null || _vm$selectedSale === void 0 ? void 0 : _vm$selectedSale.sale_number))]), _vm._v(" "), _c("button", {
     staticClass: "close-btn",
     on: {
       click: function click($event) {
@@ -573,18 +573,18 @@ var render = function render() {
     staticClass: "detail-section"
   }, [_c("div", {
     staticClass: "detail-row"
-  }, [_c("span", [_vm._v("Date:")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.formatDateTime(_vm.selectedSale.created_at)))])]), _vm._v(" "), _c("div", {
+  }, [_c("span", [_vm._v("التاريخ:")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.formatDateTime(_vm.selectedSale.created_at)))])]), _vm._v(" "), _c("div", {
     staticClass: "detail-row"
-  }, [_c("span", [_vm._v("Status:")]), _vm._v(" "), _c("span", {
+  }, [_c("span", [_vm._v("الحالة:")]), _vm._v(" "), _c("span", {
     staticClass: "status-badge",
     "class": _vm.selectedSale.status
   }, [_vm._v("\n                            " + _vm._s(_vm.selectedSale.status) + "\n                        ")])]), _vm._v(" "), _vm.selectedSale.customer ? _c("div", {
     staticClass: "detail-row"
-  }, [_c("span", [_vm._v("Customer:")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.selectedSale.customer.customer_name))])]) : _vm._e(), _vm._v(" "), _vm.selectedSale.created_by ? _c("div", {
+  }, [_c("span", [_vm._v("العميل:")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.selectedSale.customer.customer_name))])]) : _vm._e(), _vm._v(" "), _vm.selectedSale.created_by ? _c("div", {
     staticClass: "detail-row"
-  }, [_c("span", [_vm._v("Cashier:")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.selectedSale.created_by.name))])]) : _vm._e()]), _vm._v(" "), _c("div", {
+  }, [_c("span", [_vm._v("الكاشير:")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.selectedSale.created_by.name))])]) : _vm._e()]), _vm._v(" "), _c("div", {
     staticClass: "items-section"
-  }, [_c("h6", [_vm._v("Items")]), _vm._v(" "), !_vm.isMobile ? _c("table", {
+  }, [_c("h6", [_vm._v("الأصناف")]), _vm._v(" "), !_vm.isMobile ? _c("table", {
     staticClass: "items-table"
   }, [_vm._m(6), _vm._v(" "), _c("tbody", _vm._l(_vm.selectedSale.items, function (item) {
     return _c("tr", {
@@ -604,31 +604,31 @@ var render = function render() {
       staticClass: "variation"
     }, [_vm._v("\n                                    (" + _vm._s(item.variation_name) + ")\n                                ")]) : _vm._e()]), _vm._v(" "), _c("div", {
       staticClass: "item-details-mobile"
-    }, [_c("span", [_vm._v("Qty: " + _vm._s(item.quantity))]), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.formatCurrency(item.unit_price)))]), _vm._v(" "), _c("span", {
+    }, [_c("span", [_vm._v("الكمية: " + _vm._s(item.quantity))]), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.formatCurrency(item.unit_price)))]), _vm._v(" "), _c("span", {
       staticClass: "item-total-mobile"
     }, [_vm._v(_vm._s(_vm.formatCurrency(item.line_total)))])])]);
   }), 0)]), _vm._v(" "), _c("div", {
     staticClass: "totals-section"
   }, [_c("div", {
     staticClass: "total-row"
-  }, [_c("span", [_vm._v("Subtotal:")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.formatCurrency(_vm.selectedSale.subtotal)))])]), _vm._v(" "), _vm.selectedSale.discount_value > 0 ? _c("div", {
+  }, [_c("span", [_vm._v("المجموع الفرعي:")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.formatCurrency(_vm.selectedSale.subtotal)))])]), _vm._v(" "), _vm.selectedSale.discount_value > 0 ? _c("div", {
     staticClass: "total-row"
-  }, [_c("span", [_vm._v("Discount:")]), _vm._v(" "), _c("span", {
+  }, [_c("span", [_vm._v("الخصم:")]), _vm._v(" "), _c("span", {
     staticClass: "text-success"
   }, [_vm._v("-" + _vm._s(_vm.formatCurrency(_vm.selectedSale.discount_value)))])]) : _vm._e(), _vm._v(" "), _vm.selectedSale.tax_amount > 0 ? _c("div", {
     staticClass: "total-row"
-  }, [_c("span", [_vm._v("Tax (" + _vm._s(_vm.selectedSale.tax_rate) + "%):")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.formatCurrency(_vm.selectedSale.tax_amount)))])]) : _vm._e(), _vm._v(" "), _c("div", {
+  }, [_c("span", [_vm._v("الضريبة (" + _vm._s(_vm.selectedSale.tax_rate) + "%):")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.formatCurrency(_vm.selectedSale.tax_amount)))])]) : _vm._e(), _vm._v(" "), _c("div", {
     staticClass: "total-row grand-total"
-  }, [_c("span", [_vm._v("Total:")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.formatCurrency(_vm.selectedSale.total_amount)))])])]), _vm._v(" "), (_vm$selectedSale$paym = _vm.selectedSale.payments) !== null && _vm$selectedSale$paym !== void 0 && _vm$selectedSale$paym.length ? _c("div", {
+  }, [_c("span", [_vm._v("الإجمالي:")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.formatCurrency(_vm.selectedSale.total_amount)))])])]), _vm._v(" "), (_vm$selectedSale$paym = _vm.selectedSale.payments) !== null && _vm$selectedSale$paym !== void 0 && _vm$selectedSale$paym.length ? _c("div", {
     staticClass: "payments-section"
-  }, [_c("h6", [_vm._v("Payments")]), _vm._v(" "), _vm._l(_vm.selectedSale.payments, function (payment) {
+  }, [_c("h6", [_vm._v("المدفوعات")]), _vm._v(" "), _vm._l(_vm.selectedSale.payments, function (payment) {
     return _c("div", {
       key: payment.id,
       staticClass: "payment-row"
     }, [_c("span", [_vm._v(_vm._s(_vm.getMethodLabel(payment.payment_method)))]), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.formatCurrency(payment.amount)))])]);
   }), _vm._v(" "), _vm.selectedSale.change_amount > 0 ? _c("div", {
     staticClass: "payment-row"
-  }, [_c("span", [_vm._v("Change Given:")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.formatCurrency(_vm.selectedSale.change_amount)))])]) : _vm._e()], 2) : _vm._e()]) : _vm._e(), _vm._v(" "), _c("div", {
+  }, [_c("span", [_vm._v("الباقي:")]), _vm._v(" "), _c("span", [_vm._v(_vm._s(_vm.formatCurrency(_vm.selectedSale.change_amount)))])]) : _vm._e()], 2) : _vm._e()]) : _vm._e(), _vm._v(" "), _c("div", {
     staticClass: "modal-footer"
   }, [_c("button", {
     staticClass: "btn btn-secondary",
@@ -639,21 +639,21 @@ var render = function render() {
     }
   }, [_c("i", {
     staticClass: "fas fa-print"
-  }), _vm._v(" Print Receipt\n                ")]), _vm._v(" "), _c("button", {
+  }), _vm._v(" طباعة الإيصال\n                ")]), _vm._v(" "), _c("button", {
     staticClass: "btn btn-primary",
     on: {
       click: function click($event) {
         _vm.showDetailModal = false;
       }
     }
-  }, [_vm._v("\n                    Close\n                ")])])])]) : _vm._e()]);
+  }, [_vm._v("\n                    إغلاق\n                ")])])])]) : _vm._e()]);
 };
 var staticRenderFns = [function () {
   var _vm = this,
     _c = _vm._self._c;
   return _c("h2", [_c("i", {
     staticClass: "fas fa-history"
-  }), _vm._v(" POS Sales History")]);
+  }), _vm._v(" سجل مبيعات نقطة البيع")]);
 }, function () {
   var _vm = this,
     _c = _vm._self._c;
@@ -689,11 +689,11 @@ var staticRenderFns = [function () {
 }, function () {
   var _vm = this,
     _c = _vm._self._c;
-  return _c("thead", [_c("tr", [_c("th", [_vm._v("Sale #")]), _vm._v(" "), _c("th", [_vm._v("Date")]), _vm._v(" "), _c("th", [_vm._v("Customer")]), _vm._v(" "), _c("th", [_vm._v("Items")]), _vm._v(" "), _c("th", [_vm._v("Total")]), _vm._v(" "), _c("th", [_vm._v("Status")]), _vm._v(" "), _c("th", [_vm._v("Actions")])])]);
+  return _c("thead", [_c("tr", [_c("th", [_vm._v("رقم البيع")]), _vm._v(" "), _c("th", [_vm._v("التاريخ")]), _vm._v(" "), _c("th", [_vm._v("العميل")]), _vm._v(" "), _c("th", [_vm._v("الأصناف")]), _vm._v(" "), _c("th", [_vm._v("الإجمالي")]), _vm._v(" "), _c("th", [_vm._v("الحالة")]), _vm._v(" "), _c("th", [_vm._v("الإجراءات")])])]);
 }, function () {
   var _vm = this,
     _c = _vm._self._c;
-  return _c("thead", [_c("tr", [_c("th", [_vm._v("Product")]), _vm._v(" "), _c("th", [_vm._v("Qty")]), _vm._v(" "), _c("th", [_vm._v("Price")]), _vm._v(" "), _c("th", [_vm._v("Total")])])]);
+  return _c("thead", [_c("tr", [_c("th", [_vm._v("المنتج")]), _vm._v(" "), _c("th", [_vm._v("الكمية")]), _vm._v(" "), _c("th", [_vm._v("السعر")]), _vm._v(" "), _c("th", [_vm._v("الإجمالي")])])]);
 }];
 render._withStripped = true;
 

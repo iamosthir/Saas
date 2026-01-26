@@ -44,6 +44,12 @@ class CheckMerchantPermission
                 }
                 break;
 
+            case 'manufacturing':
+                if (!$merchant->canAccessManufacturing()) {
+                    return $this->denyAccess($request, $permission);
+                }
+                break;
+
             default:
                 return $this->denyAccess($request, $permission);
         }
@@ -56,7 +62,12 @@ class CheckMerchantPermission
      */
     private function denyAccess(Request $request, string $permission): Response
     {
-        $permissionName = $permission === 'pos' ? 'نظام نقاط البيع' : 'إدارة العقود';
+        $permissionNames = [
+            'pos' => 'نظام نقاط البيع',
+            'contracts' => 'إدارة العقود',
+            'manufacturing' => 'نظام التصنيع',
+        ];
+        $permissionName = $permissionNames[$permission] ?? $permission;
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([

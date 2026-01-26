@@ -2,13 +2,13 @@
     <div class="pos-container" @keydown="handleKeydown">
         <!-- Offline Indicator -->
         <div v-if="!isOnline" class="offline-banner">
-            <i class="fas fa-wifi-slash"></i> Offline Mode - Sales will sync when online
+            <i class="fas fa-wifi-slash"></i> وضع عدم الاتصال - سيتم مزامنة المبيعات عند الاتصال
         </div>
 
         <!-- Top Bar -->
         <div class="pos-topbar">
             <div class="pos-topbar-left">
-                <h4><i class="fas fa-cash-register"></i> Point of Sale</h4>
+                <h4><i class="fas fa-cash-register"></i> نقطة البيع</h4>
             </div>
             <div class="pos-topbar-center">
                 <!-- Multi-Cart Tabs -->
@@ -20,19 +20,19 @@
                         :class="{ active: currentCartIndex === index }"
                         @click="switchCart(index)"
                     >
-                        <span>Cart {{ index + 1 }}</span>
+                        <span>سلة {{ index + 1 }}</span>
                         <span v-if="cart.items.length" class="item-count">{{ cart.items.length }}</span>
                         <button v-if="carts.length > 1" class="close-cart" @click.stop="closeCart(index)">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
-                    <button class="new-cart-btn" @click="newCart" title="New Cart (F2)">
+                    <button class="new-cart-btn" @click="newCart" title="سلة جديدة (F2)">
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
             </div>
             <div class="pos-topbar-right">
-                <button class="btn btn-outline-secondary btn-sm" @click="showParkedSales" title="Parked Sales (F5)">
+                <button class="btn btn-outline-secondary btn-sm" @click="showParkedSales" title="المبيعات المؤجلة (F5)">
                     <i class="fas fa-pause-circle"></i>
                     <span v-if="parkedSalesCount > 0" class="badge">{{ parkedSalesCount }}</span>
                 </button>
@@ -58,7 +58,7 @@
                             v-model="searchQuery"
                             @input="searchProducts"
                             @keydown.enter="handleSearchEnter"
-                            placeholder="Search products or scan barcode (F1)"
+                            placeholder="البحث عن المنتجات أو مسح الباركود (F1)"
                             class="search-input"
                         />
                         <button v-if="searchQuery" class="clear-search" @click="clearSearch">
@@ -70,15 +70,15 @@
                 <!-- Product Grid -->
                 <div class="product-grid">
                     <div v-if="loading" class="loading-state">
-                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                        <i class="fas fa-spinner fa-spin"></i> جاري التحميل...
                     </div>
                     <div v-else-if="products.length === 0 && searchQuery" class="empty-state">
                         <i class="fas fa-search"></i>
-                        <p>No products found</p>
+                        <p>لم يتم العثور على منتجات</p>
                     </div>
                     <div v-else-if="products.length === 0" class="empty-state">
                         <i class="fas fa-box-open"></i>
-                        <p>Search for products or scan barcode</p>
+                        <p>ابحث عن المنتجات أو امسح الباركود</p>
                     </div>
                     <div
                         v-else
@@ -88,14 +88,14 @@
                         @click="selectProduct(product)"
                     >
                         <div class="product-image">
-                            <img v-if="product.thumbnail" :src="'/storage/' + product.thumbnail" :alt="product.name">
+                            <img v-if="product.image" :src="'/uploads/products/' + product.image" :alt="product.name">
                             <i v-else class="fas fa-box"></i>
                         </div>
                         <div class="product-info">
-                            <div class="product-name">{{ product.name }}</div>
+                            <div class="product-name" :title="product.name">{{ product.name }}</div>
                             <div class="product-price">{{ formatCurrency(product.sell_price) }}</div>
-                            <div class="product-stock" :class="{ 'low-stock': product.total_stock <= product.low_stock_threshold }">
-                                Stock: {{ product.total_stock }}
+                            <div class="product-stock" :class="{ 'low-stock': product.total_stock < 10 }">
+                                <i class="fas fa-box"></i> {{ product.total_stock }}
                             </div>
                         </div>
                     </div>
@@ -114,7 +114,7 @@
                         </button>
                     </div>
                     <button v-else class="select-customer-btn" @click="showCustomerModal = true">
-                        <i class="fas fa-user-plus"></i> Select Customer (F9)
+                        <i class="fas fa-user-plus"></i> اختر عميل (F9)
                     </button>
                 </div>
 
@@ -122,8 +122,8 @@
                 <div class="cart-items">
                     <div v-if="currentCart.items.length === 0" class="empty-cart">
                         <i class="fas fa-shopping-cart"></i>
-                        <p>Cart is empty</p>
-                        <small>Search for products to add</small>
+                        <p>السلة فارغة</p>
+                        <small>ابحث عن المنتجات لإضافتها</small>
                     </div>
                     <div
                         v-else
@@ -154,10 +154,10 @@
                         </div>
                         <div class="item-total">{{ formatCurrency(item.line_total) }}</div>
                         <div class="item-actions">
-                            <button class="btn-discount" @click.stop="openItemDiscount(index)" title="Discount">
+                            <button class="btn-discount" @click.stop="openItemDiscount(index)" title="خصم">
                                 <i class="fas fa-percent"></i>
                             </button>
-                            <button class="btn-remove" @click.stop="removeItem(index)" title="Remove">
+                            <button class="btn-remove" @click.stop="removeItem(index)" title="حذف">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -167,12 +167,12 @@
                 <!-- Cart Summary -->
                 <div class="cart-summary">
                     <div class="summary-row">
-                        <span>Subtotal</span>
+                        <span>المجموع الفرعي</span>
                         <span>{{ formatCurrency(currentCart.subtotal) }}</span>
                     </div>
                     <div v-if="currentCart.discount_value > 0" class="summary-row discount">
                         <span>
-                            Discount
+                            الخصم
                             <button class="btn-edit-discount" @click="openSaleDiscount">
                                 <i class="fas fa-edit"></i>
                             </button>
@@ -181,15 +181,15 @@
                     </div>
                     <div v-else class="summary-row">
                         <button class="add-discount-btn" @click="openSaleDiscount">
-                            <i class="fas fa-percent"></i> Add Discount (F8)
+                            <i class="fas fa-percent"></i> إضافة خصم (F8)
                         </button>
                     </div>
                     <div v-if="settings.tax_rate > 0" class="summary-row tax">
-                        <span>Tax ({{ settings.tax_rate }}%)</span>
+                        <span>الضريبة ({{ settings.tax_rate }}%)</span>
                         <span>{{ formatCurrency(currentCart.tax_amount) }}</span>
                     </div>
                     <div class="summary-row total">
-                        <span>Total</span>
+                        <span>الإجمالي</span>
                         <span>{{ formatCurrency(currentCart.total_amount) }}</span>
                     </div>
                 </div>
@@ -201,14 +201,14 @@
                         @click="parkSale"
                         :disabled="currentCart.items.length === 0"
                     >
-                        <i class="fas fa-pause"></i> Park (F4)
+                        <i class="fas fa-pause"></i> تأجيل (F4)
                     </button>
                     <button
                         class="btn btn-primary btn-pay"
                         @click="openPayment"
                         :disabled="currentCart.items.length === 0"
                     >
-                        <i class="fas fa-money-bill"></i> Pay (F10)
+                        <i class="fas fa-money-bill"></i> دفع (F10)
                     </button>
                 </div>
             </div>
@@ -218,7 +218,7 @@
         <div v-if="showVariationModal" class="modal-overlay" @click.self="showVariationModal = false">
             <div class="modal-content variation-modal">
                 <div class="modal-header">
-                    <h5>Select Variation</h5>
+                    <h5>اختر النوع</h5>
                     <button class="close-btn" @click="showVariationModal = false">
                         <i class="fas fa-times"></i>
                     </button>
@@ -234,7 +234,7 @@
                         >
                             <div class="variation-name">{{ variation.var_name }}</div>
                             <div class="variation-price">{{ formatCurrency(variation.price) }}</div>
-                            <div class="variation-stock">Stock: {{ variation.quantity }}</div>
+                            <div class="variation-stock">المخزون: {{ variation.quantity }}</div>
                         </div>
                     </div>
                 </div>
@@ -245,7 +245,7 @@
         <div v-if="showCustomerModal" class="modal-overlay" @click.self="showCustomerModal = false">
             <div class="modal-content customer-modal">
                 <div class="modal-header">
-                    <h5>Select or Create Customer</h5>
+                    <h5>اختر أو أنشئ عميل</h5>
                     <button class="close-btn" @click="showCustomerModal = false">
                         <i class="fas fa-times"></i>
                     </button>
@@ -256,7 +256,7 @@
                             type="text"
                             v-model="customerSearch"
                             @input="searchCustomers"
-                            placeholder="Search by name or phone..."
+                            placeholder="البحث بالاسم أو الهاتف..."
                             class="form-control"
                         />
                     </div>
@@ -272,15 +272,15 @@
                         </div>
                     </div>
                     <div class="create-customer-form" v-if="!customers.length && customerSearch">
-                        <p class="text-muted">No customer found. Create new?</p>
+                        <p class="text-muted">لم يتم العثور على عميل. إنشاء جديد؟</p>
                         <div class="form-group">
-                            <input type="text" v-model="newCustomer.customer_name" placeholder="Customer Name" class="form-control" />
+                            <input type="text" v-model="newCustomer.customer_name" placeholder="اسم العميل" class="form-control" />
                         </div>
                         <div class="form-group">
-                            <input type="text" v-model="newCustomer.phone1" placeholder="Phone Number" class="form-control" />
+                            <input type="text" v-model="newCustomer.phone1" placeholder="رقم الهاتف" class="form-control" />
                         </div>
                         <button class="btn btn-primary" @click="createCustomer">
-                            <i class="fas fa-plus"></i> Create Customer
+                            <i class="fas fa-plus"></i> إنشاء عميل
                         </button>
                     </div>
                 </div>
@@ -291,7 +291,7 @@
         <div v-if="showDiscountModal" class="modal-overlay" @click.self="showDiscountModal = false">
             <div class="modal-content discount-modal">
                 <div class="modal-header">
-                    <h5>{{ discountTarget === 'sale' ? 'Sale Discount' : 'Item Discount' }}</h5>
+                    <h5>{{ discountTarget === 'sale' ? 'خصم البيع' : 'خصم الصنف' }}</h5>
                     <button class="close-btn" @click="showDiscountModal = false">
                         <i class="fas fa-times"></i>
                     </button>
@@ -302,27 +302,27 @@
                             :class="{ active: discountForm.type === 'percentage' }"
                             @click="discountForm.type = 'percentage'"
                         >
-                            <i class="fas fa-percent"></i> Percentage
+                            <i class="fas fa-percent"></i> نسبة مئوية
                         </button>
                         <button
                             :class="{ active: discountForm.type === 'fixed' }"
                             @click="discountForm.type = 'fixed'"
                         >
-                            <i class="fas fa-dollar-sign"></i> Fixed
+                            <i class="fas fa-dollar-sign"></i> مبلغ ثابت
                         </button>
                     </div>
                     <div class="discount-input">
                         <input
                             type="number"
                             v-model="discountForm.amount"
-                            :placeholder="discountForm.type === 'percentage' ? 'Enter %' : 'Enter amount'"
+                            :placeholder="discountForm.type === 'percentage' ? 'أدخل النسبة %' : 'أدخل المبلغ'"
                             class="form-control"
                             min="0"
                         />
                     </div>
                     <div class="discount-actions">
-                        <button class="btn btn-secondary" @click="clearDiscount">Clear</button>
-                        <button class="btn btn-primary" @click="applyDiscount">Apply</button>
+                        <button class="btn btn-secondary" @click="clearDiscount">مسح</button>
+                        <button class="btn btn-primary" @click="applyDiscount">تطبيق</button>
                     </div>
                 </div>
             </div>
@@ -332,7 +332,7 @@
         <div v-if="showPaymentModal" class="modal-overlay" @click.self="showPaymentModal = false">
             <div class="modal-content payment-modal">
                 <div class="modal-header">
-                    <h5>Payment</h5>
+                    <h5>الدفع</h5>
                     <button class="close-btn" @click="showPaymentModal = false">
                         <i class="fas fa-times"></i>
                     </button>
@@ -340,19 +340,19 @@
                 <div class="modal-body">
                     <div class="payment-summary">
                         <div class="total-due">
-                            <span>Total Due</span>
+                            <span>الإجمالي المستحق</span>
                             <span class="amount">{{ formatCurrency(currentCart.total_amount) }}</span>
                         </div>
                         <div v-if="payments.length > 0" class="paid-so-far">
-                            <span>Paid</span>
+                            <span>المدفوع</span>
                             <span>{{ formatCurrency(totalPaid) }}</span>
                         </div>
                         <div v-if="remainingAmount > 0" class="remaining">
-                            <span>Remaining</span>
+                            <span>المتبقي</span>
                             <span class="amount">{{ formatCurrency(remainingAmount) }}</span>
                         </div>
                         <div v-if="changeAmount > 0" class="change">
-                            <span>Change</span>
+                            <span>الباقي</span>
                             <span class="amount text-success">{{ formatCurrency(changeAmount) }}</span>
                         </div>
                     </div>
@@ -371,7 +371,7 @@
                     </div>
 
                     <div class="payment-input">
-                        <label>Amount</label>
+                        <label>المبلغ</label>
                         <input
                             type="number"
                             v-model.number="paymentAmount"
@@ -393,13 +393,13 @@
                     </div>
 
                     <div v-if="selectedPaymentMethod !== 'cash'" class="reference-input">
-                        <label>Reference Number (optional)</label>
-                        <input type="text" v-model="paymentReference" class="form-control" placeholder="Card auth code, transfer ref..."/>
+                        <label>رقم المرجع (اختياري)</label>
+                        <input type="text" v-model="paymentReference" class="form-control" placeholder="كود التفويض، رقم التحويل..."/>
                     </div>
 
                     <!-- Added Payments List -->
                     <div v-if="payments.length > 0" class="payments-list">
-                        <h6>Payments</h6>
+                        <h6>المدفوعات</h6>
                         <div v-for="(payment, index) in payments" :key="index" class="payment-item">
                             <span>{{ getMethodLabel(payment.payment_method) }}</span>
                             <span>{{ formatCurrency(payment.amount) }}</span>
@@ -416,7 +416,7 @@
                             @click="addPayment"
                             :disabled="!paymentAmount || paymentAmount <= 0"
                         >
-                            <i class="fas fa-plus"></i> Add Payment
+                            <i class="fas fa-plus"></i> إضافة دفعة
                         </button>
                         <button
                             class="btn btn-primary btn-complete"
@@ -424,7 +424,7 @@
                             :disabled="!canCompleteSale"
                         >
                             <i class="fas fa-check"></i>
-                            {{ isFullyPaid ? 'Complete Sale (F12)' : 'Complete with Split Payment' }}
+                            {{ isFullyPaid ? 'إتمام البيع (F12)' : 'إتمام بدفعات مقسمة' }}
                         </button>
                     </div>
                 </div>
@@ -435,7 +435,7 @@
         <div v-if="showParkedModal" class="modal-overlay" @click.self="showParkedModal = false">
             <div class="modal-content parked-modal">
                 <div class="modal-header">
-                    <h5>Parked Sales</h5>
+                    <h5>المبيعات المؤجلة</h5>
                     <button class="close-btn" @click="showParkedModal = false">
                         <i class="fas fa-times"></i>
                     </button>
@@ -443,7 +443,7 @@
                 <div class="modal-body">
                     <div v-if="parkedSales.length === 0" class="empty-state">
                         <i class="fas fa-pause-circle"></i>
-                        <p>No parked sales</p>
+                        <p>لا توجد مبيعات مؤجلة</p>
                     </div>
                     <div v-else class="parked-sales-list">
                         <div
@@ -460,7 +460,7 @@
                                 </div>
                             </div>
                             <div class="sale-details">
-                                <div class="items-count">{{ sale.items.length }} items</div>
+                                <div class="items-count">{{ sale.items.length }} صنف</div>
                                 <div class="sale-total">{{ formatCurrency(sale.total_amount) }}</div>
                             </div>
                             <button class="btn-delete-parked" @click.stop="deleteParkedSale(sale.id)">
@@ -476,7 +476,7 @@
         <div v-if="showReceiptModal" class="modal-overlay" @click.self="closeReceipt">
             <div class="modal-content receipt-modal">
                 <div class="modal-header">
-                    <h5>Sale Complete</h5>
+                    <h5>تم البيع بنجاح</h5>
                     <button class="close-btn" @click="closeReceipt">
                         <i class="fas fa-times"></i>
                     </button>
@@ -486,18 +486,18 @@
                         <i class="fas fa-check-circle"></i>
                     </div>
                     <div class="receipt-info">
-                        <p>Sale #{{ completedSale?.sale_number }}</p>
+                        <p>البيع #{{ completedSale?.sale_number }}</p>
                         <p class="total">{{ formatCurrency(completedSale?.total_amount) }}</p>
                         <p v-if="completedSale?.change_amount > 0" class="change">
-                            Change: {{ formatCurrency(completedSale?.change_amount) }}
+                            الباقي: {{ formatCurrency(completedSale?.change_amount) }}
                         </p>
                     </div>
                     <div class="receipt-actions">
                         <button class="btn btn-secondary" @click="printReceipt">
-                            <i class="fas fa-print"></i> Print Receipt
+                            <i class="fas fa-print"></i> طباعة الإيصال
                         </button>
                         <button class="btn btn-primary" @click="closeReceipt">
-                            <i class="fas fa-plus"></i> New Sale
+                            <i class="fas fa-plus"></i> بيع جديد
                         </button>
                     </div>
                 </div>
@@ -582,10 +582,10 @@ export default {
         },
         availablePaymentMethods() {
             const methods = [
-                { value: 'cash', label: 'Cash', icon: 'fas fa-money-bill-wave' },
-                { value: 'card', label: 'Card', icon: 'fas fa-credit-card' },
-                { value: 'wallet', label: 'Wallet', icon: 'fas fa-wallet' },
-                { value: 'bank_transfer', label: 'Bank Transfer', icon: 'fas fa-university' },
+                { value: 'cash', label: 'نقدي', icon: 'fas fa-money-bill-wave' },
+                { value: 'card', label: 'بطاقة', icon: 'fas fa-credit-card' },
+                { value: 'wallet', label: 'محفظة', icon: 'fas fa-wallet' },
+                { value: 'bank_transfer', label: 'تحويل بنكي', icon: 'fas fa-university' },
             ];
             return methods.filter(m => this.settings.payment_methods?.includes(m.value));
         },
@@ -653,6 +653,9 @@ export default {
                 if (drafts.length > 0) {
                     this.carts = drafts.map(draft => this.saleToCart(draft));
                 }
+
+                // Fetch products on load
+                await this.fetchAllProducts();
             } catch (error) {
                 console.error('Failed to initialize POS:', error);
             }
@@ -673,47 +676,41 @@ export default {
             };
         },
 
+        // Fetch all products
+        async fetchAllProducts() {
+            this.loading = true;
+            try {
+                const response = await axios.get('/dashboard/api/get-product-list', {
+                    params: { page: 1 }
+                });
+                // Extract products from paginated response
+                this.products = response.data.data || [];
+            } catch (error) {
+                console.error('Failed to fetch products:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
         // Product search
         async searchProducts() {
             clearTimeout(this.searchTimeout);
 
             if (!this.searchQuery || this.searchQuery.length < 1) {
-                this.products = [];
+                this.fetchAllProducts();
                 return;
             }
 
             this.searchTimeout = setTimeout(async () => {
                 this.loading = true;
                 try {
-                    // First try barcode
-                    if (this.searchQuery.length >= 4) {
-                        const barcodeRes = await axios.get(`/dashboard/api/pos/products/barcode/${this.searchQuery}`);
-                        if (barcodeRes.data.success) {
-                            const result = barcodeRes.data.data;
-                            this.addToCart(result.product, result.variation);
-                            this.clearSearch();
-                            return;
-                        }
-                    }
-
-                    // Otherwise search
-                    const response = await axios.get('/dashboard/api/pos/products/search', {
-                        params: { q: this.searchQuery }
+                    const response = await axios.get('/dashboard/api/get-product-list', {
+                        params: { search: this.searchQuery, page: 1 }
                     });
                     this.products = response.data.data || [];
                 } catch (error) {
-                    // Not found by barcode, continue with search
-                    if (error.response?.status !== 404) {
-                        console.error('Search error:', error);
-                    }
-                    try {
-                        const response = await axios.get('/dashboard/api/pos/products/search', {
-                            params: { q: this.searchQuery }
-                        });
-                        this.products = response.data.data || [];
-                    } catch (e) {
-                        console.error('Search error:', e);
-                    }
+                    console.error('Search error:', error);
+                    this.products = [];
                 } finally {
                     this.loading = false;
                 }
@@ -734,8 +731,11 @@ export default {
 
         // Product selection
         selectProduct(product) {
-            if (product.variations && product.variations.length > 0) {
-                this.selectedProduct = product;
+            // Check if product has variations (using variation or variations property)
+            const variations = product.variation || product.variations || [];
+
+            if (variations && variations.length > 0) {
+                this.selectedProduct = { ...product, variations: variations };
                 this.showVariationModal = true;
             } else {
                 this.addToCart(product, null);
@@ -901,7 +901,7 @@ export default {
 
         async createCustomer() {
             if (!this.newCustomer.customer_name || !this.newCustomer.phone1) {
-                this.$toast?.error('Name and phone are required');
+                this.$toast?.error('الاسم والهاتف مطلوبان');
                 return;
             }
 
@@ -910,7 +910,7 @@ export default {
                 this.selectCustomer(response.data.data);
                 this.newCustomer = { customer_name: '', phone1: '' };
             } catch (error) {
-                this.$toast?.error('Failed to create customer');
+                this.$toast?.error('فشل إنشاء العميل');
             }
         },
 
@@ -980,10 +980,10 @@ export default {
 
         getMethodLabel(method) {
             const labels = {
-                cash: 'Cash',
-                card: 'Card',
-                wallet: 'Wallet',
-                bank_transfer: 'Bank Transfer',
+                cash: 'نقدي',
+                card: 'بطاقة',
+                wallet: 'محفظة',
+                bank_transfer: 'تحويل بنكي',
             };
             return labels[method] || method;
         },
@@ -1045,7 +1045,7 @@ export default {
 
             } catch (error) {
                 console.error('Failed to complete sale:', error);
-                this.$toast?.error(error.response?.data?.message || 'Failed to complete sale');
+                this.$toast?.error(error.response?.data?.message || 'فشل إتمام البيع');
             }
         },
 
@@ -1074,10 +1074,10 @@ export default {
                 // Reset current cart
                 this.carts[this.currentCartIndex] = this.createEmptyCart();
 
-                this.$toast?.success('Sale parked');
+                this.$toast?.success('تم تأجيل البيع');
             } catch (error) {
                 console.error('Failed to park sale:', error);
-                this.$toast?.error('Failed to park sale');
+                this.$toast?.error('فشل تأجيل البيع');
             }
         },
 
@@ -1108,12 +1108,12 @@ export default {
                 this.showParkedModal = false;
             } catch (error) {
                 console.error('Failed to resume sale:', error);
-                this.$toast?.error('Failed to resume sale');
+                this.$toast?.error('فشل استعادة البيع');
             }
         },
 
         async deleteParkedSale(saleId) {
-            if (!confirm('Delete this parked sale?')) return;
+            if (!confirm('حذف هذا البيع المؤجل؟')) return;
 
             try {
                 await axios.delete(`/dashboard/api/pos/sales/${saleId}`);
@@ -1401,10 +1401,11 @@ export default {
 .product-grid {
     flex: 1;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 15px;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
     overflow-y: auto;
     padding-right: 10px;
+    align-content: start;
 }
 
 .loading-state, .empty-state {
@@ -1422,59 +1423,87 @@ export default {
 
 .product-card {
     background: white;
-    border-radius: 10px;
-    padding: 15px;
+    border-radius: 12px;
     cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
 }
 
 .product-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(33, 150, 243, 0.2);
 }
 
 .product-image {
     width: 100%;
-    height: 80px;
+    height: 160px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f5f5f5;
-    border-radius: 8px;
-    margin-bottom: 10px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
     overflow: hidden;
+    position: relative;
 }
 
 .product-image img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-image img {
+    transform: scale(1.05);
 }
 
 .product-image i {
-    font-size: 32px;
-    color: #ccc;
+    font-size: 48px;
+    color: #cbd5e0;
+}
+
+.product-info {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
 }
 
 .product-name {
     font-weight: 600;
     font-size: 14px;
-    margin-bottom: 5px;
-    white-space: nowrap;
+    line-height: 1.4;
+    color: #2d3748;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
+    min-height: 40px;
 }
 
 .product-price {
     color: #2196f3;
     font-weight: 700;
-    font-size: 16px;
+    font-size: 18px;
+    margin-top: auto;
 }
 
 .product-stock {
-    font-size: 12px;
-    color: #888;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #4caf50;
+    font-weight: 600;
+}
+
+.product-stock i {
+    font-size: 14px;
 }
 
 .product-stock.low-stock {
@@ -2169,24 +2198,29 @@ export default {
 
     /* Adjust product grid for mobile */
     .product-grid {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 10px;
-    }
-
-    .product-card {
-        padding: 10px;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 12px;
     }
 
     .product-image {
-        height: 60px;
+        height: 120px;
+    }
+
+    .product-info {
+        padding: 12px;
     }
 
     .product-name {
-        font-size: 12px;
+        font-size: 13px;
+        min-height: 36px;
     }
 
     .product-price {
-        font-size: 14px;
+        font-size: 16px;
+    }
+
+    .product-stock {
+        font-size: 12px;
     }
 
     /* Cart adjustments */
@@ -2313,32 +2347,33 @@ export default {
 
     /* Adjust product grid for small phones */
     .product-grid {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-        gap: 8px;
-    }
-
-    .product-card {
-        padding: 8px;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
     }
 
     .product-image {
-        height: 50px;
+        height: 100px;
     }
 
     .product-image i {
-        font-size: 24px;
+        font-size: 36px;
+    }
+
+    .product-info {
+        padding: 10px;
     }
 
     .product-name {
-        font-size: 11px;
+        font-size: 12px;
+        min-height: 34px;
     }
 
     .product-price {
-        font-size: 12px;
+        font-size: 14px;
     }
 
     .product-stock {
-        font-size: 10px;
+        font-size: 11px;
     }
 
     .search-input {

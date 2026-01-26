@@ -1,9 +1,9 @@
 <template>
     <div class="pos-history-page">
         <div class="page-header">
-            <h2><i class="fas fa-history"></i> POS Sales History</h2>
+            <h2><i class="fas fa-history"></i> سجل مبيعات نقطة البيع</h2>
             <router-link to="/dashboard/pos" class="btn btn-primary">
-                <i class="fas fa-cash-register"></i> Open POS
+                <i class="fas fa-cash-register"></i> فتح نقطة البيع
             </router-link>
         </div>
 
@@ -11,26 +11,26 @@
         <div class="filters-card">
             <div class="filters-row">
                 <div class="filter-group">
-                    <label>Status</label>
+                    <label>الحالة</label>
                     <select v-model="filters.status" @change="loadSales" class="form-control">
-                        <option value="">All Status</option>
-                        <option value="completed">Completed</option>
-                        <option value="voided">Voided</option>
-                        <option value="parked">Parked</option>
+                        <option value="">جميع الحالات</option>
+                        <option value="completed">مكتملة</option>
+                        <option value="voided">ملغاة</option>
+                        <option value="parked">مؤجلة</option>
                     </select>
                 </div>
                 <div class="filter-group">
-                    <label>From Date</label>
+                    <label>من تاريخ</label>
                     <input type="date" v-model="filters.from_date" @change="loadSales" class="form-control" />
                 </div>
                 <div class="filter-group">
-                    <label>To Date</label>
+                    <label>إلى تاريخ</label>
                     <input type="date" v-model="filters.to_date" @change="loadSales" class="form-control" />
                 </div>
                 <div class="filter-group">
                     <label>&nbsp;</label>
                     <button class="btn btn-secondary" @click="clearFilters">
-                        <i class="fas fa-times"></i> Clear
+                        <i class="fas fa-times"></i> مسح
                     </button>
                 </div>
             </div>
@@ -44,7 +44,7 @@
                 </div>
                 <div class="summary-info">
                     <div class="summary-value">{{ summary.total_sales }}</div>
-                    <div class="summary-label">Total Sales</div>
+                    <div class="summary-label">إجمالي المبيعات</div>
                 </div>
             </div>
             <div class="summary-card">
@@ -53,7 +53,7 @@
                 </div>
                 <div class="summary-info">
                     <div class="summary-value">{{ formatCurrency(summary.total_revenue) }}</div>
-                    <div class="summary-label">Total Revenue</div>
+                    <div class="summary-label">إجمالي الإيرادات</div>
                 </div>
             </div>
             <div class="summary-card">
@@ -62,7 +62,7 @@
                 </div>
                 <div class="summary-info">
                     <div class="summary-value">{{ summary.total_items }}</div>
-                    <div class="summary-label">Items Sold</div>
+                    <div class="summary-label">الأصناف المباعة</div>
                 </div>
             </div>
             <div class="summary-card">
@@ -71,7 +71,7 @@
                 </div>
                 <div class="summary-info">
                     <div class="summary-value">{{ formatCurrency(summary.average_sale) }}</div>
-                    <div class="summary-label">Average Sale</div>
+                    <div class="summary-label">متوسط البيع</div>
                 </div>
             </div>
         </div>
@@ -79,23 +79,23 @@
         <!-- Sales Table -->
         <div class="sales-table-card">
             <div v-if="loading" class="loading-state">
-                <i class="fas fa-spinner fa-spin"></i> Loading sales...
+                <i class="fas fa-spinner fa-spin"></i> جاري تحميل المبيعات...
             </div>
             <div v-else-if="sales.length === 0" class="empty-state">
                 <i class="fas fa-receipt"></i>
-                <p>No sales found</p>
+                <p>لم يتم العثور على مبيعات</p>
             </div>
             <!-- Desktop Table View -->
             <table v-else-if="!isMobile" class="sales-table">
                 <thead>
                     <tr>
-                        <th>Sale #</th>
-                        <th>Date</th>
-                        <th>Customer</th>
-                        <th>Items</th>
-                        <th>Total</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>رقم البيع</th>
+                        <th>التاريخ</th>
+                        <th>العميل</th>
+                        <th>الأصناف</th>
+                        <th>الإجمالي</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -111,10 +111,10 @@
                             </span>
                         </td>
                         <td class="actions">
-                            <button class="btn-action" @click.stop="viewSale(sale)" title="View">
+                            <button class="btn-action" @click.stop="viewSale(sale)" title="عرض">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="btn-action" @click.stop="printReceipt(sale)" title="Print">
+                            <button class="btn-action" @click.stop="printReceipt(sale)" title="طباعة">
                                 <i class="fas fa-print"></i>
                             </button>
                         </td>
@@ -138,28 +138,28 @@
                     </div>
                     <div class="sale-card-body">
                         <div class="sale-card-row">
-                            <span class="label">Date:</span>
+                            <span class="label">التاريخ:</span>
                             <span>{{ formatDate(sale.created_at) }}</span>
                         </div>
                         <div class="sale-card-row">
-                            <span class="label">Customer:</span>
+                            <span class="label">العميل:</span>
                             <span>{{ sale.customer?.customer_name || '-' }}</span>
                         </div>
                         <div class="sale-card-row">
-                            <span class="label">Items:</span>
+                            <span class="label">الأصناف:</span>
                             <span>{{ sale.items?.length || 0 }}</span>
                         </div>
                         <div class="sale-card-row total-row-mobile">
-                            <span class="label">Total:</span>
+                            <span class="label">الإجمالي:</span>
                             <span class="sale-total-mobile">{{ formatCurrency(sale.total_amount) }}</span>
                         </div>
                     </div>
                     <div class="sale-card-actions">
-                        <button class="btn-action-mobile" @click.stop="viewSale(sale)" title="View">
-                            <i class="fas fa-eye"></i> View
+                        <button class="btn-action-mobile" @click.stop="viewSale(sale)" title="عرض">
+                            <i class="fas fa-eye"></i> عرض
                         </button>
-                        <button class="btn-action-mobile" @click.stop="printReceipt(sale)" title="Print">
-                            <i class="fas fa-print"></i> Print
+                        <button class="btn-action-mobile" @click.stop="printReceipt(sale)" title="طباعة">
+                            <i class="fas fa-print"></i> طباعة
                         </button>
                     </div>
                 </div>
@@ -175,7 +175,7 @@
                     <i class="fas fa-chevron-left"></i>
                 </button>
                 <span class="page-info">
-                    Page {{ pagination.current_page }} of {{ pagination.last_page }}
+                    صفحة {{ pagination.current_page }} من {{ pagination.last_page }}
                 </span>
                 <button
                     class="page-btn"
@@ -191,7 +191,7 @@
         <div v-if="showDetailModal" class="modal-overlay" @click.self="showDetailModal = false">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5>Sale Details - {{ selectedSale?.sale_number }}</h5>
+                    <h5>تفاصيل البيع - {{ selectedSale?.sale_number }}</h5>
                     <button class="close-btn" @click="showDetailModal = false">
                         <i class="fas fa-times"></i>
                     </button>
@@ -199,35 +199,35 @@
                 <div class="modal-body" v-if="selectedSale">
                     <div class="detail-section">
                         <div class="detail-row">
-                            <span>Date:</span>
+                            <span>التاريخ:</span>
                             <span>{{ formatDateTime(selectedSale.created_at) }}</span>
                         </div>
                         <div class="detail-row">
-                            <span>Status:</span>
+                            <span>الحالة:</span>
                             <span class="status-badge" :class="selectedSale.status">
                                 {{ selectedSale.status }}
                             </span>
                         </div>
                         <div class="detail-row" v-if="selectedSale.customer">
-                            <span>Customer:</span>
+                            <span>العميل:</span>
                             <span>{{ selectedSale.customer.customer_name }}</span>
                         </div>
                         <div class="detail-row" v-if="selectedSale.created_by">
-                            <span>Cashier:</span>
+                            <span>الكاشير:</span>
                             <span>{{ selectedSale.created_by.name }}</span>
                         </div>
                     </div>
 
                     <div class="items-section">
-                        <h6>Items</h6>
+                        <h6>الأصناف</h6>
                         <!-- Desktop Table -->
                         <table v-if="!isMobile" class="items-table">
                             <thead>
                                 <tr>
-                                    <th>Product</th>
-                                    <th>Qty</th>
-                                    <th>Price</th>
-                                    <th>Total</th>
+                                    <th>المنتج</th>
+                                    <th>الكمية</th>
+                                    <th>السعر</th>
+                                    <th>الإجمالي</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -254,7 +254,7 @@
                                     </span>
                                 </div>
                                 <div class="item-details-mobile">
-                                    <span>Qty: {{ item.quantity }}</span>
+                                    <span>الكمية: {{ item.quantity }}</span>
                                     <span>{{ formatCurrency(item.unit_price) }}</span>
                                     <span class="item-total-mobile">{{ formatCurrency(item.line_total) }}</span>
                                 </div>
@@ -264,41 +264,41 @@
 
                     <div class="totals-section">
                         <div class="total-row">
-                            <span>Subtotal:</span>
+                            <span>المجموع الفرعي:</span>
                             <span>{{ formatCurrency(selectedSale.subtotal) }}</span>
                         </div>
                         <div class="total-row" v-if="selectedSale.discount_value > 0">
-                            <span>Discount:</span>
+                            <span>الخصم:</span>
                             <span class="text-success">-{{ formatCurrency(selectedSale.discount_value) }}</span>
                         </div>
                         <div class="total-row" v-if="selectedSale.tax_amount > 0">
-                            <span>Tax ({{ selectedSale.tax_rate }}%):</span>
+                            <span>الضريبة ({{ selectedSale.tax_rate }}%):</span>
                             <span>{{ formatCurrency(selectedSale.tax_amount) }}</span>
                         </div>
                         <div class="total-row grand-total">
-                            <span>Total:</span>
+                            <span>الإجمالي:</span>
                             <span>{{ formatCurrency(selectedSale.total_amount) }}</span>
                         </div>
                     </div>
 
                     <div class="payments-section" v-if="selectedSale.payments?.length">
-                        <h6>Payments</h6>
+                        <h6>المدفوعات</h6>
                         <div class="payment-row" v-for="payment in selectedSale.payments" :key="payment.id">
                             <span>{{ getMethodLabel(payment.payment_method) }}</span>
                             <span>{{ formatCurrency(payment.amount) }}</span>
                         </div>
                         <div class="payment-row" v-if="selectedSale.change_amount > 0">
-                            <span>Change Given:</span>
+                            <span>الباقي:</span>
                             <span>{{ formatCurrency(selectedSale.change_amount) }}</span>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" @click="printReceipt(selectedSale)">
-                        <i class="fas fa-print"></i> Print Receipt
+                        <i class="fas fa-print"></i> طباعة الإيصال
                     </button>
                     <button class="btn btn-primary" @click="showDetailModal = false">
-                        Close
+                        إغلاق
                     </button>
                 </div>
             </div>
@@ -443,10 +443,10 @@ export default {
 
         getMethodLabel(method) {
             const labels = {
-                cash: 'Cash',
-                card: 'Card',
-                wallet: 'Wallet',
-                bank_transfer: 'Bank Transfer',
+                cash: 'نقدي',
+                card: 'بطاقة',
+                wallet: 'محفظة',
+                bank_transfer: 'تحويل بنكي',
             };
             return labels[method] || method;
         },

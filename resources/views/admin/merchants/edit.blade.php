@@ -101,6 +101,18 @@
                     <small class="text-muted">السماح للتاجر بالوصول إلى نظام إدارة العقود</small>
                 </div>
 
+                <div class="col-md-6 mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="can_access_manufacturing" value="1" id="canAccessManufacturing"
+                               {{ old('can_access_manufacturing', $merchant->can_access_manufacturing) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="canAccessManufacturing">
+                            <i class="fas fa-industry me-1 text-warning"></i>
+                            <strong>نظام التصنيع</strong>
+                        </label>
+                    </div>
+                    <small class="text-muted">السماح للتاجر بالوصول إلى نظام التصنيع والإنتاج</small>
+                </div>
+
                 <div class="col-12 mt-3">
                     <button type="submit" class="btn btn-gradient btn-lg">
                         <i class="fas fa-save me-2"></i> حفظ التغييرات

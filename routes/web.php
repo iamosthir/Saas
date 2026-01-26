@@ -400,6 +400,57 @@ Route::group(["prefix" => "dashboard", "middleware" => "auth"],function(){
         });
         // End POS
 
+        // Manufacturing System Routes (requires manufacturing permission)
+        Route::group(['prefix' => 'manufacturing', 'namespace' => 'Manufacturing', 'middleware' => 'merchant.permission:manufacturing'], function() {
+            // Units of Measure
+            Route::get('/units', 'UnitController@index');
+            Route::post('/units', 'UnitController@store');
+            Route::put('/units/{id}', 'UnitController@update');
+            Route::delete('/units/{id}', 'UnitController@destroy');
+
+            // Raw Materials
+            Route::get('/raw-materials', 'RawMaterialController@index');
+            Route::get('/raw-materials/low-stock', 'RawMaterialController@lowStock');
+            Route::post('/raw-materials', 'RawMaterialController@store');
+            Route::get('/raw-materials/{id}', 'RawMaterialController@show');
+            Route::put('/raw-materials/{id}', 'RawMaterialController@update');
+            Route::delete('/raw-materials/{id}', 'RawMaterialController@destroy');
+            Route::get('/raw-materials/{id}/movements', 'RawMaterialController@movements');
+            Route::post('/raw-materials/{id}/adjust', 'RawMaterialController@adjust');
+            Route::post('/raw-materials/{id}/purchase', 'RawMaterialController@purchase');
+
+            // Recipes (BOM)
+            Route::get('/recipes', 'RecipeController@index');
+            Route::post('/recipes', 'RecipeController@store');
+            Route::get('/recipes/{id}', 'RecipeController@show');
+            Route::put('/recipes/{id}', 'RecipeController@update');
+            Route::delete('/recipes/{id}', 'RecipeController@destroy');
+            Route::get('/recipes/{id}/availability', 'RecipeController@checkAvailability');
+            Route::get('/products/{productId}/recipe', 'RecipeController@getProductRecipe');
+
+            // Production Batches
+            Route::get('/batches', 'ProductionController@index');
+            Route::post('/batches', 'ProductionController@store');
+            Route::get('/batches/summary', 'ProductionController@summary');
+            Route::get('/batches/{id}', 'ProductionController@show');
+            Route::put('/batches/{id}', 'ProductionController@update');
+            Route::delete('/batches/{id}', 'ProductionController@destroy');
+            Route::post('/batches/{id}/start', 'ProductionController@start');
+            Route::post('/batches/{id}/complete', 'ProductionController@complete');
+            Route::post('/batches/{id}/cancel', 'ProductionController@cancel');
+        });
+        // End Manufacturing
+
+        // Employee Management Routes
+        Route::get('/employees', 'EmployeeController@index');
+        Route::get('/employees/salary-list', 'EmployeeController@salaryList');
+        Route::post('/employees', 'EmployeeController@store');
+        Route::get('/employees/{id}', 'EmployeeController@show');
+        Route::put('/employees/{id}', 'EmployeeController@update');
+        Route::delete('/employees/{id}', 'EmployeeController@destroy');
+        Route::post('/employees/{id}/toggle-status', 'EmployeeController@toggleStatus');
+        // End Employees
+
     });
     // End
 

@@ -26,13 +26,15 @@ class DashboardController extends Controller
         if (!$user || !$user->merchant) {
             return response()->json([
                 'can_access_pos' => false,
-                'can_access_contracts' => false
+                'can_access_contracts' => false,
+                'can_access_manufacturing' => false
             ]);
         }
 
         return response()->json([
             'can_access_pos' => $user->merchant->canAccessPos(),
-            'can_access_contracts' => $user->merchant->canAccessContracts()
+            'can_access_contracts' => $user->merchant->canAccessContracts(),
+            'can_access_manufacturing' => $user->merchant->canAccessManufacturing()
         ]);
     }
 }

@@ -76,6 +76,19 @@ import ContractList from "../components/pages/contracts/ContractList.vue";
 const PosMain = () => import("../components/pages/pos/PosMain.vue");
 const PosSettings = () => import("../components/pages/pos/PosSettings.vue");
 const PosSalesHistory = () => import("../components/pages/pos/PosSalesHistory.vue");
+
+// Manufacturing System
+const ManufacturingDashboard = () => import("../components/pages/manufacturing/ManufacturingDashboard.vue");
+const RawMaterialList = () => import("../components/pages/manufacturing/RawMaterialList.vue");
+const RawMaterialForm = () => import("../components/pages/manufacturing/RawMaterialForm.vue");
+const RecipeList = () => import("../components/pages/manufacturing/RecipeList.vue");
+const RecipeForm = () => import("../components/pages/manufacturing/RecipeForm.vue");
+const ProductionList = () => import("../components/pages/manufacturing/ProductionList.vue");
+const ProductionCreate = () => import("../components/pages/manufacturing/ProductionCreate.vue");
+
+// Employee Management
+const EmployeeList = () => import("../components/pages/employees/EmployeeList.vue");
+const SalaryList = () => import("../components/pages/employees/SalaryList.vue");
 //
 
 const router = new VueRouter({
@@ -664,6 +677,140 @@ const router = new VueRouter({
                 pageTitle: "تعديل قالب العقد",
                 pageIcon: "fas fa-edit",
                 permission: ["all"]
+            }
+        },
+        // Manufacturing System Routes
+        {
+            path: prefix + "manufacturing",
+            name: "manufacturing.dashboard",
+            component: ManufacturingDashboard,
+            meta: {
+                title: "Manufacturing",
+                pageTitle: "التصنيع",
+                pageIcon: "fas fa-industry",
+                pageSubtitle: "نظام إدارة التصنيع والإنتاج",
+                permission: ["all"]
+            }
+        },
+        {
+            path: prefix + "manufacturing/raw-materials",
+            name: "manufacturing.raw-materials",
+            component: RawMaterialList,
+            meta: {
+                title: "Raw Materials",
+                pageTitle: "المواد الخام",
+                pageIcon: "fas fa-cubes",
+                pageSubtitle: "إدارة المواد الخام والمخزون",
+                permission: ["all"]
+            }
+        },
+        {
+            path: prefix + "manufacturing/raw-materials/create",
+            name: "manufacturing.raw-materials.create",
+            component: RawMaterialForm,
+            meta: {
+                title: "Add Raw Material",
+                pageTitle: "إضافة مادة خام",
+                pageIcon: "fas fa-plus-circle",
+                pageSubtitle: "إضافة مادة خام جديدة",
+                permission: ["all"]
+            }
+        },
+        {
+            path: prefix + "manufacturing/raw-materials/:id/edit",
+            name: "manufacturing.raw-materials.edit",
+            component: RawMaterialForm,
+            meta: {
+                title: "Edit Raw Material",
+                pageTitle: "تعديل مادة خام",
+                pageIcon: "fas fa-edit",
+                pageSubtitle: "تعديل بيانات المادة الخام",
+                permission: ["all"]
+            }
+        },
+        {
+            path: prefix + "manufacturing/recipes",
+            name: "manufacturing.recipes",
+            component: RecipeList,
+            meta: {
+                title: "Recipes",
+                pageTitle: "الوصفات",
+                pageIcon: "fas fa-clipboard-list",
+                pageSubtitle: "إدارة وصفات الإنتاج",
+                permission: ["all"]
+            }
+        },
+        {
+            path: prefix + "manufacturing/recipes/create",
+            name: "manufacturing.recipes.create",
+            component: RecipeForm,
+            meta: {
+                title: "Create Recipe",
+                pageTitle: "إنشاء وصفة",
+                pageIcon: "fas fa-plus-circle",
+                pageSubtitle: "إنشاء وصفة إنتاج جديدة",
+                permission: ["all"]
+            }
+        },
+        {
+            path: prefix + "manufacturing/recipes/:id/edit",
+            name: "manufacturing.recipes.edit",
+            component: RecipeForm,
+            meta: {
+                title: "Edit Recipe",
+                pageTitle: "تعديل الوصفة",
+                pageIcon: "fas fa-edit",
+                pageSubtitle: "تعديل وصفة الإنتاج",
+                permission: ["all"]
+            }
+        },
+        {
+            path: prefix + "manufacturing/production",
+            name: "manufacturing.production",
+            component: ProductionList,
+            meta: {
+                title: "Production Batches",
+                pageTitle: "دفعات الإنتاج",
+                pageIcon: "fas fa-cogs",
+                pageSubtitle: "إدارة دفعات الإنتاج",
+                permission: ["all"]
+            }
+        },
+        {
+            path: prefix + "manufacturing/production/create",
+            name: "manufacturing.production.create",
+            component: ProductionCreate,
+            meta: {
+                title: "Create Production Batch",
+                pageTitle: "إنشاء دفعة إنتاج",
+                pageIcon: "fas fa-plus-circle",
+                pageSubtitle: "إنشاء دفعة إنتاج جديدة",
+                permission: ["all"]
+            }
+        },
+        // Employee Management Routes
+        {
+            path: prefix + "employees",
+            name: "employees.list",
+            component: EmployeeList,
+            meta: {
+                title: "Employees",
+                pageTitle: "الموظفين",
+                pageIcon: "fas fa-users",
+                pageSubtitle: "إدارة الموظفين",
+                permission: ["super"]
+            }
+        },
+        {
+            path: prefix + "employees/salaries",
+            name: "employees.salaries",
+            component: SalaryList,
+            meta: {
+                title: "Salary Management",
+                pageTitle: "إدارة الرواتب",
+                pageIcon: "fas fa-money-bill-wave",
+                pageSubtitle: "جدول رواتب الموظفين",
+                permission: ["super"]
             }
         }
 

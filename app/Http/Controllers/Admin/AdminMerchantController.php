@@ -94,6 +94,7 @@ class AdminMerchantController extends Controller
                 'is_active' => true,
                 'can_access_pos' => $request->boolean('can_access_pos'),
                 'can_access_contracts' => $request->boolean('can_access_contracts'),
+                'can_access_manufacturing' => $request->boolean('can_access_manufacturing'),
                 'subscription_plan_id' => $validated['subscription_plan_id'],
             ]);
 
@@ -152,6 +153,7 @@ class AdminMerchantController extends Controller
 
         $validated['can_access_pos'] = $request->boolean('can_access_pos');
         $validated['can_access_contracts'] = $request->boolean('can_access_contracts');
+        $validated['can_access_manufacturing'] = $request->boolean('can_access_manufacturing');
 
         $merchant->update($validated);
 

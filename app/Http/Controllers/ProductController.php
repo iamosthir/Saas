@@ -31,7 +31,7 @@ class ProductController extends Controller
         $merchantId = auth()->user()->merchant_id;
 
         // First check if product belongs to merchant
-        $product = Product::where('id', $req->productId)
+        $product = Product::where('id', $req->product_id)
             ->where('merchant_id', $merchantId)
             ->first();
 
@@ -39,7 +39,7 @@ class ProductController extends Controller
             return response()->json(['status' => 'fail', 'msg' => 'Product not found'], 404);
         }
 
-        $vars = ProductVariation::where("product_id", $req->productId)->get();
+        $vars = ProductVariation::where("product_id", $req->product_id)->get();
         return response()->json($vars);
     }
 

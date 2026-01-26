@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Supplier;
+use App\Models\Suppliers;
 use Illuminate\Support\Facades\Auth;
 
 class SupplierController extends Controller
@@ -13,10 +13,7 @@ class SupplierController extends Controller
      */
     public function index()
     {
-        $merchantId = Auth::user()->merchant_id;
-
-        $suppliers = Supplier::where('merchant_id', $merchantId)
-            ->orderBy('supplier_name')
+        $suppliers = Suppliers::orderBy('name')
             ->paginate(20);
 
         return response()->json($suppliers);
@@ -27,11 +24,9 @@ class SupplierController extends Controller
      */
     public function dropdown()
     {
-        $merchantId = Auth::user()->merchant_id;
-
-        $suppliers = Supplier::where('merchant_id', $merchantId)
-            ->select('id', 'supplier_name', 'phone', 'address')
-            ->orderBy('supplier_name')
+        $suppliers = Suppliers::select('id', 'name', 'phone', 'address', 'contact_person', 'company_name')
+            ->where('is_active', true)
+            ->orderBy('name')
             ->get();
 
         return response()->json($suppliers);
@@ -43,14 +38,17 @@ class SupplierController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'supplier_name' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'contact_person' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:50',
             'address' => 'nullable|string|max:500',
+            'company_name' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
+            'is_active' => 'nullable|boolean',
         ]);
 
-        $data['merchant_id'] = Auth::user()->merchant_id;
-        $supplier = Supplier::create($data);
+        $supplier = Suppliers::create($data);
 
         return response()->json([
             'status' => 'ok',
@@ -65,17 +63,17 @@ class SupplierController extends Controller
     public function update(Request $request, $id)
     {
         $data = $request->validate([
-            'supplier_name' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'contact_person' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:50',
             'address' => 'nullable|string|max:500',
+            'company_name' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
+            'is_active' => 'nullable|boolean',
         ]);
 
-        $merchantId = Auth::user()->merchant_id;
-        $supplier = Supplier::where('id', $id)
-            ->where('merchant_id', $merchantId)
-            ->firstOrFail();
-
+        $supplier = Suppliers::findOrFail($id);
         $supplier->update($data);
 
         return response()->json([
@@ -90,11 +88,7 @@ class SupplierController extends Controller
      */
     public function delete($id)
     {
-        $merchantId = Auth::user()->merchant_id;
-        $supplier = Supplier::where('id', $id)
-            ->where('merchant_id', $merchantId)
-            ->firstOrFail();
-
+        $supplier = Suppliers::findOrFail($id);
         $supplier->delete();
 
         return response()->json([

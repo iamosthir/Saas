@@ -234,6 +234,116 @@
         </div>
       </div>
 
+      <!-- Manufacturing Section -->
+      <div class="section-header" v-if="canAccessManufacturing">
+        <h2><i class="fas fa-industry"></i> التصنيع والإنتاج</h2>
+      </div>
+      <div class="row g-4 mb-5" v-if="canAccessManufacturing">
+        <!-- لوحة التصنيع -->
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <router-link :to="{name: 'manufacturing.dashboard'}" class="dashboard-card gradient-teal">
+            <div class="card-icon">
+              <i class="fas fa-industry"></i>
+            </div>
+            <h3 class="card-title">لوحة التصنيع</h3>
+            <p class="card-description">نظرة عامة على التصنيع والإنتاج</p>
+            <div class="card-arrow">
+              <i class="fas fa-arrow-left"></i>
+            </div>
+          </router-link>
+        </div>
+
+        <!-- المواد الخام -->
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <router-link :to="{name: 'manufacturing.raw-materials'}" class="dashboard-card gradient-orange">
+            <div class="card-icon">
+              <i class="fas fa-cubes"></i>
+            </div>
+            <h3 class="card-title">المواد الخام</h3>
+            <p class="card-description">إدارة المواد الخام والمخزون</p>
+            <div class="card-arrow">
+              <i class="fas fa-arrow-left"></i>
+            </div>
+          </router-link>
+        </div>
+
+        <!-- الوصفات -->
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <router-link :to="{name: 'manufacturing.recipes'}" class="dashboard-card gradient-purple">
+            <div class="card-icon">
+              <i class="fas fa-clipboard-list"></i>
+            </div>
+            <h3 class="card-title">الوصفات</h3>
+            <p class="card-description">إدارة وصفات الإنتاج</p>
+            <div class="card-arrow">
+              <i class="fas fa-arrow-left"></i>
+            </div>
+          </router-link>
+        </div>
+
+        <!-- دفعات الإنتاج -->
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <router-link :to="{name: 'manufacturing.production'}" class="dashboard-card gradient-green">
+            <div class="card-icon">
+              <i class="fas fa-cogs"></i>
+            </div>
+            <h3 class="card-title">دفعات الإنتاج</h3>
+            <p class="card-description">إدارة دفعات الإنتاج</p>
+            <div class="card-arrow">
+              <i class="fas fa-arrow-left"></i>
+            </div>
+          </router-link>
+        </div>
+
+        <!-- إنشاء دفعة إنتاج -->
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <router-link :to="{name: 'manufacturing.production.create'}" class="dashboard-card primary">
+            <div class="card-icon">
+              <i class="fas fa-plus-circle"></i>
+            </div>
+            <h3 class="card-title">إنشاء دفعة إنتاج</h3>
+            <p class="card-description">بدء دفعة إنتاج جديدة</p>
+            <div class="card-arrow">
+              <i class="fas fa-arrow-left"></i>
+            </div>
+          </router-link>
+        </div>
+      </div>
+
+      <!-- Employees Section -->
+      <div class="section-header" v-if="role == 'super'">
+        <h2><i class="fas fa-user-tie"></i> الموظفين والرواتب</h2>
+      </div>
+      <div class="row g-4 mb-5" v-if="role == 'super'">
+        <!-- قائمة الموظفين -->
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <router-link :to="{name: 'employees.list'}" class="dashboard-card gradient-blue">
+            <div class="card-icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <h3 class="card-title">قائمة الموظفين</h3>
+            <p class="card-description">إدارة بيانات الموظفين</p>
+            <div class="card-arrow">
+              <i class="fas fa-arrow-left"></i>
+            </div>
+          </router-link>
+        </div>
+
+        <!-- جدول الرواتب -->
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <router-link :to="{name: 'employees.salaries'}" class="dashboard-card warning">
+            <div class="card-icon">
+              <i class="fas fa-money-check-alt"></i>
+            </div>
+            <h3 class="card-title">جدول الرواتب</h3>
+            <p class="card-description">عرض وإدارة رواتب الموظفين</p>
+            <div class="card-arrow">
+              <i class="fas fa-arrow-left"></i>
+            </div>
+          </router-link>
+        </div>
+      </div>
+
       <!-- Products Section -->
       <div class="section-header">
         <h2><i class="fas fa-box-open"></i> المنتجات</h2>
@@ -534,7 +644,8 @@ export default {
             role: role,
             permissions: {
                 can_access_pos: false,
-                can_access_contracts: false
+                can_access_contracts: false,
+                can_access_manufacturing: false
             },
             loading: true,
             settingData: {
@@ -549,6 +660,9 @@ export default {
         },
         canAccessContracts() {
             return this.permissions.can_access_contracts;
+        },
+        canAccessManufacturing() {
+            return this.permissions.can_access_manufacturing;
         }
     },
     mounted() {
@@ -842,6 +956,10 @@ export default {
     background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
 }
 
+.dashboard-card.gradient-teal .card-icon {
+    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+}
+
 /* Hover Color Effects */
 .dashboard-card.primary:hover {
     border-color: #667eea;
@@ -880,6 +998,10 @@ export default {
 }
 
 .dashboard-card.pos-card:hover {
+    border-color: #14b8a6;
+}
+
+.dashboard-card.gradient-teal:hover {
     border-color: #14b8a6;
 }
 

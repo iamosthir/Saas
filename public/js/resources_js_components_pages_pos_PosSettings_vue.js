@@ -39,19 +39,19 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       },
       allPaymentMethods: [{
         value: 'cash',
-        label: 'Cash',
+        label: 'نقدي',
         icon: 'fas fa-money-bill-wave'
       }, {
         value: 'card',
-        label: 'Card',
+        label: 'بطاقة',
         icon: 'fas fa-credit-card'
       }, {
         value: 'wallet',
-        label: 'Wallet',
+        label: 'محفظة',
         icon: 'fas fa-wallet'
       }, {
         value: 'bank_transfer',
-        label: 'Bank Transfer',
+        label: 'تحويل بنكي',
         icon: 'fas fa-university'
       }],
       defaultShortcuts: {
@@ -102,7 +102,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               _context.prev = 8;
               _context.t0 = _context["catch"](0);
               console.error('Failed to load settings:', _context.t0);
-              (_this$$toast = _this.$toast) === null || _this$$toast === void 0 ? void 0 : _this$$toast.error('Failed to load settings');
+              (_this$$toast = _this.$toast) === null || _this$$toast === void 0 ? void 0 : _this$$toast.error('فشل تحميل الإعدادات');
             case 12:
               _context.prev = 12;
               _this.loading = false;
@@ -126,14 +126,14 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               _context2.next = 4;
               return axios__WEBPACK_IMPORTED_MODULE_0___default().put('/dashboard/api/pos/settings', _this2.settings);
             case 4:
-              (_this2$$toast = _this2.$toast) === null || _this2$$toast === void 0 ? void 0 : _this2$$toast.success('Settings saved successfully');
+              (_this2$$toast = _this2.$toast) === null || _this2$$toast === void 0 ? void 0 : _this2$$toast.success('تم حفظ الإعدادات بنجاح');
               _context2.next = 11;
               break;
             case 7:
               _context2.prev = 7;
               _context2.t0 = _context2["catch"](1);
               console.error('Failed to save settings:', _context2.t0);
-              (_this2$$toast2 = _this2.$toast) === null || _this2$$toast2 === void 0 ? void 0 : _this2$$toast2.error('Failed to save settings');
+              (_this2$$toast2 = _this2.$toast) === null || _this2$$toast2 === void 0 ? void 0 : _this2$$toast2.error('فشل حفظ الإعدادات');
             case 11:
               _context2.prev = 11;
               _this2.saving = false;
@@ -152,7 +152,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         return _regeneratorRuntime().wrap(function _callee3$(_context3) {
           while (1) switch (_context3.prev = _context3.next) {
             case 0:
-              if (confirm('Reset all settings to defaults?')) {
+              if (confirm('إعادة تعيين جميع الإعدادات للافتراضي؟')) {
                 _context3.next = 2;
                 break;
               }
@@ -165,14 +165,14 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             case 6:
               response = _context3.sent;
               _this3.settings = response.data.data;
-              (_this3$$toast = _this3.$toast) === null || _this3$$toast === void 0 ? void 0 : _this3$$toast.success('Settings reset to defaults');
+              (_this3$$toast = _this3.$toast) === null || _this3$$toast === void 0 ? void 0 : _this3$$toast.success('تم إعادة تعيين الإعدادات للافتراضي');
               _context3.next = 15;
               break;
             case 11:
               _context3.prev = 11;
               _context3.t0 = _context3["catch"](3);
               console.error('Failed to reset settings:', _context3.t0);
-              (_this3$$toast2 = _this3.$toast) === null || _this3$$toast2 === void 0 ? void 0 : _this3$$toast2.error('Failed to reset settings');
+              (_this3$$toast2 = _this3.$toast) === null || _this3$$toast2 === void 0 ? void 0 : _this3$$toast2.error('فشل إعادة تعيين الإعدادات');
             case 15:
               _context3.prev = 15;
               _this3.saving = false;
@@ -186,17 +186,17 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
     formatAction: function formatAction(action) {
       var labels = {
-        focus_search: 'Focus product search',
-        new_cart: 'Create new cart',
-        switch_cart: 'Switch to next cart',
-        park_sale: 'Park current sale',
-        view_parked: 'View parked sales',
-        apply_discount: 'Apply discount',
-        select_customer: 'Select customer',
-        open_payment: 'Open payment modal',
-        quick_cash: 'Quick cash payment',
-        cancel: 'Cancel / Close',
-        remove_item: 'Remove selected item'
+        focus_search: 'التركيز على بحث المنتجات',
+        new_cart: 'إنشاء سلة جديدة',
+        switch_cart: 'التبديل للسلة التالية',
+        park_sale: 'تأجيل البيع الحالي',
+        view_parked: 'عرض المبيعات المؤجلة',
+        apply_discount: 'تطبيق خصم',
+        select_customer: 'اختيار عميل',
+        open_payment: 'فتح نافذة الدفع',
+        quick_cash: 'دفع نقدي سريع',
+        cancel: 'إلغاء / إغلاق',
+        remove_item: 'حذف الصنف المحدد'
       };
       return labels[action] || action;
     }
@@ -233,13 +233,13 @@ var render = function render() {
     }
   }, [_c("i", {
     staticClass: "fas fa-arrow-left"
-  }), _vm._v(" Back to POS\n        ")])], 1), _vm._v(" "), !_vm.loading ? _c("div", {
+  }), _vm._v(" العودة لنقطة البيع\n        ")])], 1), _vm._v(" "), !_vm.loading ? _c("div", {
     staticClass: "settings-container"
   }, [_c("div", {
     staticClass: "settings-card"
   }, [_vm._m(1), _vm._v(" "), _c("div", {
     staticClass: "form-group"
-  }, [_c("label", [_vm._v("Tax Rate (%)")]), _vm._v(" "), _c("input", {
+  }, [_c("label", [_vm._v("نسبة الضريبة (%)")]), _vm._v(" "), _c("input", {
     directives: [{
       name: "model",
       rawName: "v-model.number",
@@ -270,11 +270,11 @@ var render = function render() {
     }
   }), _vm._v(" "), _c("small", {
     staticClass: "text-muted"
-  }, [_vm._v("Applied to all sales. Set to 0 for no tax.")])])]), _vm._v(" "), _c("div", {
+  }, [_vm._v("يتم تطبيقها على جميع المبيعات. اجعلها 0 لعدم تطبيق الضريبة.")])])]), _vm._v(" "), _c("div", {
     staticClass: "settings-card"
   }, [_vm._m(2), _vm._v(" "), _c("div", {
     staticClass: "form-group"
-  }, [_c("label", [_vm._v("Costing Method")]), _vm._v(" "), _c("select", {
+  }, [_c("label", [_vm._v("طريقة التكلفة")]), _vm._v(" "), _c("select", {
     directives: [{
       name: "model",
       rawName: "v-model",
@@ -297,13 +297,13 @@ var render = function render() {
     attrs: {
       value: "average"
     }
-  }, [_vm._v("Average Cost")]), _vm._v(" "), _c("option", {
+  }, [_vm._v("متوسط التكلفة")]), _vm._v(" "), _c("option", {
     attrs: {
       value: "fifo"
     }
-  }, [_vm._v("FIFO (First In, First Out)")])]), _vm._v(" "), _c("small", {
+  }, [_vm._v("الوارد أولاً صادر أولاً (FIFO)")])]), _vm._v(" "), _c("small", {
     staticClass: "text-muted"
-  }, [_vm._v("Method used to calculate cost of goods sold.")])]), _vm._v(" "), _c("div", {
+  }, [_vm._v("الطريقة المستخدمة لحساب تكلفة البضائع المباعة.")])]), _vm._v(" "), _c("div", {
     staticClass: "form-group"
   }, [_c("label", {
     staticClass: "checkbox-label"
@@ -338,9 +338,9 @@ var render = function render() {
         }
       }
     }
-  }), _vm._v(" "), _c("span", [_vm._v("Allow Negative Stock")])]), _vm._v(" "), _c("small", {
+  }), _vm._v(" "), _c("span", [_vm._v("السماح بالمخزون السالب")])]), _vm._v(" "), _c("small", {
     staticClass: "text-muted"
-  }, [_vm._v("Allow sales even when stock is insufficient.")])]), _vm._v(" "), _c("div", {
+  }, [_vm._v("السماح بالبيع حتى عند عدم كفاية المخزون.")])]), _vm._v(" "), _c("div", {
     staticClass: "form-group"
   }, [_c("label", {
     staticClass: "checkbox-label"
@@ -375,13 +375,13 @@ var render = function render() {
         }
       }
     }
-  }), _vm._v(" "), _c("span", [_vm._v("Show Low Stock Warning")])]), _vm._v(" "), _c("small", {
+  }), _vm._v(" "), _c("span", [_vm._v("عرض تحذير المخزون المنخفض")])]), _vm._v(" "), _c("small", {
     staticClass: "text-muted"
-  }, [_vm._v("Display warning when product stock is low.")])])]), _vm._v(" "), _c("div", {
+  }, [_vm._v("عرض تحذير عندما يكون مخزون المنتج منخفضاً.")])])]), _vm._v(" "), _c("div", {
     staticClass: "settings-card"
   }, [_vm._m(3), _vm._v(" "), _c("div", {
     staticClass: "form-group"
-  }, [_c("label", [_vm._v("Receipt Header")]), _vm._v(" "), _c("input", {
+  }, [_c("label", [_vm._v("رأس الإيصال")]), _vm._v(" "), _c("input", {
     directives: [{
       name: "model",
       rawName: "v-model",
@@ -391,7 +391,7 @@ var render = function render() {
     staticClass: "form-control",
     attrs: {
       type: "text",
-      placeholder: "Store name or custom header"
+      placeholder: "اسم المتجر أو رأس مخصص"
     },
     domProps: {
       value: _vm.settings.receipt_header
@@ -404,7 +404,7 @@ var render = function render() {
     }
   })]), _vm._v(" "), _c("div", {
     staticClass: "form-group"
-  }, [_c("label", [_vm._v("Receipt Footer")]), _vm._v(" "), _c("input", {
+  }, [_c("label", [_vm._v("تذييل الإيصال")]), _vm._v(" "), _c("input", {
     directives: [{
       name: "model",
       rawName: "v-model",
@@ -414,7 +414,7 @@ var render = function render() {
     staticClass: "form-control",
     attrs: {
       type: "text",
-      placeholder: "Thank you message"
+      placeholder: "رسالة شكر"
     },
     domProps: {
       value: _vm.settings.receipt_footer
@@ -427,7 +427,7 @@ var render = function render() {
     }
   })]), _vm._v(" "), _c("div", {
     staticClass: "form-group"
-  }, [_c("label", [_vm._v("Receipt Size")]), _vm._v(" "), _c("select", {
+  }, [_c("label", [_vm._v("حجم الإيصال")]), _vm._v(" "), _c("select", {
     directives: [{
       name: "model",
       rawName: "v-model",
@@ -450,11 +450,11 @@ var render = function render() {
     attrs: {
       value: "58mm"
     }
-  }, [_vm._v("58mm (Small)")]), _vm._v(" "), _c("option", {
+  }, [_vm._v("58 ملم (صغير)")]), _vm._v(" "), _c("option", {
     attrs: {
       value: "80mm"
     }
-  }, [_vm._v("80mm (Standard)")])])]), _vm._v(" "), _c("div", {
+  }, [_vm._v("80 ملم (قياسي)")])])]), _vm._v(" "), _c("div", {
     staticClass: "form-group"
   }, [_c("label", {
     staticClass: "checkbox-label"
@@ -489,9 +489,9 @@ var render = function render() {
         }
       }
     }
-  }), _vm._v(" "), _c("span", [_vm._v("Auto-Print Receipt")])]), _vm._v(" "), _c("small", {
+  }), _vm._v(" "), _c("span", [_vm._v("طباعة تلقائية للإيصال")])]), _vm._v(" "), _c("small", {
     staticClass: "text-muted"
-  }, [_vm._v("Automatically print receipt after sale completion.")])])]), _vm._v(" "), _c("div", {
+  }, [_vm._v("طباعة الإيصال تلقائياً بعد إتمام البيع.")])])]), _vm._v(" "), _c("div", {
     staticClass: "settings-card"
   }, [_vm._m(4), _vm._v(" "), _c("div", {
     staticClass: "payment-methods-grid"
@@ -573,9 +573,9 @@ var render = function render() {
         }
       }
     }
-  }), _vm._v(" "), _c("span", [_vm._v("Require Customer Selection")])]), _vm._v(" "), _c("small", {
+  }), _vm._v(" "), _c("span", [_vm._v("طلب اختيار العميل")])]), _vm._v(" "), _c("small", {
     staticClass: "text-muted"
-  }, [_vm._v("Customer must be selected before completing sale.")])])]), _vm._v(" "), _c("div", {
+  }, [_vm._v("يجب اختيار العميل قبل إتمام البيع.")])])]), _vm._v(" "), _c("div", {
     staticClass: "settings-card"
   }, [_vm._m(6), _vm._v(" "), _c("div", {
     staticClass: "shortcuts-table"
@@ -590,7 +590,7 @@ var render = function render() {
     }, [_vm._v(_vm._s(_vm.formatAction(action)))])]);
   }), 0), _vm._v(" "), _c("small", {
     staticClass: "text-muted"
-  }, [_vm._v("Keyboard shortcuts cannot be customized at this time.")])]), _vm._v(" "), _c("div", {
+  }, [_vm._v("لا يمكن تخصيص اختصارات لوحة المفاتيح في الوقت الحالي.")])]), _vm._v(" "), _c("div", {
     staticClass: "settings-actions"
   }, [_c("button", {
     staticClass: "btn btn-secondary",
@@ -602,7 +602,7 @@ var render = function render() {
     }
   }, [_c("i", {
     staticClass: "fas fa-undo"
-  }), _vm._v(" Reset to Defaults\n            ")]), _vm._v(" "), _c("button", {
+  }), _vm._v(" إعادة تعيين للافتراضي\n            ")]), _vm._v(" "), _c("button", {
     staticClass: "btn btn-primary",
     attrs: {
       disabled: _vm.saving
@@ -612,54 +612,54 @@ var render = function render() {
     }
   }, [_c("i", {
     staticClass: "fas fa-save"
-  }), _vm._v(" " + _vm._s(_vm.saving ? "Saving..." : "Save Settings") + "\n            ")])])]) : _c("div", {
+  }), _vm._v(" " + _vm._s(_vm.saving ? "جاري الحفظ..." : "حفظ الإعدادات") + "\n            ")])])]) : _c("div", {
     staticClass: "loading-state"
   }, [_c("i", {
     staticClass: "fas fa-spinner fa-spin"
-  }), _vm._v(" Loading settings...\n    ")])]);
+  }), _vm._v(" جاري تحميل الإعدادات...\n    ")])]);
 };
 var staticRenderFns = [function () {
   var _vm = this,
     _c = _vm._self._c;
   return _c("h2", [_c("i", {
     staticClass: "fas fa-cog"
-  }), _vm._v(" POS Settings")]);
+  }), _vm._v(" إعدادات نقطة البيع")]);
 }, function () {
   var _vm = this,
     _c = _vm._self._c;
   return _c("h4", [_c("i", {
     staticClass: "fas fa-percent"
-  }), _vm._v(" Tax Settings")]);
+  }), _vm._v(" إعدادات الضريبة")]);
 }, function () {
   var _vm = this,
     _c = _vm._self._c;
   return _c("h4", [_c("i", {
     staticClass: "fas fa-boxes"
-  }), _vm._v(" Inventory Settings")]);
+  }), _vm._v(" إعدادات المخزون")]);
 }, function () {
   var _vm = this,
     _c = _vm._self._c;
   return _c("h4", [_c("i", {
     staticClass: "fas fa-receipt"
-  }), _vm._v(" Receipt Settings")]);
+  }), _vm._v(" إعدادات الإيصال")]);
 }, function () {
   var _vm = this,
     _c = _vm._self._c;
   return _c("h4", [_c("i", {
     staticClass: "fas fa-credit-card"
-  }), _vm._v(" Payment Methods")]);
+  }), _vm._v(" طرق الدفع")]);
 }, function () {
   var _vm = this,
     _c = _vm._self._c;
   return _c("h4", [_c("i", {
     staticClass: "fas fa-sliders-h"
-  }), _vm._v(" General Settings")]);
+  }), _vm._v(" الإعدادات العامة")]);
 }, function () {
   var _vm = this,
     _c = _vm._self._c;
   return _c("h4", [_c("i", {
     staticClass: "fas fa-keyboard"
-  }), _vm._v(" Keyboard Shortcuts")]);
+  }), _vm._v(" اختصارات لوحة المفاتيح")]);
 }];
 render._withStripped = true;
 

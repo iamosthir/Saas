@@ -145,12 +145,23 @@
                         <span class="badge bg-secondary"><i class="fas fa-times me-1"></i> غير مفعّل</span>
                     @endif
                 </div>
-                <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex justify-content-between align-items-center mb-3">
                     <div>
                         <i class="fas fa-file-contract me-2 text-primary"></i>
                         <strong>إدارة العقود</strong>
                     </div>
                     @if($merchant->can_access_contracts)
+                        <span class="badge bg-success"><i class="fas fa-check me-1"></i> مفعّل</span>
+                    @else
+                        <span class="badge bg-secondary"><i class="fas fa-times me-1"></i> غير مفعّل</span>
+                    @endif
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-industry me-2 text-warning"></i>
+                        <strong>نظام التصنيع</strong>
+                    </div>
+                    @if($merchant->can_access_manufacturing)
                         <span class="badge bg-success"><i class="fas fa-check me-1"></i> مفعّل</span>
                     @else
                         <span class="badge bg-secondary"><i class="fas fa-times me-1"></i> غير مفعّل</span>
