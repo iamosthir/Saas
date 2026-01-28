@@ -50,11 +50,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var _this = this;
       return this.form.ingredients.reduce(function (sum, ing) {
         var material = _this.rawMaterials.find(function (m) {
-          return m.id === ing.raw_material_id;
+          return m.id == ing.raw_material_id;
         });
         if (!material || !ing.quantity) return sum;
         var effectiveQty = ing.quantity * (1 + (ing.waste_percentage || 0) / 100);
-        return sum + effectiveQty * material.average_price;
+        var avgPrice = parseFloat(material.average_price) || 0;
+        return sum + effectiveQty * avgPrice;
       }, 0);
     },
     totalCost: function totalCost() {
@@ -207,7 +208,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     submitForm: function submitForm() {
       var _this5 = this;
       return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
-        var _error$response, _error$response$data;
+        var _response$data$data, response, recipeId, _error$response, _error$response$data;
         return _regeneratorRuntime().wrap(function _callee4$(_context4) {
           while (1) switch (_context4.prev = _context4.next) {
             case 0:
@@ -221,39 +222,54 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               _this5.saving = true;
               _context4.prev = 4;
               if (!_this5.isEdit) {
-                _context4.next = 11;
+                _context4.next = 12;
                 break;
               }
               _context4.next = 8;
               return axios.put("/dashboard/api/manufacturing/recipes/".concat(_this5.$route.params.id), _this5.form);
             case 8:
               toastr.success('تم تحديث الوصفة بنجاح');
-              _context4.next = 14;
-              break;
-            case 11:
-              _context4.next = 13;
-              return axios.post('/dashboard/api/manufacturing/recipes', _this5.form);
-            case 13:
-              toastr.success('تم إنشاء الوصفة بنجاح');
-            case 14:
               _this5.$router.push({
                 name: 'manufacturing.recipes'
               });
-              _context4.next = 20;
+              _context4.next = 18;
               break;
-            case 17:
-              _context4.prev = 17;
-              _context4.t0 = _context4["catch"](4);
-              toastr.error(((_error$response = _context4.t0.response) === null || _error$response === void 0 ? void 0 : (_error$response$data = _error$response.data) === null || _error$response$data === void 0 ? void 0 : _error$response$data.message) || 'فشل حفظ الوصفة');
+            case 12:
+              _context4.next = 14;
+              return axios.post('/dashboard/api/manufacturing/recipes', _this5.form);
+            case 14:
+              response = _context4.sent;
+              toastr.success('تم إنشاء الوصفة بنجاح');
+              // Redirect to production creation page with the new recipe
+              recipeId = (_response$data$data = response.data.data) === null || _response$data$data === void 0 ? void 0 : _response$data$data.id;
+              if (recipeId) {
+                _this5.$router.push({
+                  name: 'manufacturing.production.create',
+                  query: {
+                    recipe_id: recipeId
+                  }
+                });
+              } else {
+                _this5.$router.push({
+                  name: 'manufacturing.production.create'
+                });
+              }
+            case 18:
+              _context4.next = 23;
+              break;
             case 20:
               _context4.prev = 20;
-              _this5.saving = false;
-              return _context4.finish(20);
+              _context4.t0 = _context4["catch"](4);
+              toastr.error(((_error$response = _context4.t0.response) === null || _error$response === void 0 ? void 0 : (_error$response$data = _error$response.data) === null || _error$response$data === void 0 ? void 0 : _error$response$data.message) || 'فشل حفظ الوصفة');
             case 23:
+              _context4.prev = 23;
+              _this5.saving = false;
+              return _context4.finish(23);
+            case 26:
             case "end":
               return _context4.stop();
           }
-        }, _callee4, null, [[4, 17, 20, 23]]);
+        }, _callee4, null, [[4, 20, 23, 26]]);
       }))();
     }
   },

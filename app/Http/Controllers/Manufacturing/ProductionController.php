@@ -123,13 +123,6 @@ class ProductionController extends Controller
         $batch = ProductionBatch::where('merchant_id', $merchantId)
             ->findOrFail($id);
 
-        if (!$batch->canBeEdited()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Batch cannot be edited',
-            ], 422);
-        }
-
         $batch->update([
             'notes' => $request->notes ?? $batch->notes,
             'production_date' => $request->production_date ?? $batch->production_date,
@@ -137,6 +130,12 @@ class ProductionController extends Controller
             'labor_cost' => $request->labor_cost ?? $batch->labor_cost,
             'overhead_cost' => $request->overhead_cost ?? $batch->overhead_cost,
         ]);
+
+        // Recalculate costs if labor or overhead changed
+        if ($request->has('labor_cost') || $request->has('overhead_cost')) {
+            $batch->calculateCosts();
+            $batch->save();
+        }
 
         return response()->json([
             'success' => true,
@@ -237,6 +236,27 @@ class ProductionController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Production cancelled',
+                'data' => $batch,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    /**
+     * Clone a completed production batch
+     */
+    public function clone($id)
+    {
+        try {
+            $batch = $this->productionService->cloneBatch($id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Production batch cloned successfully',
                 'data' => $batch,
             ]);
         } catch (\Exception $e) {

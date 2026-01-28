@@ -438,6 +438,7 @@ Route::group(["prefix" => "dashboard", "middleware" => "auth"],function(){
             Route::post('/batches/{id}/start', 'ProductionController@start');
             Route::post('/batches/{id}/complete', 'ProductionController@complete');
             Route::post('/batches/{id}/cancel', 'ProductionController@cancel');
+            Route::post('/batches/{id}/clone', 'ProductionController@clone');
         });
         // End Manufacturing
 

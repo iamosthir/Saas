@@ -45,6 +45,11 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       searchQuery: '',
       loading: false,
       searchTimeout: null,
+      // Categories
+      mainCategories: [],
+      subCategories: [],
+      selectedMainCategory: '',
+      selectedSubCategory: '',
       // Selected product for variation
       selectedProduct: null,
       showVariationModal: false,
@@ -162,10 +167,13 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       };
     },
     formatCurrency: function formatCurrency(amount) {
+      var value = amount || 0;
+      // Check if the value has decimal places
+      var hasDecimals = value % 1 !== 0;
       return new Intl.NumberFormat('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      }).format(amount || 0);
+        minimumFractionDigits: hasDecimals ? 1 : 0,
+        maximumFractionDigits: hasDecimals ? 2 : 0
+      }).format(value);
     },
     // Initialize
     initialize: function initialize() {
@@ -191,21 +199,24 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
                 });
               }
 
-              // Fetch products on load
+              // Fetch categories and products on load
               _context.next = 10;
-              return _this2.fetchAllProducts();
+              return _this2.fetchCategories();
             case 10:
-              _context.next = 15;
-              break;
+              _context.next = 12;
+              return _this2.fetchAllProducts();
             case 12:
-              _context.prev = 12;
+              _context.next = 17;
+              break;
+            case 14:
+              _context.prev = 14;
               _context.t0 = _context["catch"](0);
               console.error('Failed to initialize POS:', _context.t0);
-            case 15:
+            case 17:
             case "end":
               return _context.stop();
           }
-        }, _callee, null, [[0, 12]]);
+        }, _callee, null, [[0, 14]]);
       }))();
     },
     saleToCart: function saleToCart(sale) {
@@ -222,97 +233,183 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
         total_amount: parseFloat(sale.total_amount) || 0
       };
     },
-    // Fetch all products
-    fetchAllProducts: function fetchAllProducts() {
+    // Fetch categories
+    fetchCategories: function fetchCategories() {
       var _this3 = this;
       return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
-        var response;
+        var response, categories;
         return _regeneratorRuntime().wrap(function _callee2$(_context2) {
           while (1) switch (_context2.prev = _context2.next) {
             case 0:
-              _this3.loading = true;
-              _context2.prev = 1;
-              _context2.next = 4;
-              return axios__WEBPACK_IMPORTED_MODULE_0___default().get('/dashboard/api/get-product-list', {
-                params: {
-                  page: 1
-                }
-              });
-            case 4:
+              _context2.prev = 0;
+              _context2.next = 3;
+              return axios__WEBPACK_IMPORTED_MODULE_0___default().get('/dashboard/api/categories');
+            case 3:
               response = _context2.sent;
-              // Extract products from paginated response
-              _this3.products = response.data.data || [];
-              _context2.next = 11;
+              categories = response.data || []; // Filter main categories (parent_id is null or 0)
+              _this3.mainCategories = categories.filter(function (cat) {
+                return !cat.parent_id || cat.parent_id === 0;
+              });
+              _context2.next = 12;
               break;
             case 8:
               _context2.prev = 8;
-              _context2.t0 = _context2["catch"](1);
-              console.error('Failed to fetch products:', _context2.t0);
-            case 11:
-              _context2.prev = 11;
-              _this3.loading = false;
-              return _context2.finish(11);
-            case 14:
+              _context2.t0 = _context2["catch"](0);
+              console.error('Failed to fetch categories:', _context2.t0);
+              _this3.mainCategories = [];
+            case 12:
             case "end":
               return _context2.stop();
           }
-        }, _callee2, null, [[1, 8, 11, 14]]);
+        }, _callee2, null, [[0, 8]]);
+      }))();
+    },
+    onMainCategoryChange: function onMainCategoryChange() {
+      var _this4 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
+        var response, categories;
+        return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+          while (1) switch (_context3.prev = _context3.next) {
+            case 0:
+              // Reset sub category when main category changes
+              _this4.selectedSubCategory = '';
+
+              // Load sub categories for selected main category
+              if (!_this4.selectedMainCategory) {
+                _context3.next = 16;
+                break;
+              }
+              _context3.prev = 2;
+              _context3.next = 5;
+              return axios__WEBPACK_IMPORTED_MODULE_0___default().get('/dashboard/api/categories');
+            case 5:
+              response = _context3.sent;
+              categories = response.data || [];
+              _this4.subCategories = categories.filter(function (cat) {
+                return cat.parent_id == _this4.selectedMainCategory;
+              });
+              _context3.next = 14;
+              break;
+            case 10:
+              _context3.prev = 10;
+              _context3.t0 = _context3["catch"](2);
+              console.error('Failed to fetch sub categories:', _context3.t0);
+              _this4.subCategories = [];
+            case 14:
+              _context3.next = 17;
+              break;
+            case 16:
+              _this4.subCategories = [];
+            case 17:
+              // Trigger search with new filters
+              _this4.searchProducts();
+            case 18:
+            case "end":
+              return _context3.stop();
+          }
+        }, _callee3, null, [[2, 10]]);
+      }))();
+    },
+    // Fetch all products
+    fetchAllProducts: function fetchAllProducts() {
+      var _this5 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+        var params, response;
+        return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+          while (1) switch (_context4.prev = _context4.next) {
+            case 0:
+              _this5.loading = true;
+              _context4.prev = 1;
+              params = {
+                page: 1
+              }; // Add category filters if selected
+              if (_this5.selectedSubCategory) {
+                params.category_id = _this5.selectedSubCategory;
+              } else if (_this5.selectedMainCategory) {
+                params.category_id = _this5.selectedMainCategory;
+              }
+              _context4.next = 6;
+              return axios__WEBPACK_IMPORTED_MODULE_0___default().get('/dashboard/api/get-product-list', {
+                params: params
+              });
+            case 6:
+              response = _context4.sent;
+              // Extract products from paginated response
+              _this5.products = response.data.data || [];
+              _context4.next = 13;
+              break;
+            case 10:
+              _context4.prev = 10;
+              _context4.t0 = _context4["catch"](1);
+              console.error('Failed to fetch products:', _context4.t0);
+            case 13:
+              _context4.prev = 13;
+              _this5.loading = false;
+              return _context4.finish(13);
+            case 16:
+            case "end":
+              return _context4.stop();
+          }
+        }, _callee4, null, [[1, 10, 13, 16]]);
       }))();
     },
     // Product search
     searchProducts: function searchProducts() {
-      var _this4 = this;
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
-        return _regeneratorRuntime().wrap(function _callee4$(_context4) {
-          while (1) switch (_context4.prev = _context4.next) {
+      var _this6 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
+        return _regeneratorRuntime().wrap(function _callee6$(_context6) {
+          while (1) switch (_context6.prev = _context6.next) {
             case 0:
-              clearTimeout(_this4.searchTimeout);
-              if (!(!_this4.searchQuery || _this4.searchQuery.length < 1)) {
-                _context4.next = 4;
-                break;
-              }
-              _this4.fetchAllProducts();
-              return _context4.abrupt("return");
-            case 4:
-              _this4.searchTimeout = setTimeout( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
-                var response;
-                return _regeneratorRuntime().wrap(function _callee3$(_context3) {
-                  while (1) switch (_context3.prev = _context3.next) {
+              clearTimeout(_this6.searchTimeout);
+              _this6.searchTimeout = setTimeout( /*#__PURE__*/_asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+                var params, response;
+                return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+                  while (1) switch (_context5.prev = _context5.next) {
                     case 0:
-                      _this4.loading = true;
-                      _context3.prev = 1;
-                      _context3.next = 4;
+                      _this6.loading = true;
+                      _context5.prev = 1;
+                      params = {
+                        page: 1
+                      }; // Add search query if exists
+                      if (_this6.searchQuery && _this6.searchQuery.length >= 1) {
+                        params.search = _this6.searchQuery;
+                      }
+
+                      // Add category filters if selected
+                      if (_this6.selectedSubCategory) {
+                        params.category_id = _this6.selectedSubCategory;
+                      } else if (_this6.selectedMainCategory) {
+                        params.category_id = _this6.selectedMainCategory;
+                      }
+                      _context5.next = 7;
                       return axios__WEBPACK_IMPORTED_MODULE_0___default().get('/dashboard/api/get-product-list', {
-                        params: {
-                          search: _this4.searchQuery,
-                          page: 1
-                        }
+                        params: params
                       });
-                    case 4:
-                      response = _context3.sent;
-                      _this4.products = response.data.data || [];
-                      _context3.next = 12;
+                    case 7:
+                      response = _context5.sent;
+                      _this6.products = response.data.data || [];
+                      _context5.next = 15;
                       break;
-                    case 8:
-                      _context3.prev = 8;
-                      _context3.t0 = _context3["catch"](1);
-                      console.error('Search error:', _context3.t0);
-                      _this4.products = [];
-                    case 12:
-                      _context3.prev = 12;
-                      _this4.loading = false;
-                      return _context3.finish(12);
+                    case 11:
+                      _context5.prev = 11;
+                      _context5.t0 = _context5["catch"](1);
+                      console.error('Search error:', _context5.t0);
+                      _this6.products = [];
                     case 15:
+                      _context5.prev = 15;
+                      _this6.loading = false;
+                      return _context5.finish(15);
+                    case 18:
                     case "end":
-                      return _context3.stop();
+                      return _context5.stop();
                   }
-                }, _callee3, null, [[1, 8, 12, 15]]);
+                }, _callee5, null, [[1, 11, 15, 18]]);
               })), 300);
-            case 5:
+            case 2:
             case "end":
-              return _context4.stop();
+              return _context6.stop();
           }
-        }, _callee4);
+        }, _callee6);
       }))();
     },
     handleSearchEnter: function handleSearchEnter() {
@@ -350,11 +447,11 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       this.selectedProduct = null;
     },
     addToCart: function addToCart(product, variation) {
-      var _this5 = this;
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+      var _this7 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
         var item, existingIndex;
-        return _regeneratorRuntime().wrap(function _callee5$(_context5) {
-          while (1) switch (_context5.prev = _context5.next) {
+        return _regeneratorRuntime().wrap(function _callee7$(_context7) {
+          while (1) switch (_context7.prev = _context7.next) {
             case 0:
               item = {
                 product_id: product.id,
@@ -364,31 +461,31 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
                 unit_price: (variation === null || variation === void 0 ? void 0 : variation.price) || product.sell_price,
                 quantity: 1
               }; // Check if item already in cart
-              existingIndex = _this5.currentCart.items.findIndex(function (i) {
+              existingIndex = _this7.currentCart.items.findIndex(function (i) {
                 return i.product_id === item.product_id && i.product_variation_id === item.product_variation_id;
               });
               if (existingIndex >= 0) {
-                _this5.currentCart.items[existingIndex].quantity++;
-                _this5.updateItemTotal(existingIndex);
+                _this7.currentCart.items[existingIndex].quantity++;
+                _this7.updateItemTotal(existingIndex);
               } else {
                 item.line_total = item.unit_price * item.quantity;
-                _this5.currentCart.items.push(item);
+                _this7.currentCart.items.push(item);
               }
-              _this5.recalculateCart();
-              _this5.clearSearch();
+              _this7.recalculateCart();
+              // Don't clear search - keep product list visible
 
               // Sync with backend if cart has ID
-              if (!_this5.currentCart.id) {
-                _context5.next = 8;
+              if (!_this7.currentCart.id) {
+                _context7.next = 7;
                 break;
               }
-              _context5.next = 8;
-              return _this5.syncCartToBackend();
-            case 8:
+              _context7.next = 7;
+              return _this7.syncCartToBackend();
+            case 7:
             case "end":
-              return _context5.stop();
+              return _context7.stop();
           }
-        }, _callee5);
+        }, _callee7);
       }))();
     },
     // Cart operations
@@ -473,40 +570,40 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     },
     // Customer
     searchCustomers: function searchCustomers() {
-      var _this6 = this;
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
+      var _this8 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
         var response;
-        return _regeneratorRuntime().wrap(function _callee6$(_context6) {
-          while (1) switch (_context6.prev = _context6.next) {
+        return _regeneratorRuntime().wrap(function _callee8$(_context8) {
+          while (1) switch (_context8.prev = _context8.next) {
             case 0:
-              if (!(!_this6.customerSearch || _this6.customerSearch.length < 2)) {
-                _context6.next = 3;
+              if (!(!_this8.customerSearch || _this8.customerSearch.length < 2)) {
+                _context8.next = 3;
                 break;
               }
-              _this6.customers = [];
-              return _context6.abrupt("return");
+              _this8.customers = [];
+              return _context8.abrupt("return");
             case 3:
-              _context6.prev = 3;
-              _context6.next = 6;
+              _context8.prev = 3;
+              _context8.next = 6;
               return axios__WEBPACK_IMPORTED_MODULE_0___default().get('/dashboard/api/pos/customers', {
                 params: {
-                  q: _this6.customerSearch
+                  q: _this8.customerSearch
                 }
               });
             case 6:
-              response = _context6.sent;
-              _this6.customers = response.data.data || [];
-              _context6.next = 13;
+              response = _context8.sent;
+              _this8.customers = response.data.data || [];
+              _context8.next = 13;
               break;
             case 10:
-              _context6.prev = 10;
-              _context6.t0 = _context6["catch"](3);
-              console.error('Customer search error:', _context6.t0);
+              _context8.prev = 10;
+              _context8.t0 = _context8["catch"](3);
+              console.error('Customer search error:', _context8.t0);
             case 13:
             case "end":
-              return _context6.stop();
+              return _context8.stop();
           }
-        }, _callee6, null, [[3, 10]]);
+        }, _callee8, null, [[3, 10]]);
       }))();
     },
     selectCustomer: function selectCustomer(customer) {
@@ -516,40 +613,40 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       this.customers = [];
     },
     createCustomer: function createCustomer() {
-      var _this7 = this;
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
-        var _this7$$toast, response, _this7$$toast2;
-        return _regeneratorRuntime().wrap(function _callee7$(_context7) {
-          while (1) switch (_context7.prev = _context7.next) {
+      var _this9 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
+        var _this9$$toast, response, _this9$$toast2;
+        return _regeneratorRuntime().wrap(function _callee9$(_context9) {
+          while (1) switch (_context9.prev = _context9.next) {
             case 0:
-              if (!(!_this7.newCustomer.customer_name || !_this7.newCustomer.phone1)) {
-                _context7.next = 3;
+              if (!(!_this9.newCustomer.customer_name || !_this9.newCustomer.phone1)) {
+                _context9.next = 3;
                 break;
               }
-              (_this7$$toast = _this7.$toast) === null || _this7$$toast === void 0 ? void 0 : _this7$$toast.error('الاسم والهاتف مطلوبان');
-              return _context7.abrupt("return");
+              (_this9$$toast = _this9.$toast) === null || _this9$$toast === void 0 ? void 0 : _this9$$toast.error('الاسم والهاتف مطلوبان');
+              return _context9.abrupt("return");
             case 3:
-              _context7.prev = 3;
-              _context7.next = 6;
-              return axios__WEBPACK_IMPORTED_MODULE_0___default().post('/dashboard/api/pos/customers', _this7.newCustomer);
+              _context9.prev = 3;
+              _context9.next = 6;
+              return axios__WEBPACK_IMPORTED_MODULE_0___default().post('/dashboard/api/pos/customers', _this9.newCustomer);
             case 6:
-              response = _context7.sent;
-              _this7.selectCustomer(response.data.data);
-              _this7.newCustomer = {
+              response = _context9.sent;
+              _this9.selectCustomer(response.data.data);
+              _this9.newCustomer = {
                 customer_name: '',
                 phone1: ''
               };
-              _context7.next = 14;
+              _context9.next = 14;
               break;
             case 11:
-              _context7.prev = 11;
-              _context7.t0 = _context7["catch"](3);
-              (_this7$$toast2 = _this7.$toast) === null || _this7$$toast2 === void 0 ? void 0 : _this7$$toast2.error('فشل إنشاء العميل');
+              _context9.prev = 11;
+              _context9.t0 = _context9["catch"](3);
+              (_this9$$toast2 = _this9.$toast) === null || _this9$$toast2 === void 0 ? void 0 : _this9$$toast2.error('فشل إنشاء العميل');
             case 14:
             case "end":
-              return _context7.stop();
+              return _context9.stop();
           }
-        }, _callee7, null, [[3, 11]]);
+        }, _callee9, null, [[3, 11]]);
       }))();
     },
     clearCustomer: function clearCustomer() {
@@ -598,15 +695,15 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     },
     // Payment
     openPayment: function openPayment() {
-      var _this8 = this;
+      var _this10 = this;
       this.payments = [];
       this.selectedPaymentMethod = 'cash';
       this.paymentAmount = this.currentCart.total_amount;
       this.paymentReference = '';
       this.showPaymentModal = true;
       this.$nextTick(function () {
-        var _this8$$refs$paymentI;
-        (_this8$$refs$paymentI = _this8.$refs.paymentInput) === null || _this8$$refs$paymentI === void 0 ? void 0 : _this8$$refs$paymentI.focus();
+        var _this10$$refs$payment;
+        (_this10$$refs$payment = _this10.$refs.paymentInput) === null || _this10$$refs$payment === void 0 ? void 0 : _this10$$refs$payment.focus();
       });
     },
     getMethodLabel: function getMethodLabel(method) {
@@ -633,150 +730,189 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       this.payments.splice(index, 1);
     },
     completeSale: function completeSale() {
-      var _this9 = this;
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
-        var saleId, _this9$currentCart$cu, createRes, response, _this9$$toast, _error$response, _error$response$data;
-        return _regeneratorRuntime().wrap(function _callee8$(_context8) {
-          while (1) switch (_context8.prev = _context8.next) {
+      var _this11 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10() {
+        var saleId, _this11$currentCart$c, createRes, response, _this11$$toast, _error$response, _error$response$data;
+        return _regeneratorRuntime().wrap(function _callee10$(_context10) {
+          while (1) switch (_context10.prev = _context10.next) {
             case 0:
-              if (_this9.canCompleteSale) {
-                _context8.next = 2;
+              if (_this11.canCompleteSale) {
+                _context10.next = 2;
                 break;
               }
-              return _context8.abrupt("return");
+              return _context10.abrupt("return");
             case 2:
-              _context8.prev = 2;
+              _context10.prev = 2;
               // Create sale if not exists
-              saleId = _this9.currentCart.id;
+              saleId = _this11.currentCart.id;
               if (saleId) {
-                _context8.next = 9;
+                _context10.next = 9;
                 break;
               }
-              _context8.next = 7;
+              _context10.next = 7;
               return axios__WEBPACK_IMPORTED_MODULE_0___default().post('/dashboard/api/pos/sales', {
-                customer_id: (_this9$currentCart$cu = _this9.currentCart.customer) === null || _this9$currentCart$cu === void 0 ? void 0 : _this9$currentCart$cu.id,
-                items: _this9.currentCart.items
+                customer_id: (_this11$currentCart$c = _this11.currentCart.customer) === null || _this11$currentCart$c === void 0 ? void 0 : _this11$currentCart$c.id,
+                items: _this11.currentCart.items
               });
             case 7:
-              createRes = _context8.sent;
+              createRes = _context10.sent;
               saleId = createRes.data.data.id;
             case 9:
-              if (!_this9.currentCart.discount_type) {
-                _context8.next = 12;
+              if (!_this11.currentCart.discount_type) {
+                _context10.next = 12;
                 break;
               }
-              _context8.next = 12;
+              _context10.next = 12;
               return axios__WEBPACK_IMPORTED_MODULE_0___default().put("/dashboard/api/pos/sales/".concat(saleId), {
-                discount_type: _this9.currentCart.discount_type,
-                discount_amount: _this9.currentCart.discount_amount
+                discount_type: _this11.currentCart.discount_type,
+                discount_amount: _this11.currentCart.discount_amount
               });
             case 12:
-              _context8.next = 14;
+              _context10.next = 14;
               return axios__WEBPACK_IMPORTED_MODULE_0___default().post("/dashboard/api/pos/sales/".concat(saleId, "/complete"), {
-                payments: _this9.payments
+                payments: _this11.payments
               });
             case 14:
-              response = _context8.sent;
-              _this9.completedSale = response.data.data;
-              _this9.showPaymentModal = false;
-              _this9.showReceiptModal = true;
+              response = _context10.sent;
+              _this11.completedSale = response.data.data;
+              _this11.showPaymentModal = false;
+              _this11.showReceiptModal = true;
 
               // Print if auto-print enabled
-              if (_this9.settings.print_receipt_auto) {
-                _this9.printReceipt();
+              if (_this11.settings.print_receipt_auto) {
+                _this11.printReceipt();
               }
-              _context8.next = 25;
+              _context10.next = 25;
               break;
             case 21:
-              _context8.prev = 21;
-              _context8.t0 = _context8["catch"](2);
-              console.error('Failed to complete sale:', _context8.t0);
-              (_this9$$toast = _this9.$toast) === null || _this9$$toast === void 0 ? void 0 : _this9$$toast.error(((_error$response = _context8.t0.response) === null || _error$response === void 0 ? void 0 : (_error$response$data = _error$response.data) === null || _error$response$data === void 0 ? void 0 : _error$response$data.message) || 'فشل إتمام البيع');
+              _context10.prev = 21;
+              _context10.t0 = _context10["catch"](2);
+              console.error('Failed to complete sale:', _context10.t0);
+              (_this11$$toast = _this11.$toast) === null || _this11$$toast === void 0 ? void 0 : _this11$$toast.error(((_error$response = _context10.t0.response) === null || _error$response === void 0 ? void 0 : (_error$response$data = _error$response.data) === null || _error$response$data === void 0 ? void 0 : _error$response$data.message) || 'فشل إتمام البيع');
             case 25:
             case "end":
-              return _context8.stop();
+              return _context10.stop();
           }
-        }, _callee8, null, [[2, 21]]);
+        }, _callee10, null, [[2, 21]]);
+      }))();
+    },
+    quickPayCash: function quickPayCash() {
+      var _this12 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
+        var _this12$$toast;
+        return _regeneratorRuntime().wrap(function _callee11$(_context11) {
+          while (1) switch (_context11.prev = _context11.next) {
+            case 0:
+              if (!(_this12.currentCart.items.length === 0)) {
+                _context11.next = 2;
+                break;
+              }
+              return _context11.abrupt("return");
+            case 2:
+              _context11.prev = 2;
+              // Set payment to cash with full amount
+              _this12.payments = [{
+                payment_method: 'cash',
+                amount: _this12.currentCart.total_amount,
+                tendered_amount: _this12.currentCart.total_amount
+              }];
+
+              // Complete sale directly
+              _context11.next = 6;
+              return _this12.completeSale();
+            case 6:
+              _context11.next = 12;
+              break;
+            case 8:
+              _context11.prev = 8;
+              _context11.t0 = _context11["catch"](2);
+              console.error('Quick pay failed:', _context11.t0);
+              (_this12$$toast = _this12.$toast) === null || _this12$$toast === void 0 ? void 0 : _this12$$toast.error('فشل الدفع السريع');
+            case 12:
+            case "end":
+              return _context11.stop();
+          }
+        }, _callee11, null, [[2, 8]]);
       }))();
     },
     // Park sale
     parkSale: function parkSale() {
-      var _this10 = this;
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
-        var _this10$$toast, saleId, _this10$currentCart$c, createRes, _this10$$toast2;
-        return _regeneratorRuntime().wrap(function _callee9$(_context9) {
-          while (1) switch (_context9.prev = _context9.next) {
+      var _this13 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee12() {
+        var _this13$$toast, saleId, _this13$currentCart$c, createRes, _this13$$toast2;
+        return _regeneratorRuntime().wrap(function _callee12$(_context12) {
+          while (1) switch (_context12.prev = _context12.next) {
             case 0:
-              if (!(_this10.currentCart.items.length === 0)) {
-                _context9.next = 2;
+              if (!(_this13.currentCart.items.length === 0)) {
+                _context12.next = 2;
                 break;
               }
-              return _context9.abrupt("return");
+              return _context12.abrupt("return");
             case 2:
-              _context9.prev = 2;
-              saleId = _this10.currentCart.id;
+              _context12.prev = 2;
+              saleId = _this13.currentCart.id;
               if (saleId) {
-                _context9.next = 9;
+                _context12.next = 9;
                 break;
               }
-              _context9.next = 7;
+              _context12.next = 7;
               return axios__WEBPACK_IMPORTED_MODULE_0___default().post('/dashboard/api/pos/sales', {
-                customer_id: (_this10$currentCart$c = _this10.currentCart.customer) === null || _this10$currentCart$c === void 0 ? void 0 : _this10$currentCart$c.id,
-                items: _this10.currentCart.items
+                customer_id: (_this13$currentCart$c = _this13.currentCart.customer) === null || _this13$currentCart$c === void 0 ? void 0 : _this13$currentCart$c.id,
+                items: _this13.currentCart.items
               });
             case 7:
-              createRes = _context9.sent;
+              createRes = _context12.sent;
               saleId = createRes.data.data.id;
             case 9:
-              _context9.next = 11;
+              _context12.next = 11;
               return axios__WEBPACK_IMPORTED_MODULE_0___default().post("/dashboard/api/pos/sales/".concat(saleId, "/park"), {
-                park_name: "Cart ".concat(_this10.currentCartIndex + 1)
+                park_name: "Cart ".concat(_this13.currentCartIndex + 1)
               });
             case 11:
-              _context9.next = 13;
-              return _this10.loadParkedSales();
+              _context12.next = 13;
+              return _this13.loadParkedSales();
             case 13:
               // Reset current cart
-              _this10.carts[_this10.currentCartIndex] = _this10.createEmptyCart();
-              (_this10$$toast = _this10.$toast) === null || _this10$$toast === void 0 ? void 0 : _this10$$toast.success('تم تأجيل البيع');
-              _context9.next = 21;
+              _this13.carts[_this13.currentCartIndex] = _this13.createEmptyCart();
+              (_this13$$toast = _this13.$toast) === null || _this13$$toast === void 0 ? void 0 : _this13$$toast.success('تم تأجيل البيع');
+              _context12.next = 21;
               break;
             case 17:
-              _context9.prev = 17;
-              _context9.t0 = _context9["catch"](2);
-              console.error('Failed to park sale:', _context9.t0);
-              (_this10$$toast2 = _this10.$toast) === null || _this10$$toast2 === void 0 ? void 0 : _this10$$toast2.error('فشل تأجيل البيع');
+              _context12.prev = 17;
+              _context12.t0 = _context12["catch"](2);
+              console.error('Failed to park sale:', _context12.t0);
+              (_this13$$toast2 = _this13.$toast) === null || _this13$$toast2 === void 0 ? void 0 : _this13$$toast2.error('فشل تأجيل البيع');
             case 21:
             case "end":
-              return _context9.stop();
+              return _context12.stop();
           }
-        }, _callee9, null, [[2, 17]]);
+        }, _callee12, null, [[2, 17]]);
       }))();
     },
     loadParkedSales: function loadParkedSales() {
-      var _this11 = this;
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10() {
+      var _this14 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee13() {
         var response;
-        return _regeneratorRuntime().wrap(function _callee10$(_context10) {
-          while (1) switch (_context10.prev = _context10.next) {
+        return _regeneratorRuntime().wrap(function _callee13$(_context13) {
+          while (1) switch (_context13.prev = _context13.next) {
             case 0:
-              _context10.prev = 0;
-              _context10.next = 3;
+              _context13.prev = 0;
+              _context13.next = 3;
               return axios__WEBPACK_IMPORTED_MODULE_0___default().get('/dashboard/api/pos/sales/parked');
             case 3:
-              response = _context10.sent;
-              _this11.parkedSales = response.data.data || [];
-              _context10.next = 10;
+              response = _context13.sent;
+              _this14.parkedSales = response.data.data || [];
+              _context13.next = 10;
               break;
             case 7:
-              _context10.prev = 7;
-              _context10.t0 = _context10["catch"](0);
-              console.error('Failed to load parked sales:', _context10.t0);
+              _context13.prev = 7;
+              _context13.t0 = _context13["catch"](0);
+              console.error('Failed to load parked sales:', _context13.t0);
             case 10:
             case "end":
-              return _context10.stop();
+              return _context13.stop();
           }
-        }, _callee10, null, [[0, 7]]);
+        }, _callee13, null, [[0, 7]]);
       }))();
     },
     showParkedSales: function showParkedSales() {
@@ -784,106 +920,106 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       this.showParkedModal = true;
     },
     resumeSale: function resumeSale(sale) {
-      var _this12 = this;
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
-        var _this12$$toast;
-        return _regeneratorRuntime().wrap(function _callee11$(_context11) {
-          while (1) switch (_context11.prev = _context11.next) {
+      var _this15 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee14() {
+        var _this15$$toast;
+        return _regeneratorRuntime().wrap(function _callee14$(_context14) {
+          while (1) switch (_context14.prev = _context14.next) {
             case 0:
-              _context11.prev = 0;
-              _context11.next = 3;
+              _context14.prev = 0;
+              _context14.next = 3;
               return axios__WEBPACK_IMPORTED_MODULE_0___default().post("/dashboard/api/pos/sales/".concat(sale.id, "/unpark"));
             case 3:
               // Load into cart
-              _this12.carts[_this12.currentCartIndex] = _this12.saleToCart(sale);
+              _this15.carts[_this15.currentCartIndex] = _this15.saleToCart(sale);
 
               // Remove from parked list
-              _context11.next = 6;
-              return _this12.loadParkedSales();
+              _context14.next = 6;
+              return _this15.loadParkedSales();
             case 6:
-              _this12.showParkedModal = false;
-              _context11.next = 13;
+              _this15.showParkedModal = false;
+              _context14.next = 13;
               break;
             case 9:
-              _context11.prev = 9;
-              _context11.t0 = _context11["catch"](0);
-              console.error('Failed to resume sale:', _context11.t0);
-              (_this12$$toast = _this12.$toast) === null || _this12$$toast === void 0 ? void 0 : _this12$$toast.error('فشل استعادة البيع');
+              _context14.prev = 9;
+              _context14.t0 = _context14["catch"](0);
+              console.error('Failed to resume sale:', _context14.t0);
+              (_this15$$toast = _this15.$toast) === null || _this15$$toast === void 0 ? void 0 : _this15$$toast.error('فشل استعادة البيع');
             case 13:
             case "end":
-              return _context11.stop();
+              return _context14.stop();
           }
-        }, _callee11, null, [[0, 9]]);
+        }, _callee14, null, [[0, 9]]);
       }))();
     },
     deleteParkedSale: function deleteParkedSale(saleId) {
-      var _this13 = this;
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee12() {
-        return _regeneratorRuntime().wrap(function _callee12$(_context12) {
-          while (1) switch (_context12.prev = _context12.next) {
+      var _this16 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee15() {
+        return _regeneratorRuntime().wrap(function _callee15$(_context15) {
+          while (1) switch (_context15.prev = _context15.next) {
             case 0:
               if (confirm('حذف هذا البيع المؤجل؟')) {
-                _context12.next = 2;
+                _context15.next = 2;
                 break;
               }
-              return _context12.abrupt("return");
+              return _context15.abrupt("return");
             case 2:
-              _context12.prev = 2;
-              _context12.next = 5;
+              _context15.prev = 2;
+              _context15.next = 5;
               return axios__WEBPACK_IMPORTED_MODULE_0___default()["delete"]("/dashboard/api/pos/sales/".concat(saleId));
             case 5:
-              _context12.next = 7;
-              return _this13.loadParkedSales();
+              _context15.next = 7;
+              return _this16.loadParkedSales();
             case 7:
-              _context12.next = 12;
+              _context15.next = 12;
               break;
             case 9:
-              _context12.prev = 9;
-              _context12.t0 = _context12["catch"](2);
-              console.error('Failed to delete parked sale:', _context12.t0);
+              _context15.prev = 9;
+              _context15.t0 = _context15["catch"](2);
+              console.error('Failed to delete parked sale:', _context15.t0);
             case 12:
             case "end":
-              return _context12.stop();
+              return _context15.stop();
           }
-        }, _callee12, null, [[2, 9]]);
+        }, _callee15, null, [[2, 9]]);
       }))();
     },
     // Receipt
     printReceipt: function printReceipt() {
-      var _this14 = this;
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee13() {
+      var _this17 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee16() {
         var response, printWindow;
-        return _regeneratorRuntime().wrap(function _callee13$(_context13) {
-          while (1) switch (_context13.prev = _context13.next) {
+        return _regeneratorRuntime().wrap(function _callee16$(_context16) {
+          while (1) switch (_context16.prev = _context16.next) {
             case 0:
-              if (_this14.completedSale) {
-                _context13.next = 2;
+              if (_this17.completedSale) {
+                _context16.next = 2;
                 break;
               }
-              return _context13.abrupt("return");
+              return _context16.abrupt("return");
             case 2:
-              _context13.prev = 2;
-              _context13.next = 5;
-              return axios__WEBPACK_IMPORTED_MODULE_0___default().get("/dashboard/api/pos/print/".concat(_this14.completedSale.id, "/html"), {
+              _context16.prev = 2;
+              _context16.next = 5;
+              return axios__WEBPACK_IMPORTED_MODULE_0___default().get("/dashboard/api/pos/print/".concat(_this17.completedSale.id, "/html"), {
                 responseType: 'text'
               });
             case 5:
-              response = _context13.sent;
+              response = _context16.sent;
               printWindow = window.open('', '_blank');
               printWindow.document.write(response.data);
               printWindow.document.close();
               printWindow.print();
-              _context13.next = 15;
+              _context16.next = 15;
               break;
             case 12:
-              _context13.prev = 12;
-              _context13.t0 = _context13["catch"](2);
-              console.error('Failed to print receipt:', _context13.t0);
+              _context16.prev = 12;
+              _context16.t0 = _context16["catch"](2);
+              console.error('Failed to print receipt:', _context16.t0);
             case 15:
             case "end":
-              return _context13.stop();
+              return _context16.stop();
           }
-        }, _callee13, null, [[2, 12]]);
+        }, _callee16, null, [[2, 12]]);
       }))();
     },
     closeReceipt: function closeReceipt() {
@@ -900,14 +1036,14 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     },
     // Sync
     syncCartToBackend: function syncCartToBackend() {
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee14() {
-        return _regeneratorRuntime().wrap(function _callee14$(_context14) {
-          while (1) switch (_context14.prev = _context14.next) {
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee17() {
+        return _regeneratorRuntime().wrap(function _callee17$(_context17) {
+          while (1) switch (_context17.prev = _context17.next) {
             case 0:
             case "end":
-              return _context14.stop();
+              return _context17.stop();
           }
-        }, _callee14);
+        }, _callee17);
       }))();
     } // Implementation for syncing cart changes
     ,
@@ -987,16 +1123,16 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     }
   },
   mounted: function mounted() {
-    var _this15 = this,
+    var _this18 = this,
       _this$$refs$searchInp4;
     this.initialize();
 
     // Online/offline detection
     window.addEventListener('online', function () {
-      _this15.isOnline = true;
+      _this18.isOnline = true;
     });
     window.addEventListener('offline', function () {
-      _this15.isOnline = false;
+      _this18.isOnline = false;
     });
 
     // Focus search on mount
@@ -1146,7 +1282,72 @@ var render = function render() {
     }
   }, [_c("i", {
     staticClass: "fas fa-times"
-  })]) : _vm._e()])]), _vm._v(" "), _c("div", {
+  })]) : _vm._e()]), _vm._v(" "), _c("div", {
+    staticClass: "category-filters"
+  }, [_c("select", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.selectedMainCategory,
+      expression: "selectedMainCategory"
+    }],
+    staticClass: "category-select",
+    on: {
+      change: [function ($event) {
+        var $$selectedVal = Array.prototype.filter.call($event.target.options, function (o) {
+          return o.selected;
+        }).map(function (o) {
+          var val = "_value" in o ? o._value : o.value;
+          return val;
+        });
+        _vm.selectedMainCategory = $event.target.multiple ? $$selectedVal : $$selectedVal[0];
+      }, _vm.onMainCategoryChange]
+    }
+  }, [_c("option", {
+    attrs: {
+      value: ""
+    }
+  }, [_vm._v("جميع الفئات الرئيسية")]), _vm._v(" "), _vm._l(_vm.mainCategories, function (category) {
+    return _c("option", {
+      key: category.id,
+      domProps: {
+        value: category.id
+      }
+    }, [_vm._v("\n                            " + _vm._s(category.name) + "\n                        ")]);
+  })], 2), _vm._v(" "), _c("select", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.selectedSubCategory,
+      expression: "selectedSubCategory"
+    }],
+    staticClass: "category-select",
+    attrs: {
+      disabled: !_vm.selectedMainCategory
+    },
+    on: {
+      change: [function ($event) {
+        var $$selectedVal = Array.prototype.filter.call($event.target.options, function (o) {
+          return o.selected;
+        }).map(function (o) {
+          var val = "_value" in o ? o._value : o.value;
+          return val;
+        });
+        _vm.selectedSubCategory = $event.target.multiple ? $$selectedVal : $$selectedVal[0];
+      }, _vm.searchProducts]
+    }
+  }, [_c("option", {
+    attrs: {
+      value: ""
+    }
+  }, [_vm._v("جميع الفئات الفرعية")]), _vm._v(" "), _vm._l(_vm.subCategories, function (subCategory) {
+    return _c("option", {
+      key: subCategory.id,
+      domProps: {
+        value: subCategory.id
+      }
+    }, [_vm._v("\n                            " + _vm._s(subCategory.name) + "\n                        ")]);
+  })], 2)])]), _vm._v(" "), _c("div", {
     staticClass: "product-grid"
   }, [_vm.loading ? _c("div", {
     staticClass: "loading-state"
@@ -1359,7 +1560,19 @@ var render = function render() {
     }
   }, [_c("i", {
     staticClass: "fas fa-money-bill"
-  }), _vm._v(" دفع (F10)\n                ")])])])]), _vm._v(" "), _vm.showVariationModal ? _c("div", {
+  }), _vm._v(" دفع (F10)\n                ")])]), _vm._v(" "), _c("div", {
+    staticClass: "quick-pay-wrapper"
+  }, [_c("button", {
+    staticClass: "btn btn-success btn-quick-pay",
+    attrs: {
+      disabled: _vm.currentCart.items.length === 0
+    },
+    on: {
+      click: _vm.quickPayCash
+    }
+  }, [_c("i", {
+    staticClass: "fas fa-money-bill-wave"
+  }), _vm._v(" دفع سريع نقداً\n                ")])])])]), _vm._v(" "), _vm.showVariationModal ? _c("div", {
     staticClass: "modal-overlay",
     on: {
       click: function click($event) {
@@ -1912,7 +2125,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_laravel_mix_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n.pos-container[data-v-dfc60568] {\n    height: 100vh;\n    display: flex;\n    flex-direction: column;\n    background: #f5f7fa;\n    overflow: hidden;\n}\n.offline-banner[data-v-dfc60568] {\n    background: #ff9800;\n    color: white;\n    padding: 8px;\n    text-align: center;\n    font-size: 14px;\n}\n.pos-topbar[data-v-dfc60568] {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    padding: 10px 20px;\n    background: white;\n    border-bottom: 1px solid #e0e0e0;\n    gap: 20px;\n}\n.pos-topbar h4[data-v-dfc60568] {\n    margin: 0;\n    font-size: 18px;\n}\n.cart-tabs[data-v-dfc60568] {\n    display: flex;\n    align-items: center;\n    gap: 5px;\n}\n.cart-tab[data-v-dfc60568] {\n    display: flex;\n    align-items: center;\n    gap: 8px;\n    padding: 8px 16px;\n    background: #f0f0f0;\n    border-radius: 20px;\n    cursor: pointer;\n    transition: all 0.2s;\n}\n.cart-tab.active[data-v-dfc60568] {\n    background: #2196f3;\n    color: white;\n}\n.cart-tab .item-count[data-v-dfc60568] {\n    background: rgba(0,0,0,0.1);\n    padding: 2px 8px;\n    border-radius: 10px;\n    font-size: 12px;\n}\n.cart-tab .close-cart[data-v-dfc60568] {\n    background: none;\n    border: none;\n    padding: 2px;\n    cursor: pointer;\n    opacity: 0.6;\n}\n.new-cart-btn[data-v-dfc60568] {\n    width: 36px;\n    height: 36px;\n    border-radius: 50%;\n    border: 2px dashed #ccc;\n    background: none;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n.pos-topbar-right[data-v-dfc60568] {\n    display: flex;\n    gap: 10px;\n}\n.pos-topbar-right .badge[data-v-dfc60568] {\n    background: #f44336;\n    color: white;\n    border-radius: 10px;\n    padding: 2px 6px;\n    font-size: 10px;\n    margin-left: 5px;\n}\n.pos-main[data-v-dfc60568] {\n    flex: 1;\n    display: flex;\n    overflow: hidden;\n}\n.pos-products[data-v-dfc60568] {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    padding: 20px;\n    overflow: hidden;\n}\n.search-section[data-v-dfc60568] {\n    margin-bottom: 20px;\n}\n.search-input-wrapper[data-v-dfc60568] {\n    position: relative;\n    display: flex;\n    align-items: center;\n}\n.search-input-wrapper i[data-v-dfc60568] {\n    position: absolute;\n    left: 15px;\n    color: #888;\n}\n.search-input[data-v-dfc60568] {\n    width: 100%;\n    padding: 15px 45px;\n    border: 2px solid #e0e0e0;\n    border-radius: 10px;\n    font-size: 16px;\n    transition: border-color 0.2s;\n}\n.search-input[data-v-dfc60568]:focus {\n    outline: none;\n    border-color: #2196f3;\n}\n.clear-search[data-v-dfc60568] {\n    position: absolute;\n    right: 15px;\n    background: none;\n    border: none;\n    cursor: pointer;\n    color: #888;\n}\n.product-grid[data-v-dfc60568] {\n    flex: 1;\n    display: grid;\n    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));\n    gap: 20px;\n    overflow-y: auto;\n    padding-right: 10px;\n    align-content: start;\n}\n.loading-state[data-v-dfc60568], .empty-state[data-v-dfc60568] {\n    grid-column: 1 / -1;\n    text-align: center;\n    padding: 40px;\n    color: #888;\n}\n.empty-state i[data-v-dfc60568] {\n    font-size: 48px;\n    margin-bottom: 10px;\n    opacity: 0.5;\n}\n.product-card[data-v-dfc60568] {\n    background: white;\n    border-radius: 12px;\n    cursor: pointer;\n    transition: all 0.3s ease;\n    box-shadow: 0 2px 8px rgba(0,0,0,0.08);\n    display: flex;\n    flex-direction: column;\n    height: 100%;\n    overflow: hidden;\n}\n.product-card[data-v-dfc60568]:hover {\n    transform: translateY(-4px);\n    box-shadow: 0 8px 24px rgba(33, 150, 243, 0.2);\n}\n.product-image[data-v-dfc60568] {\n    width: 100%;\n    height: 160px;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);\n    overflow: hidden;\n    position: relative;\n}\n.product-image img[data-v-dfc60568] {\n    width: 100%;\n    height: 100%;\n    -o-object-fit: cover;\n       object-fit: cover;\n    transition: transform 0.3s ease;\n}\n.product-card:hover .product-image img[data-v-dfc60568] {\n    transform: scale(1.05);\n}\n.product-image i[data-v-dfc60568] {\n    font-size: 48px;\n    color: #cbd5e0;\n}\n.product-info[data-v-dfc60568] {\n    padding: 15px;\n    display: flex;\n    flex-direction: column;\n    gap: 8px;\n    flex: 1;\n}\n.product-name[data-v-dfc60568] {\n    font-weight: 600;\n    font-size: 14px;\n    line-height: 1.4;\n    color: #2d3748;\n    display: -webkit-box;\n    -webkit-line-clamp: 2;\n    line-clamp: 2;\n    -webkit-box-orient: vertical;\n    overflow: hidden;\n    min-height: 40px;\n}\n.product-price[data-v-dfc60568] {\n    color: #2196f3;\n    font-weight: 700;\n    font-size: 18px;\n    margin-top: auto;\n}\n.product-stock[data-v-dfc60568] {\n    display: flex;\n    align-items: center;\n    gap: 6px;\n    font-size: 13px;\n    color: #4caf50;\n    font-weight: 600;\n}\n.product-stock i[data-v-dfc60568] {\n    font-size: 14px;\n}\n.product-stock.low-stock[data-v-dfc60568] {\n    color: #f44336;\n}\n\n/* Cart */\n.pos-cart[data-v-dfc60568] {\n    width: 400px;\n    background: white;\n    display: flex;\n    flex-direction: column;\n    border-left: 1px solid #e0e0e0;\n}\n.customer-section[data-v-dfc60568] {\n    padding: 15px;\n    border-bottom: 1px solid #e0e0e0;\n}\n.selected-customer[data-v-dfc60568] {\n    display: flex;\n    align-items: center;\n    gap: 10px;\n    padding: 10px 15px;\n    background: #e3f2fd;\n    border-radius: 8px;\n}\n.selected-customer .btn-clear[data-v-dfc60568] {\n    margin-left: auto;\n    background: none;\n    border: none;\n    cursor: pointer;\n    color: #888;\n}\n.select-customer-btn[data-v-dfc60568] {\n    width: 100%;\n    padding: 12px;\n    border: 2px dashed #ccc;\n    border-radius: 8px;\n    background: none;\n    cursor: pointer;\n    color: #666;\n    transition: all 0.2s;\n}\n.select-customer-btn[data-v-dfc60568]:hover {\n    border-color: #2196f3;\n    color: #2196f3;\n}\n.cart-items[data-v-dfc60568] {\n    flex: 1;\n    overflow-y: auto;\n    padding: 15px;\n}\n.empty-cart[data-v-dfc60568] {\n    text-align: center;\n    padding: 40px 20px;\n    color: #888;\n}\n.empty-cart i[data-v-dfc60568] {\n    font-size: 48px;\n    opacity: 0.3;\n    margin-bottom: 10px;\n}\n.cart-item[data-v-dfc60568] {\n    display: grid;\n    grid-template-columns: 1fr auto auto auto;\n    gap: 10px;\n    align-items: center;\n    padding: 12px;\n    background: #f9f9f9;\n    border-radius: 8px;\n    margin-bottom: 10px;\n    cursor: pointer;\n    transition: all 0.2s;\n}\n.cart-item.selected[data-v-dfc60568] {\n    background: #e3f2fd;\n    border: 1px solid #2196f3;\n}\n.item-name[data-v-dfc60568] {\n    font-weight: 500;\n    font-size: 14px;\n}\n.item-name .variation[data-v-dfc60568] {\n    font-weight: 400;\n    color: #888;\n    font-size: 12px;\n}\n.item-price[data-v-dfc60568] {\n    font-size: 12px;\n    color: #666;\n}\n.item-controls[data-v-dfc60568] {\n    display: flex;\n    align-items: center;\n    gap: 5px;\n}\n.qty-btn[data-v-dfc60568] {\n    width: 28px;\n    height: 28px;\n    border: 1px solid #ddd;\n    background: white;\n    border-radius: 4px;\n    cursor: pointer;\n    font-size: 16px;\n}\n.qty-input[data-v-dfc60568] {\n    width: 40px;\n    text-align: center;\n    border: 1px solid #ddd;\n    border-radius: 4px;\n    padding: 4px;\n}\n.item-total[data-v-dfc60568] {\n    font-weight: 600;\n    min-width: 70px;\n    text-align: right;\n}\n.item-actions[data-v-dfc60568] {\n    display: flex;\n    gap: 5px;\n}\n.btn-discount[data-v-dfc60568], .btn-remove[data-v-dfc60568] {\n    width: 28px;\n    height: 28px;\n    border: none;\n    border-radius: 4px;\n    cursor: pointer;\n    font-size: 12px;\n}\n.btn-discount[data-v-dfc60568] {\n    background: #fff3e0;\n    color: #ff9800;\n}\n.btn-remove[data-v-dfc60568] {\n    background: #ffebee;\n    color: #f44336;\n}\n\n/* Cart Summary */\n.cart-summary[data-v-dfc60568] {\n    padding: 15px;\n    border-top: 1px solid #e0e0e0;\n    background: #fafafa;\n}\n.summary-row[data-v-dfc60568] {\n    display: flex;\n    justify-content: space-between;\n    padding: 8px 0;\n}\n.summary-row.discount[data-v-dfc60568] {\n    color: #4caf50;\n}\n.summary-row.tax[data-v-dfc60568] {\n    color: #888;\n    font-size: 14px;\n}\n.summary-row.total[data-v-dfc60568] {\n    font-size: 20px;\n    font-weight: 700;\n    border-top: 2px solid #e0e0e0;\n    margin-top: 10px;\n    padding-top: 15px;\n}\n.add-discount-btn[data-v-dfc60568] {\n    background: none;\n    border: none;\n    color: #2196f3;\n    cursor: pointer;\n    font-size: 14px;\n}\n.btn-edit-discount[data-v-dfc60568] {\n    background: none;\n    border: none;\n    color: inherit;\n    cursor: pointer;\n    padding: 0 5px;\n}\n\n/* Cart Actions */\n.cart-actions[data-v-dfc60568] {\n    display: flex;\n    gap: 10px;\n    padding: 15px;\n    border-top: 1px solid #e0e0e0;\n}\n.btn-park[data-v-dfc60568] {\n    flex: 1;\n}\n.btn-pay[data-v-dfc60568] {\n    flex: 2;\n    font-size: 18px;\n    padding: 15px;\n}\n\n/* Modals */\n.modal-overlay[data-v-dfc60568] {\n    position: fixed;\n    top: 0;\n    left: 0;\n    right: 0;\n    bottom: 0;\n    background: rgba(0,0,0,0.5);\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    z-index: 1000;\n}\n.modal-content[data-v-dfc60568] {\n    background: white;\n    border-radius: 12px;\n    width: 90%;\n    max-width: 500px;\n    max-height: 90vh;\n    overflow: hidden;\n    display: flex;\n    flex-direction: column;\n}\n.modal-header[data-v-dfc60568] {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    padding: 15px 20px;\n    border-bottom: 1px solid #e0e0e0;\n}\n.modal-header h5[data-v-dfc60568] {\n    margin: 0;\n}\n.close-btn[data-v-dfc60568] {\n    background: none;\n    border: none;\n    font-size: 20px;\n    cursor: pointer;\n    color: #888;\n}\n.modal-body[data-v-dfc60568] {\n    padding: 20px;\n    overflow-y: auto;\n}\n\n/* Variation Modal */\n.variations-grid[data-v-dfc60568] {\n    display: grid;\n    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));\n    gap: 10px;\n}\n.variation-card[data-v-dfc60568] {\n    padding: 15px;\n    border: 2px solid #e0e0e0;\n    border-radius: 8px;\n    text-align: center;\n    cursor: pointer;\n    transition: all 0.2s;\n}\n.variation-card[data-v-dfc60568]:hover {\n    border-color: #2196f3;\n}\n.variation-card.out-of-stock[data-v-dfc60568] {\n    opacity: 0.5;\n    cursor: not-allowed;\n}\n.variation-name[data-v-dfc60568] {\n    font-weight: 600;\n    margin-bottom: 5px;\n}\n.variation-price[data-v-dfc60568] {\n    color: #2196f3;\n    font-weight: 700;\n}\n.variation-stock[data-v-dfc60568] {\n    font-size: 12px;\n    color: #888;\n}\n\n/* Customer Modal */\n.customer-search[data-v-dfc60568] {\n    margin-bottom: 15px;\n}\n.customer-list[data-v-dfc60568] {\n    max-height: 200px;\n    overflow-y: auto;\n}\n.customer-item[data-v-dfc60568] {\n    padding: 12px;\n    border: 1px solid #e0e0e0;\n    border-radius: 8px;\n    margin-bottom: 8px;\n    cursor: pointer;\n    transition: all 0.2s;\n}\n.customer-item[data-v-dfc60568]:hover {\n    background: #f5f5f5;\n}\n.customer-name[data-v-dfc60568] {\n    font-weight: 600;\n}\n.customer-phone[data-v-dfc60568] {\n    color: #888;\n    font-size: 14px;\n}\n.create-customer-form[data-v-dfc60568] {\n    margin-top: 20px;\n    padding-top: 20px;\n    border-top: 1px solid #e0e0e0;\n}\n.form-group[data-v-dfc60568] {\n    margin-bottom: 10px;\n}\n\n/* Discount Modal */\n.discount-type-toggle[data-v-dfc60568] {\n    display: flex;\n    gap: 10px;\n    margin-bottom: 20px;\n}\n.discount-type-toggle button[data-v-dfc60568] {\n    flex: 1;\n    padding: 12px;\n    border: 2px solid #e0e0e0;\n    background: white;\n    border-radius: 8px;\n    cursor: pointer;\n    transition: all 0.2s;\n}\n.discount-type-toggle button.active[data-v-dfc60568] {\n    border-color: #2196f3;\n    background: #e3f2fd;\n}\n.discount-input[data-v-dfc60568] {\n    margin-bottom: 20px;\n}\n.discount-actions[data-v-dfc60568] {\n    display: flex;\n    gap: 10px;\n    justify-content: flex-end;\n}\n\n/* Payment Modal */\n.payment-modal[data-v-dfc60568] {\n    max-width: 600px;\n}\n.payment-summary[data-v-dfc60568] {\n    background: #f5f5f5;\n    padding: 20px;\n    border-radius: 8px;\n    margin-bottom: 20px;\n}\n.total-due[data-v-dfc60568], .remaining[data-v-dfc60568] {\n    display: flex;\n    justify-content: space-between;\n    font-size: 18px;\n    margin-bottom: 10px;\n}\n.total-due .amount[data-v-dfc60568], .remaining .amount[data-v-dfc60568] {\n    font-weight: 700;\n}\n.paid-so-far[data-v-dfc60568], .change[data-v-dfc60568] {\n    display: flex;\n    justify-content: space-between;\n    font-size: 14px;\n    color: #666;\n}\n.change .amount[data-v-dfc60568] {\n    font-weight: 600;\n}\n.payment-methods[data-v-dfc60568] {\n    display: flex;\n    gap: 10px;\n    margin-bottom: 20px;\n    flex-wrap: wrap;\n}\n.payment-method-btn[data-v-dfc60568] {\n    flex: 1;\n    min-width: 100px;\n    padding: 15px;\n    border: 2px solid #e0e0e0;\n    background: white;\n    border-radius: 8px;\n    cursor: pointer;\n    text-align: center;\n    transition: all 0.2s;\n}\n.payment-method-btn.active[data-v-dfc60568] {\n    border-color: #2196f3;\n    background: #e3f2fd;\n}\n.payment-method-btn i[data-v-dfc60568] {\n    display: block;\n    font-size: 24px;\n    margin-bottom: 5px;\n}\n.payment-input[data-v-dfc60568] {\n    margin-bottom: 15px;\n}\n.payment-input label[data-v-dfc60568] {\n    display: block;\n    margin-bottom: 5px;\n    font-weight: 500;\n}\n.amount-input[data-v-dfc60568] {\n    font-size: 24px;\n    text-align: center;\n    padding: 15px;\n}\n.quick-amounts[data-v-dfc60568] {\n    display: flex;\n    gap: 10px;\n    flex-wrap: wrap;\n    margin-bottom: 20px;\n}\n.quick-amount-btn[data-v-dfc60568] {\n    padding: 10px 20px;\n    border: 1px solid #e0e0e0;\n    background: white;\n    border-radius: 20px;\n    cursor: pointer;\n    transition: all 0.2s;\n}\n.quick-amount-btn[data-v-dfc60568]:hover {\n    background: #f5f5f5;\n}\n.reference-input[data-v-dfc60568] {\n    margin-bottom: 20px;\n}\n.payments-list[data-v-dfc60568] {\n    margin-bottom: 20px;\n    padding: 15px;\n    background: #f9f9f9;\n    border-radius: 8px;\n}\n.payments-list h6[data-v-dfc60568] {\n    margin-bottom: 10px;\n}\n.payment-item[data-v-dfc60568] {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    padding: 8px 0;\n    border-bottom: 1px solid #e0e0e0;\n}\n.payment-item[data-v-dfc60568]:last-child {\n    border-bottom: none;\n}\n.btn-remove-payment[data-v-dfc60568] {\n    background: none;\n    border: none;\n    color: #f44336;\n    cursor: pointer;\n}\n.payment-actions[data-v-dfc60568] {\n    display: flex;\n    gap: 10px;\n}\n.btn-complete[data-v-dfc60568] {\n    flex: 1;\n    padding: 15px;\n    font-size: 16px;\n}\n\n/* Parked Sales Modal */\n.parked-sales-list[data-v-dfc60568] {\n    max-height: 400px;\n    overflow-y: auto;\n}\n.parked-sale-item[data-v-dfc60568] {\n    display: flex;\n    align-items: center;\n    gap: 15px;\n    padding: 15px;\n    border: 1px solid #e0e0e0;\n    border-radius: 8px;\n    margin-bottom: 10px;\n    cursor: pointer;\n    transition: all 0.2s;\n}\n.parked-sale-item[data-v-dfc60568]:hover {\n    background: #f5f5f5;\n}\n.sale-info[data-v-dfc60568] {\n    flex: 1;\n}\n.sale-number[data-v-dfc60568] {\n    font-weight: 600;\n}\n.sale-name[data-v-dfc60568] {\n    font-size: 14px;\n    color: #666;\n}\n.sale-customer[data-v-dfc60568] {\n    font-size: 12px;\n    color: #888;\n}\n.sale-details[data-v-dfc60568] {\n    text-align: right;\n}\n.items-count[data-v-dfc60568] {\n    font-size: 12px;\n    color: #888;\n}\n.sale-total[data-v-dfc60568] {\n    font-weight: 700;\n    color: #2196f3;\n}\n.btn-delete-parked[data-v-dfc60568] {\n    background: none;\n    border: none;\n    color: #f44336;\n    cursor: pointer;\n    padding: 10px;\n}\n\n/* Receipt Modal */\n.receipt-modal[data-v-dfc60568] {\n    max-width: 400px;\n    text-align: center;\n}\n.success-icon[data-v-dfc60568] {\n    font-size: 64px;\n    color: #4caf50;\n    margin-bottom: 20px;\n}\n.receipt-info[data-v-dfc60568] {\n    margin-bottom: 20px;\n}\n.receipt-info .total[data-v-dfc60568] {\n    font-size: 32px;\n    font-weight: 700;\n}\n.receipt-info .change[data-v-dfc60568] {\n    font-size: 18px;\n    color: #4caf50;\n}\n.receipt-actions[data-v-dfc60568] {\n    display: flex;\n    gap: 10px;\n}\n.receipt-actions button[data-v-dfc60568] {\n    flex: 1;\n}\n\n/* ============================================\n   MOBILE RESPONSIVE STYLES\n============================================ */\n\n/* Tablet and below */\n@media (max-width: 768px) {\n.pos-topbar[data-v-dfc60568] {\n        padding: 10px;\n        flex-wrap: wrap;\n        gap: 10px;\n}\n.pos-topbar h4[data-v-dfc60568] {\n        font-size: 16px;\n}\n.pos-topbar-left[data-v-dfc60568] {\n        flex: 1;\n        min-width: 150px;\n}\n.pos-topbar-center[data-v-dfc60568] {\n        order: 3;\n        width: 100%;\n}\n.cart-tabs[data-v-dfc60568] {\n        width: 100%;\n        overflow-x: auto;\n        padding-bottom: 5px;\n}\n.cart-tab[data-v-dfc60568] {\n        padding: 6px 12px;\n        font-size: 14px;\n}\n.pos-topbar-right[data-v-dfc60568] {\n        gap: 5px;\n}\n.pos-topbar-right .btn[data-v-dfc60568] {\n        padding: 6px 10px;\n        font-size: 12px;\n}\n\n    /* Stack products and cart vertically */\n.pos-main[data-v-dfc60568] {\n        flex-direction: column;\n}\n.pos-products[data-v-dfc60568] {\n        height: 50vh;\n        padding: 10px;\n}\n.pos-cart[data-v-dfc60568] {\n        width: 100%;\n        height: 50vh;\n        border-left: none;\n        border-top: 2px solid #e0e0e0;\n}\n\n    /* Adjust product grid for mobile */\n.product-grid[data-v-dfc60568] {\n        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));\n        gap: 12px;\n}\n.product-image[data-v-dfc60568] {\n        height: 120px;\n}\n.product-info[data-v-dfc60568] {\n        padding: 12px;\n}\n.product-name[data-v-dfc60568] {\n        font-size: 13px;\n        min-height: 36px;\n}\n.product-price[data-v-dfc60568] {\n        font-size: 16px;\n}\n.product-stock[data-v-dfc60568] {\n        font-size: 12px;\n}\n\n    /* Cart adjustments */\n.cart-items[data-v-dfc60568] {\n        padding: 10px;\n}\n.cart-item[data-v-dfc60568] {\n        grid-template-columns: 1fr auto;\n        grid-template-rows: auto auto;\n        gap: 8px;\n        padding: 10px;\n}\n.item-info[data-v-dfc60568] {\n        grid-column: 1 / 2;\n        grid-row: 1 / 2;\n}\n.item-controls[data-v-dfc60568] {\n        grid-column: 1 / 2;\n        grid-row: 2 / 3;\n}\n.item-total[data-v-dfc60568] {\n        grid-column: 2 / 3;\n        grid-row: 1 / 2;\n}\n.item-actions[data-v-dfc60568] {\n        grid-column: 2 / 3;\n        grid-row: 2 / 3;\n        justify-content: flex-end;\n}\n.cart-summary[data-v-dfc60568] {\n        padding: 10px;\n}\n.summary-row.total[data-v-dfc60568] {\n        font-size: 18px;\n}\n.cart-actions[data-v-dfc60568] {\n        padding: 10px;\n        gap: 8px;\n}\n.btn-pay[data-v-dfc60568] {\n        font-size: 16px;\n        padding: 12px;\n}\n\n    /* Modal adjustments */\n.modal-content[data-v-dfc60568] {\n        width: 95%;\n        max-height: 95vh;\n}\n.modal-body[data-v-dfc60568] {\n        padding: 15px;\n}\n.payment-modal[data-v-dfc60568] {\n        max-width: 95%;\n}\n.payment-method-btn[data-v-dfc60568] {\n        min-width: 80px;\n        padding: 12px 8px;\n        font-size: 12px;\n}\n.payment-method-btn i[data-v-dfc60568] {\n        font-size: 20px;\n}\n.amount-input[data-v-dfc60568] {\n        font-size: 20px;\n        padding: 12px;\n}\n.quick-amounts[data-v-dfc60568] {\n        gap: 8px;\n}\n.quick-amount-btn[data-v-dfc60568] {\n        padding: 8px 16px;\n        font-size: 14px;\n}\n.variations-grid[data-v-dfc60568] {\n        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));\n}\n.variation-card[data-v-dfc60568] {\n        padding: 12px;\n}\n}\n\n/* Mobile phones */\n@media (max-width: 480px) {\n.pos-topbar h4[data-v-dfc60568] {\n        font-size: 14px;\n}\n.pos-topbar h4 i[data-v-dfc60568] {\n        display: none;\n}\n.cart-tab[data-v-dfc60568] {\n        padding: 5px 10px;\n        font-size: 12px;\n}\n.new-cart-btn[data-v-dfc60568] {\n        width: 32px;\n        height: 32px;\n}\n.pos-topbar-right .btn span[data-v-dfc60568] {\n        display: none;\n}\n\n    /* Adjust product grid for small phones */\n.product-grid[data-v-dfc60568] {\n        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));\n        gap: 10px;\n}\n.product-image[data-v-dfc60568] {\n        height: 100px;\n}\n.product-image i[data-v-dfc60568] {\n        font-size: 36px;\n}\n.product-info[data-v-dfc60568] {\n        padding: 10px;\n}\n.product-name[data-v-dfc60568] {\n        font-size: 12px;\n        min-height: 34px;\n}\n.product-price[data-v-dfc60568] {\n        font-size: 14px;\n}\n.product-stock[data-v-dfc60568] {\n        font-size: 11px;\n}\n.search-input[data-v-dfc60568] {\n        padding: 12px 40px;\n        font-size: 14px;\n}\n\n    /* Compact cart */\n.customer-section[data-v-dfc60568] {\n        padding: 10px;\n}\n.cart-item[data-v-dfc60568] {\n        padding: 8px;\n        font-size: 13px;\n}\n.item-name[data-v-dfc60568] {\n        font-size: 13px;\n}\n.item-name .variation[data-v-dfc60568] {\n        font-size: 11px;\n}\n.item-price[data-v-dfc60568] {\n        font-size: 11px;\n}\n.qty-btn[data-v-dfc60568] {\n        width: 26px;\n        height: 26px;\n        font-size: 14px;\n}\n.qty-input[data-v-dfc60568] {\n        width: 36px;\n        font-size: 14px;\n}\n.item-total[data-v-dfc60568] {\n        font-size: 14px;\n        min-width: 60px;\n}\n.btn-discount[data-v-dfc60568], .btn-remove[data-v-dfc60568] {\n        width: 26px;\n        height: 26px;\n        font-size: 11px;\n}\n.summary-row[data-v-dfc60568] {\n        padding: 6px 0;\n        font-size: 14px;\n}\n.summary-row.total[data-v-dfc60568] {\n        font-size: 16px;\n}\n.cart-actions[data-v-dfc60568] {\n        gap: 6px;\n        padding: 8px;\n}\n.btn-park[data-v-dfc60568] {\n        font-size: 13px;\n        padding: 10px 8px;\n}\n.btn-pay[data-v-dfc60568] {\n        font-size: 14px;\n        padding: 10px;\n}\n\n    /* Full screen modals on mobile */\n.modal-content[data-v-dfc60568] {\n        width: 100%;\n        max-width: 100%;\n        height: 100vh;\n        max-height: 100vh;\n        border-radius: 0;\n}\n.modal-header[data-v-dfc60568] {\n        padding: 12px 15px;\n}\n.modal-header h5[data-v-dfc60568] {\n        font-size: 16px;\n}\n.payment-methods[data-v-dfc60568] {\n        gap: 8px;\n}\n.payment-method-btn[data-v-dfc60568] {\n        min-width: 70px;\n        padding: 10px 6px;\n        font-size: 11px;\n}\n.payment-method-btn i[data-v-dfc60568] {\n        font-size: 18px;\n}\n.payment-method-btn span[data-v-dfc60568] {\n        font-size: 10px;\n}\n.amount-input[data-v-dfc60568] {\n        font-size: 18px;\n        padding: 10px;\n}\n.quick-amount-btn[data-v-dfc60568] {\n        padding: 8px 12px;\n        font-size: 12px;\n}\n.btn-complete[data-v-dfc60568] {\n        padding: 12px;\n        font-size: 14px;\n}\n.variations-grid[data-v-dfc60568] {\n        grid-template-columns: repeat(2, 1fr);\n}\n.variation-card[data-v-dfc60568] {\n        padding: 10px;\n        font-size: 13px;\n}\n.variation-name[data-v-dfc60568] {\n        font-size: 13px;\n}\n.variation-price[data-v-dfc60568] {\n        font-size: 14px;\n}\n.customer-item[data-v-dfc60568] {\n        padding: 10px;\n}\n.customer-name[data-v-dfc60568] {\n        font-size: 14px;\n}\n.customer-phone[data-v-dfc60568] {\n        font-size: 12px;\n}\n.receipt-info .total[data-v-dfc60568] {\n        font-size: 24px;\n}\n.receipt-info .change[data-v-dfc60568] {\n        font-size: 16px;\n}\n.success-icon[data-v-dfc60568] {\n        font-size: 48px;\n}\n\n    /* Parked sales */\n.parked-sale-item[data-v-dfc60568] {\n        padding: 12px;\n        gap: 10px;\n}\n.sale-number[data-v-dfc60568] {\n        font-size: 14px;\n}\n.sale-name[data-v-dfc60568] {\n        font-size: 12px;\n}\n.sale-total[data-v-dfc60568] {\n        font-size: 14px;\n}\n}\n\n/* Landscape orientation for phones */\n@media (max-width: 768px) and (orientation: landscape) {\n.pos-main[data-v-dfc60568] {\n        flex-direction: row;\n}\n.pos-products[data-v-dfc60568] {\n        height: auto;\n        width: 60%;\n}\n.pos-cart[data-v-dfc60568] {\n        height: auto;\n        width: 40%;\n        border-left: 2px solid #e0e0e0;\n        border-top: none;\n}\n}\n\n/* Small height screens (landscape phones) */\n@media (max-height: 500px) {\n.pos-topbar[data-v-dfc60568] {\n        padding: 5px 10px;\n}\n.cart-tab[data-v-dfc60568] {\n        padding: 4px 8px;\n}\n.search-section[data-v-dfc60568] {\n        margin-bottom: 10px;\n}\n.search-input[data-v-dfc60568] {\n        padding: 10px 40px;\n}\n.product-image[data-v-dfc60568] {\n        height: 40px;\n}\n.cart-actions[data-v-dfc60568] {\n        padding: 6px;\n}\n.btn-pay[data-v-dfc60568] {\n        padding: 8px;\n        font-size: 13px;\n}\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n.pos-container[data-v-dfc60568] {\n    height: 100vh;\n    display: flex;\n    flex-direction: column;\n    background: #f5f7fa;\n    overflow: hidden;\n}\n.offline-banner[data-v-dfc60568] {\n    background: #ff9800;\n    color: white;\n    padding: 8px;\n    text-align: center;\n    font-size: 14px;\n}\n.pos-topbar[data-v-dfc60568] {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    padding: 10px 20px;\n    background: white;\n    border-bottom: 1px solid #e0e0e0;\n    gap: 20px;\n}\n.pos-topbar h4[data-v-dfc60568] {\n    margin: 0;\n    font-size: 18px;\n}\n.cart-tabs[data-v-dfc60568] {\n    display: flex;\n    align-items: center;\n    gap: 5px;\n}\n.cart-tab[data-v-dfc60568] {\n    display: flex;\n    align-items: center;\n    gap: 8px;\n    padding: 8px 16px;\n    background: #f0f0f0;\n    border-radius: 20px;\n    cursor: pointer;\n    transition: all 0.2s;\n}\n.cart-tab.active[data-v-dfc60568] {\n    background: #2196f3;\n    color: white;\n}\n.cart-tab .item-count[data-v-dfc60568] {\n    background: rgba(0,0,0,0.1);\n    padding: 2px 8px;\n    border-radius: 10px;\n    font-size: 12px;\n}\n.cart-tab .close-cart[data-v-dfc60568] {\n    background: none;\n    border: none;\n    padding: 2px;\n    cursor: pointer;\n    opacity: 0.6;\n}\n.new-cart-btn[data-v-dfc60568] {\n    width: 36px;\n    height: 36px;\n    border-radius: 50%;\n    border: 2px dashed #ccc;\n    background: none;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n.pos-topbar-right[data-v-dfc60568] {\n    display: flex;\n    gap: 10px;\n}\n.pos-topbar-right .badge[data-v-dfc60568] {\n    background: #f44336;\n    color: white;\n    border-radius: 10px;\n    padding: 2px 6px;\n    font-size: 10px;\n    margin-left: 5px;\n}\n.pos-main[data-v-dfc60568] {\n    flex: 1;\n    display: flex;\n    overflow: hidden;\n}\n.pos-products[data-v-dfc60568] {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    padding: 20px;\n    overflow: hidden;\n}\n.search-section[data-v-dfc60568] {\n    margin-bottom: 20px;\n}\n.search-input-wrapper[data-v-dfc60568] {\n    position: relative;\n    display: flex;\n    align-items: center;\n    margin-bottom: 10px;\n}\n.category-filters[data-v-dfc60568] {\n    display: flex;\n    gap: 10px;\n}\n.category-select[data-v-dfc60568] {\n    flex: 1;\n    padding: 10px 15px;\n    border: 2px solid #e0e0e0;\n    border-radius: 8px;\n    font-size: 14px;\n    background: white;\n    cursor: pointer;\n    transition: border-color 0.2s;\n}\n.category-select[data-v-dfc60568]:focus {\n    outline: none;\n    border-color: #2196f3;\n}\n.category-select[data-v-dfc60568]:disabled {\n    background: #f5f5f5;\n    cursor: not-allowed;\n    opacity: 0.6;\n}\n.search-input-wrapper i[data-v-dfc60568] {\n    position: absolute;\n    left: 15px;\n    color: #888;\n}\n.search-input[data-v-dfc60568] {\n    width: 100%;\n    padding: 15px 45px;\n    border: 2px solid #e0e0e0;\n    border-radius: 10px;\n    font-size: 16px;\n    transition: border-color 0.2s;\n}\n.search-input[data-v-dfc60568]:focus {\n    outline: none;\n    border-color: #2196f3;\n}\n.clear-search[data-v-dfc60568] {\n    position: absolute;\n    right: 15px;\n    background: none;\n    border: none;\n    cursor: pointer;\n    color: #888;\n}\n.product-grid[data-v-dfc60568] {\n    flex: 1;\n    display: grid;\n    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));\n    gap: 20px;\n    overflow-y: auto;\n    padding-right: 10px;\n    align-content: start;\n}\n.loading-state[data-v-dfc60568], .empty-state[data-v-dfc60568] {\n    grid-column: 1 / -1;\n    text-align: center;\n    padding: 40px;\n    color: #888;\n}\n.empty-state i[data-v-dfc60568] {\n    font-size: 48px;\n    margin-bottom: 10px;\n    opacity: 0.5;\n}\n.product-card[data-v-dfc60568] {\n    background: white;\n    border-radius: 12px;\n    cursor: pointer;\n    transition: all 0.3s ease;\n    box-shadow: 0 2px 8px rgba(0,0,0,0.08);\n    display: flex;\n    flex-direction: column;\n    height: 100%;\n    overflow: hidden;\n}\n.product-card[data-v-dfc60568]:hover {\n    transform: translateY(-4px);\n    box-shadow: 0 8px 24px rgba(33, 150, 243, 0.2);\n}\n.product-image[data-v-dfc60568] {\n    width: 100%;\n    height: 160px;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);\n    overflow: hidden;\n    position: relative;\n}\n.product-image img[data-v-dfc60568] {\n    width: 100%;\n    height: 100%;\n    -o-object-fit: cover;\n       object-fit: cover;\n    transition: transform 0.3s ease;\n}\n.product-card:hover .product-image img[data-v-dfc60568] {\n    transform: scale(1.05);\n}\n.product-image i[data-v-dfc60568] {\n    font-size: 48px;\n    color: #cbd5e0;\n}\n.product-info[data-v-dfc60568] {\n    padding: 15px;\n    display: flex;\n    flex-direction: column;\n    gap: 8px;\n    flex: 1;\n}\n.product-name[data-v-dfc60568] {\n    font-weight: 600;\n    font-size: 14px;\n    line-height: 1.4;\n    color: #2d3748;\n    display: -webkit-box;\n    -webkit-line-clamp: 2;\n    line-clamp: 2;\n    -webkit-box-orient: vertical;\n    overflow: hidden;\n    min-height: 40px;\n}\n.product-price[data-v-dfc60568] {\n    color: #2196f3;\n    font-weight: 700;\n    font-size: 18px;\n    margin-top: auto;\n}\n.product-stock[data-v-dfc60568] {\n    display: flex;\n    align-items: center;\n    gap: 6px;\n    font-size: 13px;\n    color: #4caf50;\n    font-weight: 600;\n}\n.product-stock i[data-v-dfc60568] {\n    font-size: 14px;\n}\n.product-stock.low-stock[data-v-dfc60568] {\n    color: #f44336;\n}\n\n/* Cart */\n.pos-cart[data-v-dfc60568] {\n    width: 400px;\n    background: white;\n    display: flex;\n    flex-direction: column;\n    border-left: 1px solid #e0e0e0;\n}\n.customer-section[data-v-dfc60568] {\n    padding: 15px;\n    border-bottom: 1px solid #e0e0e0;\n}\n.selected-customer[data-v-dfc60568] {\n    display: flex;\n    align-items: center;\n    gap: 10px;\n    padding: 10px 15px;\n    background: #e3f2fd;\n    border-radius: 8px;\n}\n.selected-customer .btn-clear[data-v-dfc60568] {\n    margin-left: auto;\n    background: none;\n    border: none;\n    cursor: pointer;\n    color: #888;\n}\n.select-customer-btn[data-v-dfc60568] {\n    width: 100%;\n    padding: 12px;\n    border: 2px dashed #ccc;\n    border-radius: 8px;\n    background: none;\n    cursor: pointer;\n    color: #666;\n    transition: all 0.2s;\n}\n.select-customer-btn[data-v-dfc60568]:hover {\n    border-color: #2196f3;\n    color: #2196f3;\n}\n.cart-items[data-v-dfc60568] {\n    flex: 1;\n    overflow-y: auto;\n    padding: 15px;\n}\n.empty-cart[data-v-dfc60568] {\n    text-align: center;\n    padding: 40px 20px;\n    color: #888;\n}\n.empty-cart i[data-v-dfc60568] {\n    font-size: 48px;\n    opacity: 0.3;\n    margin-bottom: 10px;\n}\n.cart-item[data-v-dfc60568] {\n    display: grid;\n    grid-template-columns: 1fr auto auto auto;\n    gap: 10px;\n    align-items: center;\n    padding: 12px;\n    background: #f9f9f9;\n    border-radius: 8px;\n    margin-bottom: 10px;\n    cursor: pointer;\n    transition: all 0.2s;\n}\n.cart-item.selected[data-v-dfc60568] {\n    background: #e3f2fd;\n    border: 1px solid #2196f3;\n}\n.item-name[data-v-dfc60568] {\n    font-weight: 500;\n    font-size: 14px;\n}\n.item-name .variation[data-v-dfc60568] {\n    font-weight: 400;\n    color: #888;\n    font-size: 12px;\n}\n.item-price[data-v-dfc60568] {\n    font-size: 12px;\n    color: #666;\n}\n.item-controls[data-v-dfc60568] {\n    display: flex;\n    align-items: center;\n    gap: 5px;\n}\n.qty-btn[data-v-dfc60568] {\n    width: 28px;\n    height: 28px;\n    border: 1px solid #ddd;\n    background: white;\n    border-radius: 4px;\n    cursor: pointer;\n    font-size: 16px;\n}\n.qty-input[data-v-dfc60568] {\n    width: 40px;\n    text-align: center;\n    border: 1px solid #ddd;\n    border-radius: 4px;\n    padding: 4px;\n}\n.item-total[data-v-dfc60568] {\n    font-weight: 600;\n    min-width: 70px;\n    text-align: right;\n}\n.item-actions[data-v-dfc60568] {\n    display: flex;\n    gap: 5px;\n}\n.btn-discount[data-v-dfc60568], .btn-remove[data-v-dfc60568] {\n    width: 28px;\n    height: 28px;\n    border: none;\n    border-radius: 4px;\n    cursor: pointer;\n    font-size: 12px;\n}\n.btn-discount[data-v-dfc60568] {\n    background: #fff3e0;\n    color: #ff9800;\n}\n.btn-remove[data-v-dfc60568] {\n    background: #ffebee;\n    color: #f44336;\n}\n\n/* Cart Summary */\n.cart-summary[data-v-dfc60568] {\n    padding: 15px;\n    border-top: 1px solid #e0e0e0;\n    background: #fafafa;\n}\n.summary-row[data-v-dfc60568] {\n    display: flex;\n    justify-content: space-between;\n    padding: 8px 0;\n}\n.summary-row.discount[data-v-dfc60568] {\n    color: #4caf50;\n}\n.summary-row.tax[data-v-dfc60568] {\n    color: #888;\n    font-size: 14px;\n}\n.summary-row.total[data-v-dfc60568] {\n    font-size: 20px;\n    font-weight: 700;\n    border-top: 2px solid #e0e0e0;\n    margin-top: 10px;\n    padding-top: 15px;\n}\n.add-discount-btn[data-v-dfc60568] {\n    background: none;\n    border: none;\n    color: #2196f3;\n    cursor: pointer;\n    font-size: 14px;\n}\n.btn-edit-discount[data-v-dfc60568] {\n    background: none;\n    border: none;\n    color: inherit;\n    cursor: pointer;\n    padding: 0 5px;\n}\n\n/* Cart Actions */\n.cart-actions[data-v-dfc60568] {\n    display: flex;\n    gap: 10px;\n    padding: 15px;\n    border-top: 1px solid #e0e0e0;\n}\n.btn-park[data-v-dfc60568] {\n    flex: 1;\n}\n.btn-pay[data-v-dfc60568] {\n    flex: 2;\n    font-size: 18px;\n    padding: 15px;\n}\n.quick-pay-wrapper[data-v-dfc60568] {\n    padding: 0 15px 15px 15px;\n}\n.btn-quick-pay[data-v-dfc60568] {\n    width: 100%;\n    font-size: 18px;\n    padding: 15px;\n    font-weight: 600;\n}\n\n/* Modals */\n.modal-overlay[data-v-dfc60568] {\n    position: fixed;\n    top: 0;\n    left: 0;\n    right: 0;\n    bottom: 0;\n    background: rgba(0,0,0,0.5);\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    z-index: 1000;\n}\n.modal-content[data-v-dfc60568] {\n    background: white;\n    border-radius: 12px;\n    width: 90%;\n    max-width: 500px;\n    max-height: 90vh;\n    overflow: hidden;\n    display: flex;\n    flex-direction: column;\n}\n.modal-header[data-v-dfc60568] {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    padding: 15px 20px;\n    border-bottom: 1px solid #e0e0e0;\n}\n.modal-header h5[data-v-dfc60568] {\n    margin: 0;\n}\n.close-btn[data-v-dfc60568] {\n    background: none;\n    border: none;\n    font-size: 20px;\n    cursor: pointer;\n    color: #888;\n}\n.modal-body[data-v-dfc60568] {\n    padding: 20px;\n    overflow-y: auto;\n}\n\n/* Variation Modal */\n.variations-grid[data-v-dfc60568] {\n    display: grid;\n    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));\n    gap: 10px;\n}\n.variation-card[data-v-dfc60568] {\n    padding: 15px;\n    border: 2px solid #e0e0e0;\n    border-radius: 8px;\n    text-align: center;\n    cursor: pointer;\n    transition: all 0.2s;\n}\n.variation-card[data-v-dfc60568]:hover {\n    border-color: #2196f3;\n}\n.variation-card.out-of-stock[data-v-dfc60568] {\n    opacity: 0.5;\n    cursor: not-allowed;\n}\n.variation-name[data-v-dfc60568] {\n    font-weight: 600;\n    margin-bottom: 5px;\n}\n.variation-price[data-v-dfc60568] {\n    color: #2196f3;\n    font-weight: 700;\n}\n.variation-stock[data-v-dfc60568] {\n    font-size: 12px;\n    color: #888;\n}\n\n/* Customer Modal */\n.customer-search[data-v-dfc60568] {\n    margin-bottom: 15px;\n}\n.customer-list[data-v-dfc60568] {\n    max-height: 200px;\n    overflow-y: auto;\n}\n.customer-item[data-v-dfc60568] {\n    padding: 12px;\n    border: 1px solid #e0e0e0;\n    border-radius: 8px;\n    margin-bottom: 8px;\n    cursor: pointer;\n    transition: all 0.2s;\n}\n.customer-item[data-v-dfc60568]:hover {\n    background: #f5f5f5;\n}\n.customer-name[data-v-dfc60568] {\n    font-weight: 600;\n}\n.customer-phone[data-v-dfc60568] {\n    color: #888;\n    font-size: 14px;\n}\n.create-customer-form[data-v-dfc60568] {\n    margin-top: 20px;\n    padding-top: 20px;\n    border-top: 1px solid #e0e0e0;\n}\n.form-group[data-v-dfc60568] {\n    margin-bottom: 10px;\n}\n\n/* Discount Modal */\n.discount-type-toggle[data-v-dfc60568] {\n    display: flex;\n    gap: 10px;\n    margin-bottom: 20px;\n}\n.discount-type-toggle button[data-v-dfc60568] {\n    flex: 1;\n    padding: 12px;\n    border: 2px solid #e0e0e0;\n    background: white;\n    border-radius: 8px;\n    cursor: pointer;\n    transition: all 0.2s;\n}\n.discount-type-toggle button.active[data-v-dfc60568] {\n    border-color: #2196f3;\n    background: #e3f2fd;\n}\n.discount-input[data-v-dfc60568] {\n    margin-bottom: 20px;\n}\n.discount-actions[data-v-dfc60568] {\n    display: flex;\n    gap: 10px;\n    justify-content: flex-end;\n}\n\n/* Payment Modal */\n.payment-modal[data-v-dfc60568] {\n    max-width: 600px;\n}\n.payment-summary[data-v-dfc60568] {\n    background: #f5f5f5;\n    padding: 20px;\n    border-radius: 8px;\n    margin-bottom: 20px;\n}\n.total-due[data-v-dfc60568], .remaining[data-v-dfc60568] {\n    display: flex;\n    justify-content: space-between;\n    font-size: 18px;\n    margin-bottom: 10px;\n}\n.total-due .amount[data-v-dfc60568], .remaining .amount[data-v-dfc60568] {\n    font-weight: 700;\n}\n.paid-so-far[data-v-dfc60568], .change[data-v-dfc60568] {\n    display: flex;\n    justify-content: space-between;\n    font-size: 14px;\n    color: #666;\n}\n.change .amount[data-v-dfc60568] {\n    font-weight: 600;\n}\n.payment-methods[data-v-dfc60568] {\n    display: flex;\n    gap: 10px;\n    margin-bottom: 20px;\n    flex-wrap: wrap;\n}\n.payment-method-btn[data-v-dfc60568] {\n    flex: 1;\n    min-width: 100px;\n    padding: 15px;\n    border: 2px solid #e0e0e0;\n    background: white;\n    border-radius: 8px;\n    cursor: pointer;\n    text-align: center;\n    transition: all 0.2s;\n}\n.payment-method-btn.active[data-v-dfc60568] {\n    border-color: #2196f3;\n    background: #e3f2fd;\n}\n.payment-method-btn i[data-v-dfc60568] {\n    display: block;\n    font-size: 24px;\n    margin-bottom: 5px;\n}\n.payment-input[data-v-dfc60568] {\n    margin-bottom: 15px;\n}\n.payment-input label[data-v-dfc60568] {\n    display: block;\n    margin-bottom: 5px;\n    font-weight: 500;\n}\n.amount-input[data-v-dfc60568] {\n    font-size: 24px;\n    text-align: center;\n    padding: 15px;\n}\n.quick-amounts[data-v-dfc60568] {\n    display: flex;\n    gap: 10px;\n    flex-wrap: wrap;\n    margin-bottom: 20px;\n}\n.quick-amount-btn[data-v-dfc60568] {\n    padding: 10px 20px;\n    border: 1px solid #e0e0e0;\n    background: white;\n    border-radius: 20px;\n    cursor: pointer;\n    transition: all 0.2s;\n}\n.quick-amount-btn[data-v-dfc60568]:hover {\n    background: #f5f5f5;\n}\n.reference-input[data-v-dfc60568] {\n    margin-bottom: 20px;\n}\n.payments-list[data-v-dfc60568] {\n    margin-bottom: 20px;\n    padding: 15px;\n    background: #f9f9f9;\n    border-radius: 8px;\n}\n.payments-list h6[data-v-dfc60568] {\n    margin-bottom: 10px;\n}\n.payment-item[data-v-dfc60568] {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    padding: 8px 0;\n    border-bottom: 1px solid #e0e0e0;\n}\n.payment-item[data-v-dfc60568]:last-child {\n    border-bottom: none;\n}\n.btn-remove-payment[data-v-dfc60568] {\n    background: none;\n    border: none;\n    color: #f44336;\n    cursor: pointer;\n}\n.payment-actions[data-v-dfc60568] {\n    display: flex;\n    gap: 10px;\n}\n.btn-complete[data-v-dfc60568] {\n    flex: 1;\n    padding: 15px;\n    font-size: 16px;\n}\n\n/* Parked Sales Modal */\n.parked-sales-list[data-v-dfc60568] {\n    max-height: 400px;\n    overflow-y: auto;\n}\n.parked-sale-item[data-v-dfc60568] {\n    display: flex;\n    align-items: center;\n    gap: 15px;\n    padding: 15px;\n    border: 1px solid #e0e0e0;\n    border-radius: 8px;\n    margin-bottom: 10px;\n    cursor: pointer;\n    transition: all 0.2s;\n}\n.parked-sale-item[data-v-dfc60568]:hover {\n    background: #f5f5f5;\n}\n.sale-info[data-v-dfc60568] {\n    flex: 1;\n}\n.sale-number[data-v-dfc60568] {\n    font-weight: 600;\n}\n.sale-name[data-v-dfc60568] {\n    font-size: 14px;\n    color: #666;\n}\n.sale-customer[data-v-dfc60568] {\n    font-size: 12px;\n    color: #888;\n}\n.sale-details[data-v-dfc60568] {\n    text-align: right;\n}\n.items-count[data-v-dfc60568] {\n    font-size: 12px;\n    color: #888;\n}\n.sale-total[data-v-dfc60568] {\n    font-weight: 700;\n    color: #2196f3;\n}\n.btn-delete-parked[data-v-dfc60568] {\n    background: none;\n    border: none;\n    color: #f44336;\n    cursor: pointer;\n    padding: 10px;\n}\n\n/* Receipt Modal */\n.receipt-modal[data-v-dfc60568] {\n    max-width: 400px;\n    text-align: center;\n}\n.success-icon[data-v-dfc60568] {\n    font-size: 64px;\n    color: #4caf50;\n    margin-bottom: 20px;\n}\n.receipt-info[data-v-dfc60568] {\n    margin-bottom: 20px;\n}\n.receipt-info .total[data-v-dfc60568] {\n    font-size: 32px;\n    font-weight: 700;\n}\n.receipt-info .change[data-v-dfc60568] {\n    font-size: 18px;\n    color: #4caf50;\n}\n.receipt-actions[data-v-dfc60568] {\n    display: flex;\n    gap: 10px;\n}\n.receipt-actions button[data-v-dfc60568] {\n    flex: 1;\n}\n\n/* ============================================\n   MOBILE RESPONSIVE STYLES\n============================================ */\n\n/* Tablet and below */\n@media (max-width: 768px) {\n.pos-topbar[data-v-dfc60568] {\n        padding: 10px;\n        flex-wrap: wrap;\n        gap: 10px;\n}\n.pos-topbar h4[data-v-dfc60568] {\n        font-size: 16px;\n}\n.pos-topbar-left[data-v-dfc60568] {\n        flex: 1;\n        min-width: 150px;\n}\n.pos-topbar-center[data-v-dfc60568] {\n        order: 3;\n        width: 100%;\n}\n.cart-tabs[data-v-dfc60568] {\n        width: 100%;\n        overflow-x: auto;\n        padding-bottom: 5px;\n}\n.cart-tab[data-v-dfc60568] {\n        padding: 6px 12px;\n        font-size: 14px;\n}\n.pos-topbar-right[data-v-dfc60568] {\n        gap: 5px;\n}\n.pos-topbar-right .btn[data-v-dfc60568] {\n        padding: 6px 10px;\n        font-size: 12px;\n}\n\n    /* Stack products and cart vertically */\n.pos-main[data-v-dfc60568] {\n        flex-direction: column;\n}\n.pos-products[data-v-dfc60568] {\n        height: 50vh;\n        padding: 10px;\n}\n.pos-cart[data-v-dfc60568] {\n        width: 100%;\n        height: 50vh;\n        border-left: none;\n        border-top: 2px solid #e0e0e0;\n}\n\n    /* Adjust product grid for mobile */\n.product-grid[data-v-dfc60568] {\n        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));\n        gap: 12px;\n}\n.product-image[data-v-dfc60568] {\n        height: 120px;\n}\n.product-info[data-v-dfc60568] {\n        padding: 12px;\n}\n.product-name[data-v-dfc60568] {\n        font-size: 13px;\n        min-height: 36px;\n}\n.product-price[data-v-dfc60568] {\n        font-size: 16px;\n}\n.product-stock[data-v-dfc60568] {\n        font-size: 12px;\n}\n\n    /* Cart adjustments */\n.cart-items[data-v-dfc60568] {\n        padding: 10px;\n}\n.cart-item[data-v-dfc60568] {\n        grid-template-columns: 1fr auto;\n        grid-template-rows: auto auto;\n        gap: 8px;\n        padding: 10px;\n}\n.item-info[data-v-dfc60568] {\n        grid-column: 1 / 2;\n        grid-row: 1 / 2;\n}\n.item-controls[data-v-dfc60568] {\n        grid-column: 1 / 2;\n        grid-row: 2 / 3;\n}\n.item-total[data-v-dfc60568] {\n        grid-column: 2 / 3;\n        grid-row: 1 / 2;\n}\n.item-actions[data-v-dfc60568] {\n        grid-column: 2 / 3;\n        grid-row: 2 / 3;\n        justify-content: flex-end;\n}\n.cart-summary[data-v-dfc60568] {\n        padding: 10px;\n}\n.summary-row.total[data-v-dfc60568] {\n        font-size: 18px;\n}\n.cart-actions[data-v-dfc60568] {\n        padding: 10px;\n        gap: 8px;\n}\n.btn-pay[data-v-dfc60568] {\n        font-size: 16px;\n        padding: 12px;\n}\n\n    /* Modal adjustments */\n.modal-content[data-v-dfc60568] {\n        width: 95%;\n        max-height: 95vh;\n}\n.modal-body[data-v-dfc60568] {\n        padding: 15px;\n}\n.payment-modal[data-v-dfc60568] {\n        max-width: 95%;\n}\n.payment-method-btn[data-v-dfc60568] {\n        min-width: 80px;\n        padding: 12px 8px;\n        font-size: 12px;\n}\n.payment-method-btn i[data-v-dfc60568] {\n        font-size: 20px;\n}\n.amount-input[data-v-dfc60568] {\n        font-size: 20px;\n        padding: 12px;\n}\n.quick-amounts[data-v-dfc60568] {\n        gap: 8px;\n}\n.quick-amount-btn[data-v-dfc60568] {\n        padding: 8px 16px;\n        font-size: 14px;\n}\n.variations-grid[data-v-dfc60568] {\n        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));\n}\n.variation-card[data-v-dfc60568] {\n        padding: 12px;\n}\n}\n\n/* Mobile phones */\n@media (max-width: 480px) {\n.pos-topbar h4[data-v-dfc60568] {\n        font-size: 14px;\n}\n.pos-topbar h4 i[data-v-dfc60568] {\n        display: none;\n}\n.cart-tab[data-v-dfc60568] {\n        padding: 5px 10px;\n        font-size: 12px;\n}\n.new-cart-btn[data-v-dfc60568] {\n        width: 32px;\n        height: 32px;\n}\n.pos-topbar-right .btn span[data-v-dfc60568] {\n        display: none;\n}\n\n    /* Adjust product grid for small phones */\n.product-grid[data-v-dfc60568] {\n        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));\n        gap: 10px;\n}\n.product-image[data-v-dfc60568] {\n        height: 100px;\n}\n.product-image i[data-v-dfc60568] {\n        font-size: 36px;\n}\n.product-info[data-v-dfc60568] {\n        padding: 10px;\n}\n.product-name[data-v-dfc60568] {\n        font-size: 12px;\n        min-height: 34px;\n}\n.product-price[data-v-dfc60568] {\n        font-size: 14px;\n}\n.product-stock[data-v-dfc60568] {\n        font-size: 11px;\n}\n.search-input[data-v-dfc60568] {\n        padding: 12px 40px;\n        font-size: 14px;\n}\n.category-filters[data-v-dfc60568] {\n        flex-direction: column;\n        gap: 8px;\n}\n.category-select[data-v-dfc60568] {\n        padding: 8px 12px;\n        font-size: 13px;\n}\n\n    /* Compact cart */\n.customer-section[data-v-dfc60568] {\n        padding: 10px;\n}\n.cart-item[data-v-dfc60568] {\n        padding: 8px;\n        font-size: 13px;\n}\n.item-name[data-v-dfc60568] {\n        font-size: 13px;\n}\n.item-name .variation[data-v-dfc60568] {\n        font-size: 11px;\n}\n.item-price[data-v-dfc60568] {\n        font-size: 11px;\n}\n.qty-btn[data-v-dfc60568] {\n        width: 26px;\n        height: 26px;\n        font-size: 14px;\n}\n.qty-input[data-v-dfc60568] {\n        width: 36px;\n        font-size: 14px;\n}\n.item-total[data-v-dfc60568] {\n        font-size: 14px;\n        min-width: 60px;\n}\n.btn-discount[data-v-dfc60568], .btn-remove[data-v-dfc60568] {\n        width: 26px;\n        height: 26px;\n        font-size: 11px;\n}\n.summary-row[data-v-dfc60568] {\n        padding: 6px 0;\n        font-size: 14px;\n}\n.summary-row.total[data-v-dfc60568] {\n        font-size: 16px;\n}\n.cart-actions[data-v-dfc60568] {\n        gap: 6px;\n        padding: 8px;\n}\n.btn-park[data-v-dfc60568] {\n        font-size: 13px;\n        padding: 10px 8px;\n}\n.btn-pay[data-v-dfc60568] {\n        font-size: 14px;\n        padding: 10px;\n}\n\n    /* Full screen modals on mobile */\n.modal-content[data-v-dfc60568] {\n        width: 100%;\n        max-width: 100%;\n        height: 100vh;\n        max-height: 100vh;\n        border-radius: 0;\n}\n.modal-header[data-v-dfc60568] {\n        padding: 12px 15px;\n}\n.modal-header h5[data-v-dfc60568] {\n        font-size: 16px;\n}\n.payment-methods[data-v-dfc60568] {\n        gap: 8px;\n}\n.payment-method-btn[data-v-dfc60568] {\n        min-width: 70px;\n        padding: 10px 6px;\n        font-size: 11px;\n}\n.payment-method-btn i[data-v-dfc60568] {\n        font-size: 18px;\n}\n.payment-method-btn span[data-v-dfc60568] {\n        font-size: 10px;\n}\n.amount-input[data-v-dfc60568] {\n        font-size: 18px;\n        padding: 10px;\n}\n.quick-amount-btn[data-v-dfc60568] {\n        padding: 8px 12px;\n        font-size: 12px;\n}\n.btn-complete[data-v-dfc60568] {\n        padding: 12px;\n        font-size: 14px;\n}\n.variations-grid[data-v-dfc60568] {\n        grid-template-columns: repeat(2, 1fr);\n}\n.variation-card[data-v-dfc60568] {\n        padding: 10px;\n        font-size: 13px;\n}\n.variation-name[data-v-dfc60568] {\n        font-size: 13px;\n}\n.variation-price[data-v-dfc60568] {\n        font-size: 14px;\n}\n.customer-item[data-v-dfc60568] {\n        padding: 10px;\n}\n.customer-name[data-v-dfc60568] {\n        font-size: 14px;\n}\n.customer-phone[data-v-dfc60568] {\n        font-size: 12px;\n}\n.receipt-info .total[data-v-dfc60568] {\n        font-size: 24px;\n}\n.receipt-info .change[data-v-dfc60568] {\n        font-size: 16px;\n}\n.success-icon[data-v-dfc60568] {\n        font-size: 48px;\n}\n\n    /* Parked sales */\n.parked-sale-item[data-v-dfc60568] {\n        padding: 12px;\n        gap: 10px;\n}\n.sale-number[data-v-dfc60568] {\n        font-size: 14px;\n}\n.sale-name[data-v-dfc60568] {\n        font-size: 12px;\n}\n.sale-total[data-v-dfc60568] {\n        font-size: 14px;\n}\n}\n\n/* Landscape orientation for phones */\n@media (max-width: 768px) and (orientation: landscape) {\n.pos-main[data-v-dfc60568] {\n        flex-direction: row;\n}\n.pos-products[data-v-dfc60568] {\n        height: auto;\n        width: 60%;\n}\n.pos-cart[data-v-dfc60568] {\n        height: auto;\n        width: 40%;\n        border-left: 2px solid #e0e0e0;\n        border-top: none;\n}\n}\n\n/* Small height screens (landscape phones) */\n@media (max-height: 500px) {\n.pos-topbar[data-v-dfc60568] {\n        padding: 5px 10px;\n}\n.cart-tab[data-v-dfc60568] {\n        padding: 4px 8px;\n}\n.search-section[data-v-dfc60568] {\n        margin-bottom: 10px;\n}\n.search-input[data-v-dfc60568] {\n        padding: 10px 40px;\n}\n.product-image[data-v-dfc60568] {\n        height: 40px;\n}\n.cart-actions[data-v-dfc60568] {\n        padding: 6px;\n}\n.btn-pay[data-v-dfc60568] {\n        padding: 8px;\n        font-size: 13px;\n}\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

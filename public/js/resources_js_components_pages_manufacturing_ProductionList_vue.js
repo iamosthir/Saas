@@ -42,7 +42,15 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         actual_quantity: '',
         actual_ingredients: {}
       },
-      completing: false
+      completing: false,
+      editForm: {
+        production_date: '',
+        expiry_date: '',
+        labor_cost: 0,
+        overhead_cost: 0,
+        notes: ''
+      },
+      editing: false
     };
   },
   methods: {
@@ -259,6 +267,90 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           }
         }, _callee4, null, [[4, 11]]);
       }))();
+    },
+    openEditModal: function openEditModal(batch) {
+      this.selectedBatch = batch;
+      this.editForm = {
+        production_date: batch.production_date,
+        expiry_date: batch.expiry_date || '',
+        labor_cost: batch.labor_cost || 0,
+        overhead_cost: batch.overhead_cost || 0,
+        notes: batch.notes || ''
+      };
+      $('#editModal').modal('show');
+    },
+    submitEdit: function submitEdit() {
+      var _this5 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+        var _error$response4, _error$response4$data;
+        return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+          while (1) switch (_context5.prev = _context5.next) {
+            case 0:
+              _this5.editing = true;
+              _context5.prev = 1;
+              _context5.next = 4;
+              return axios.put("/dashboard/api/manufacturing/batches/".concat(_this5.selectedBatch.id), _this5.editForm);
+            case 4:
+              toastr.success('تم تحديث الإنتاج بنجاح');
+              $('#editModal').modal('hide');
+              _this5.fetchBatches(_this5.pagination.current_page);
+              _context5.next = 12;
+              break;
+            case 9:
+              _context5.prev = 9;
+              _context5.t0 = _context5["catch"](1);
+              toastr.error(((_error$response4 = _context5.t0.response) === null || _error$response4 === void 0 ? void 0 : (_error$response4$data = _error$response4.data) === null || _error$response4$data === void 0 ? void 0 : _error$response4$data.message) || 'فشل تحديث الإنتاج');
+            case 12:
+              _context5.prev = 12;
+              _this5.editing = false;
+              return _context5.finish(12);
+            case 15:
+            case "end":
+              return _context5.stop();
+          }
+        }, _callee5, null, [[1, 9, 12, 15]]);
+      }))();
+    },
+    cloneBatch: function cloneBatch(batch) {
+      var _this6 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
+        var result, _error$response5, _error$response5$data;
+        return _regeneratorRuntime().wrap(function _callee6$(_context6) {
+          while (1) switch (_context6.prev = _context6.next) {
+            case 0:
+              _context6.next = 2;
+              return swal.fire({
+                title: 'استنساخ الدفعة؟',
+                text: 'سيتم إنشاء دفعة جديدة بنفس المواصفات وتعيينها كمكتملة',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'استنساخ',
+                cancelButtonText: 'إلغاء'
+              });
+            case 2:
+              result = _context6.sent;
+              if (!result.isConfirmed) {
+                _context6.next = 14;
+                break;
+              }
+              _context6.prev = 4;
+              _context6.next = 7;
+              return axios.post("/dashboard/api/manufacturing/batches/".concat(batch.id, "/clone"));
+            case 7:
+              toastr.success('تم استنساخ الدفعة بنجاح');
+              _this6.fetchBatches(_this6.pagination.current_page);
+              _context6.next = 14;
+              break;
+            case 11:
+              _context6.prev = 11;
+              _context6.t0 = _context6["catch"](4);
+              toastr.error(((_error$response5 = _context6.t0.response) === null || _error$response5 === void 0 ? void 0 : (_error$response5$data = _error$response5.data) === null || _error$response5$data === void 0 ? void 0 : _error$response5$data.message) || 'فشل استنساخ الدفعة');
+            case 14:
+            case "end":
+              return _context6.stop();
+          }
+        }, _callee6, null, [[4, 11]]);
+      }))();
     }
   },
   mounted: function mounted() {
@@ -280,7 +372,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "staticRenderFns": () => (/* binding */ staticRenderFns)
 /* harmony export */ });
 var render = function render() {
-  var _vm$selectedBatch, _vm$selectedBatch2, _vm$selectedBatch$pro;
+  var _vm$selectedBatch, _vm$selectedBatch2, _vm$selectedBatch3, _vm$selectedBatch$pro;
   var _vm = this,
     _c = _vm._self._c;
   return _c("div", {
@@ -454,7 +546,31 @@ var render = function render() {
       }
     }, [_c("i", {
       staticClass: "fas fa-eye"
-    })]), _vm._v(" "), ["draft", "in_progress"].includes(batch.status) ? _c("button", {
+    })]), _vm._v(" "), batch.status === "completed" ? _c("button", {
+      staticClass: "btn btn-outline-secondary",
+      attrs: {
+        title: "استنساخ"
+      },
+      on: {
+        click: function click($event) {
+          return _vm.cloneBatch(batch);
+        }
+      }
+    }, [_c("i", {
+      staticClass: "fas fa-copy"
+    })]) : _vm._e(), _vm._v(" "), ["draft", "in_progress", "completed"].includes(batch.status) ? _c("button", {
+      staticClass: "btn btn-outline-warning",
+      attrs: {
+        title: "تعديل"
+      },
+      on: {
+        click: function click($event) {
+          return _vm.openEditModal(batch);
+        }
+      }
+    }, [_c("i", {
+      staticClass: "fas fa-edit"
+    })]) : _vm._e(), _vm._v(" "), ["draft", "in_progress"].includes(batch.status) ? _c("button", {
       staticClass: "btn btn-outline-danger",
       attrs: {
         title: "إلغاء"
@@ -620,6 +736,171 @@ var render = function render() {
   }) : _vm._e(), _vm._v("\n            إكمال الإنتاج\n          ")])])])])]), _vm._v(" "), _c("div", {
     staticClass: "modal fade",
     attrs: {
+      id: "editModal",
+      tabindex: "-1"
+    }
+  }, [_c("div", {
+    staticClass: "modal-dialog"
+  }, [_c("div", {
+    staticClass: "modal-content"
+  }, [_c("div", {
+    staticClass: "modal-header"
+  }, [_c("h5", {
+    staticClass: "modal-title"
+  }, [_vm._v("تعديل الإنتاج: " + _vm._s((_vm$selectedBatch2 = _vm.selectedBatch) === null || _vm$selectedBatch2 === void 0 ? void 0 : _vm$selectedBatch2.batch_number))]), _vm._v(" "), _c("button", {
+    staticClass: "btn-close",
+    attrs: {
+      type: "button",
+      "data-bs-dismiss": "modal"
+    }
+  })]), _vm._v(" "), _vm.selectedBatch ? _c("div", {
+    staticClass: "modal-body"
+  }, [_c("div", {
+    staticClass: "mb-3"
+  }, [_c("label", {
+    staticClass: "form-label"
+  }, [_vm._v("تاريخ الإنتاج")]), _vm._v(" "), _c("input", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.editForm.production_date,
+      expression: "editForm.production_date"
+    }],
+    staticClass: "form-control",
+    attrs: {
+      type: "date"
+    },
+    domProps: {
+      value: _vm.editForm.production_date
+    },
+    on: {
+      input: function input($event) {
+        if ($event.target.composing) return;
+        _vm.$set(_vm.editForm, "production_date", $event.target.value);
+      }
+    }
+  })]), _vm._v(" "), _c("div", {
+    staticClass: "mb-3"
+  }, [_c("label", {
+    staticClass: "form-label"
+  }, [_vm._v("تاريخ انتهاء الصلاحية")]), _vm._v(" "), _c("input", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.editForm.expiry_date,
+      expression: "editForm.expiry_date"
+    }],
+    staticClass: "form-control",
+    attrs: {
+      type: "date"
+    },
+    domProps: {
+      value: _vm.editForm.expiry_date
+    },
+    on: {
+      input: function input($event) {
+        if ($event.target.composing) return;
+        _vm.$set(_vm.editForm, "expiry_date", $event.target.value);
+      }
+    }
+  })]), _vm._v(" "), _c("div", {
+    staticClass: "mb-3"
+  }, [_c("label", {
+    staticClass: "form-label"
+  }, [_vm._v("تكلفة العمالة")]), _vm._v(" "), _c("input", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.editForm.labor_cost,
+      expression: "editForm.labor_cost"
+    }],
+    staticClass: "form-control",
+    attrs: {
+      type: "number",
+      min: "0",
+      step: "0.01"
+    },
+    domProps: {
+      value: _vm.editForm.labor_cost
+    },
+    on: {
+      input: function input($event) {
+        if ($event.target.composing) return;
+        _vm.$set(_vm.editForm, "labor_cost", $event.target.value);
+      }
+    }
+  })]), _vm._v(" "), _c("div", {
+    staticClass: "mb-3"
+  }, [_c("label", {
+    staticClass: "form-label"
+  }, [_vm._v("التكاليف الإضافية")]), _vm._v(" "), _c("input", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.editForm.overhead_cost,
+      expression: "editForm.overhead_cost"
+    }],
+    staticClass: "form-control",
+    attrs: {
+      type: "number",
+      min: "0",
+      step: "0.01"
+    },
+    domProps: {
+      value: _vm.editForm.overhead_cost
+    },
+    on: {
+      input: function input($event) {
+        if ($event.target.composing) return;
+        _vm.$set(_vm.editForm, "overhead_cost", $event.target.value);
+      }
+    }
+  })]), _vm._v(" "), _c("div", {
+    staticClass: "mb-3"
+  }, [_c("label", {
+    staticClass: "form-label"
+  }, [_vm._v("ملاحظات")]), _vm._v(" "), _c("textarea", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.editForm.notes,
+      expression: "editForm.notes"
+    }],
+    staticClass: "form-control",
+    attrs: {
+      rows: "3"
+    },
+    domProps: {
+      value: _vm.editForm.notes
+    },
+    on: {
+      input: function input($event) {
+        if ($event.target.composing) return;
+        _vm.$set(_vm.editForm, "notes", $event.target.value);
+      }
+    }
+  })])]) : _vm._e(), _vm._v(" "), _c("div", {
+    staticClass: "modal-footer"
+  }, [_c("button", {
+    staticClass: "btn btn-secondary",
+    attrs: {
+      type: "button",
+      "data-bs-dismiss": "modal"
+    }
+  }, [_vm._v("إلغاء")]), _vm._v(" "), _c("button", {
+    staticClass: "btn btn-primary",
+    attrs: {
+      type: "button",
+      disabled: _vm.editing
+    },
+    on: {
+      click: _vm.submitEdit
+    }
+  }, [_vm.editing ? _c("span", {
+    staticClass: "spinner-border spinner-border-sm me-1"
+  }) : _vm._e(), _vm._v("\n            حفظ التغييرات\n          ")])])])])]), _vm._v(" "), _c("div", {
+    staticClass: "modal fade",
+    attrs: {
       id: "detailsModal",
       tabindex: "-1"
     }
@@ -631,7 +912,7 @@ var render = function render() {
     staticClass: "modal-header"
   }, [_c("h5", {
     staticClass: "modal-title"
-  }, [_vm._v("الدفعة: " + _vm._s((_vm$selectedBatch2 = _vm.selectedBatch) === null || _vm$selectedBatch2 === void 0 ? void 0 : _vm$selectedBatch2.batch_number))]), _vm._v(" "), _c("button", {
+  }, [_vm._v("الدفعة: " + _vm._s((_vm$selectedBatch3 = _vm.selectedBatch) === null || _vm$selectedBatch3 === void 0 ? void 0 : _vm$selectedBatch3.batch_number))]), _vm._v(" "), _c("button", {
     staticClass: "btn-close",
     attrs: {
       type: "button",

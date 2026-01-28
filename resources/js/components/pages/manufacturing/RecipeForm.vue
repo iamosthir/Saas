@@ -218,10 +218,11 @@ export default {
   computed: {
     materialCost() {
       return this.form.ingredients.reduce((sum, ing) => {
-        const material = this.rawMaterials.find(m => m.id === ing.raw_material_id);
+        const material = this.rawMaterials.find(m => m.id == ing.raw_material_id);
         if (!material || !ing.quantity) return sum;
         const effectiveQty = ing.quantity * (1 + (ing.waste_percentage || 0) / 100);
-        return sum + (effectiveQty * material.average_price);
+        const avgPrice = parseFloat(material.average_price) || 0;
+        return sum + (effectiveQty * avgPrice);
       }, 0);
     },
     totalCost() {
@@ -324,11 +325,21 @@ export default {
         if (this.isEdit) {
           await axios.put(`/dashboard/api/manufacturing/recipes/${this.$route.params.id}`, this.form);
           toastr.success('تم تحديث الوصفة بنجاح');
+          this.$router.push({ name: 'manufacturing.recipes' });
         } else {
-          await axios.post('/dashboard/api/manufacturing/recipes', this.form);
+          const response = await axios.post('/dashboard/api/manufacturing/recipes', this.form);
           toastr.success('تم إنشاء الوصفة بنجاح');
+          // Redirect to production creation page with the new recipe
+          const recipeId = response.data.data?.id;
+          if (recipeId) {
+            this.$router.push({
+              name: 'manufacturing.production.create',
+              query: { recipe_id: recipeId }
+            });
+          } else {
+            this.$router.push({ name: 'manufacturing.production.create' });
+          }
         }
-        this.$router.push({ name: 'manufacturing.recipes' });
       } catch (error) {
         toastr.error(error.response?.data?.message || 'فشل حفظ الوصفة');
       } finally {

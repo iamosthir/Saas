@@ -65,6 +65,29 @@
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
+                    <div class="category-filters">
+                        <select
+                            v-model="selectedMainCategory"
+                            @change="onMainCategoryChange"
+                            class="category-select"
+                        >
+                            <option value="">جميع الفئات الرئيسية</option>
+                            <option v-for="category in mainCategories" :key="category.id" :value="category.id">
+                                {{ category.name }}
+                            </option>
+                        </select>
+                        <select
+                            v-model="selectedSubCategory"
+                            @change="searchProducts"
+                            class="category-select"
+                            :disabled="!selectedMainCategory"
+                        >
+                            <option value="">جميع الفئات الفرعية</option>
+                            <option v-for="subCategory in subCategories" :key="subCategory.id" :value="subCategory.id">
+                                {{ subCategory.name }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Product Grid -->
@@ -209,6 +232,15 @@
                         :disabled="currentCart.items.length === 0"
                     >
                         <i class="fas fa-money-bill"></i> دفع (F10)
+                    </button>
+                </div>
+                <div class="quick-pay-wrapper">
+                    <button
+                        class="btn btn-success btn-quick-pay"
+                        @click="quickPayCash"
+                        :disabled="currentCart.items.length === 0"
+                    >
+                        <i class="fas fa-money-bill-wave"></i> دفع سريع نقداً
                     </button>
                 </div>
             </div>
@@ -528,6 +560,12 @@ export default {
             loading: false,
             searchTimeout: null,
 
+            // Categories
+            mainCategories: [],
+            subCategories: [],
+            selectedMainCategory: '',
+            selectedSubCategory: '',
+
             // Selected product for variation
             selectedProduct: null,
             showVariationModal: false,
@@ -635,10 +673,14 @@ export default {
         },
 
         formatCurrency(amount) {
+            const value = amount || 0;
+            // Check if the value has decimal places
+            const hasDecimals = value % 1 !== 0;
+
             return new Intl.NumberFormat('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-            }).format(amount || 0);
+                minimumFractionDigits: hasDecimals ? 1 : 0,
+                maximumFractionDigits: hasDecimals ? 2 : 0,
+            }).format(value);
         },
 
         // Initialize
@@ -654,7 +696,8 @@ export default {
                     this.carts = drafts.map(draft => this.saleToCart(draft));
                 }
 
-                // Fetch products on load
+                // Fetch categories and products on load
+                await this.fetchCategories();
                 await this.fetchAllProducts();
             } catch (error) {
                 console.error('Failed to initialize POS:', error);
@@ -676,13 +719,57 @@ export default {
             };
         },
 
+        // Fetch categories
+        async fetchCategories() {
+            try {
+                const response = await axios.get('/dashboard/api/categories');
+                const categories = response.data || [];
+                // Filter main categories (parent_id is null or 0)
+                this.mainCategories = categories.filter(cat => !cat.parent_id || cat.parent_id === 0);
+            } catch (error) {
+                console.error('Failed to fetch categories:', error);
+                this.mainCategories = [];
+            }
+        },
+
+        async onMainCategoryChange() {
+            // Reset sub category when main category changes
+            this.selectedSubCategory = '';
+
+            // Load sub categories for selected main category
+            if (this.selectedMainCategory) {
+                try {
+                    const response = await axios.get('/dashboard/api/categories');
+                    const categories = response.data || [];
+                    this.subCategories = categories.filter(
+                        cat => cat.parent_id == this.selectedMainCategory
+                    );
+                } catch (error) {
+                    console.error('Failed to fetch sub categories:', error);
+                    this.subCategories = [];
+                }
+            } else {
+                this.subCategories = [];
+            }
+
+            // Trigger search with new filters
+            this.searchProducts();
+        },
+
         // Fetch all products
         async fetchAllProducts() {
             this.loading = true;
             try {
-                const response = await axios.get('/dashboard/api/get-product-list', {
-                    params: { page: 1 }
-                });
+                const params = { page: 1 };
+
+                // Add category filters if selected
+                if (this.selectedSubCategory) {
+                    params.category_id = this.selectedSubCategory;
+                } else if (this.selectedMainCategory) {
+                    params.category_id = this.selectedMainCategory;
+                }
+
+                const response = await axios.get('/dashboard/api/get-product-list', { params });
                 // Extract products from paginated response
                 this.products = response.data.data || [];
             } catch (error) {
@@ -696,17 +783,24 @@ export default {
         async searchProducts() {
             clearTimeout(this.searchTimeout);
 
-            if (!this.searchQuery || this.searchQuery.length < 1) {
-                this.fetchAllProducts();
-                return;
-            }
-
             this.searchTimeout = setTimeout(async () => {
                 this.loading = true;
                 try {
-                    const response = await axios.get('/dashboard/api/get-product-list', {
-                        params: { search: this.searchQuery, page: 1 }
-                    });
+                    const params = { page: 1 };
+
+                    // Add search query if exists
+                    if (this.searchQuery && this.searchQuery.length >= 1) {
+                        params.search = this.searchQuery;
+                    }
+
+                    // Add category filters if selected
+                    if (this.selectedSubCategory) {
+                        params.category_id = this.selectedSubCategory;
+                    } else if (this.selectedMainCategory) {
+                        params.category_id = this.selectedMainCategory;
+                    }
+
+                    const response = await axios.get('/dashboard/api/get-product-list', { params });
                     this.products = response.data.data || [];
                 } catch (error) {
                     console.error('Search error:', error);
@@ -776,7 +870,7 @@ export default {
             }
 
             this.recalculateCart();
-            this.clearSearch();
+            // Don't clear search - keep product list visible
 
             // Sync with backend if cart has ID
             if (this.currentCart.id) {
@@ -1046,6 +1140,25 @@ export default {
             } catch (error) {
                 console.error('Failed to complete sale:', error);
                 this.$toast?.error(error.response?.data?.message || 'فشل إتمام البيع');
+            }
+        },
+
+        async quickPayCash() {
+            if (this.currentCart.items.length === 0) return;
+
+            try {
+                // Set payment to cash with full amount
+                this.payments = [{
+                    payment_method: 'cash',
+                    amount: this.currentCart.total_amount,
+                    tendered_amount: this.currentCart.total_amount,
+                }];
+
+                // Complete sale directly
+                await this.completeSale();
+            } catch (error) {
+                console.error('Quick pay failed:', error);
+                this.$toast?.error('فشل الدفع السريع');
             }
         },
 
@@ -1367,6 +1480,34 @@ export default {
     position: relative;
     display: flex;
     align-items: center;
+    margin-bottom: 10px;
+}
+
+.category-filters {
+    display: flex;
+    gap: 10px;
+}
+
+.category-select {
+    flex: 1;
+    padding: 10px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.category-select:focus {
+    outline: none;
+    border-color: #2196f3;
+}
+
+.category-select:disabled {
+    background: #f5f5f5;
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 .search-input-wrapper i {
@@ -1725,6 +1866,17 @@ export default {
     flex: 2;
     font-size: 18px;
     padding: 15px;
+}
+
+.quick-pay-wrapper {
+    padding: 0 15px 15px 15px;
+}
+
+.btn-quick-pay {
+    width: 100%;
+    font-size: 18px;
+    padding: 15px;
+    font-weight: 600;
 }
 
 /* Modals */
@@ -2379,6 +2531,16 @@ export default {
     .search-input {
         padding: 12px 40px;
         font-size: 14px;
+    }
+
+    .category-filters {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .category-select {
+        padding: 8px 12px;
+        font-size: 13px;
     }
 
     /* Compact cart */

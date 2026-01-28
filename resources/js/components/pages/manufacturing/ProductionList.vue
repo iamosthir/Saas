@@ -86,6 +86,12 @@
                     <button class="btn btn-outline-info" @click="viewDetails(batch)" title="عرض التفاصيل">
                       <i class="fas fa-eye"></i>
                     </button>
+                    <button v-if="batch.status === 'completed'" class="btn btn-outline-secondary" @click="cloneBatch(batch)" title="استنساخ">
+                      <i class="fas fa-copy"></i>
+                    </button>
+                    <button v-if="['draft', 'in_progress', 'completed'].includes(batch.status)" class="btn btn-outline-warning" @click="openEditModal(batch)" title="تعديل">
+                      <i class="fas fa-edit"></i>
+                    </button>
                     <button v-if="['draft', 'in_progress'].includes(batch.status)" class="btn btn-outline-danger" @click="cancelBatch(batch)" title="إلغاء">
                       <i class="fas fa-times"></i>
                     </button>
@@ -168,6 +174,47 @@
             <button type="button" class="btn btn-success" @click="submitComplete" :disabled="completing">
               <span v-if="completing" class="spinner-border spinner-border-sm me-1"></span>
               إكمال الإنتاج
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">تعديل الإنتاج: {{ selectedBatch?.batch_number }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body" v-if="selectedBatch">
+            <div class="mb-3">
+              <label class="form-label">تاريخ الإنتاج</label>
+              <input type="date" class="form-control" v-model="editForm.production_date">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">تاريخ انتهاء الصلاحية</label>
+              <input type="date" class="form-control" v-model="editForm.expiry_date">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">تكلفة العمالة</label>
+              <input type="number" class="form-control" v-model="editForm.labor_cost" min="0" step="0.01">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">التكاليف الإضافية</label>
+              <input type="number" class="form-control" v-model="editForm.overhead_cost" min="0" step="0.01">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">ملاحظات</label>
+              <textarea class="form-control" v-model="editForm.notes" rows="3"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+            <button type="button" class="btn btn-primary" @click="submitEdit" :disabled="editing">
+              <span v-if="editing" class="spinner-border spinner-border-sm me-1"></span>
+              حفظ التغييرات
             </button>
           </div>
         </div>
@@ -285,6 +332,14 @@ export default {
         actual_ingredients: {},
       },
       completing: false,
+      editForm: {
+        production_date: '',
+        expiry_date: '',
+        labor_cost: 0,
+        overhead_cost: 0,
+        notes: '',
+      },
+      editing: false,
     };
   },
   methods: {
@@ -411,6 +466,53 @@ export default {
           this.fetchBatches(this.pagination.current_page);
         } catch (error) {
           toastr.error(error.response?.data?.message || 'فشل الإلغاء');
+        }
+      }
+    },
+
+    openEditModal(batch) {
+      this.selectedBatch = batch;
+      this.editForm = {
+        production_date: batch.production_date,
+        expiry_date: batch.expiry_date || '',
+        labor_cost: batch.labor_cost || 0,
+        overhead_cost: batch.overhead_cost || 0,
+        notes: batch.notes || '',
+      };
+      $('#editModal').modal('show');
+    },
+
+    async submitEdit() {
+      this.editing = true;
+      try {
+        await axios.put(`/dashboard/api/manufacturing/batches/${this.selectedBatch.id}`, this.editForm);
+        toastr.success('تم تحديث الإنتاج بنجاح');
+        $('#editModal').modal('hide');
+        this.fetchBatches(this.pagination.current_page);
+      } catch (error) {
+        toastr.error(error.response?.data?.message || 'فشل تحديث الإنتاج');
+      } finally {
+        this.editing = false;
+      }
+    },
+
+    async cloneBatch(batch) {
+      const result = await swal.fire({
+        title: 'استنساخ الدفعة؟',
+        text: 'سيتم إنشاء دفعة جديدة بنفس المواصفات وتعيينها كمكتملة',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'استنساخ',
+        cancelButtonText: 'إلغاء',
+      });
+
+      if (result.isConfirmed) {
+        try {
+          await axios.post(`/dashboard/api/manufacturing/batches/${batch.id}/clone`);
+          toastr.success('تم استنساخ الدفعة بنجاح');
+          this.fetchBatches(this.pagination.current_page);
+        } catch (error) {
+          toastr.error(error.response?.data?.message || 'فشل استنساخ الدفعة');
         }
       }
     },

@@ -173,11 +173,78 @@ class ProductionService
     }
 
     /**
+     * Clone a completed production batch
+     */
+    public function cloneBatch(int $batchId): ProductionBatch
+    {
+        return DB::transaction(function () use ($batchId) {
+            $originalBatch = ProductionBatch::with('ingredients.rawMaterial', 'ingredients.unit')
+                ->findOrFail($batchId);
+
+            if ($originalBatch->status !== ProductionBatch::STATUS_COMPLETED) {
+                throw new \Exception('Only completed batches can be cloned');
+            }
+
+            // Create new batch with same settings
+            $newBatch = ProductionBatch::create([
+                'merchant_id' => $originalBatch->merchant_id,
+                'recipe_id' => $originalBatch->recipe_id,
+                'product_id' => $originalBatch->product_id,
+                'product_variation_id' => $originalBatch->product_variation_id,
+                'planned_quantity' => $originalBatch->actual_quantity ?? $originalBatch->planned_quantity,
+                'actual_quantity' => $originalBatch->actual_quantity,
+                'labor_cost' => $originalBatch->labor_cost,
+                'overhead_cost' => $originalBatch->overhead_cost,
+                'material_cost' => $originalBatch->material_cost,
+                'status' => ProductionBatch::STATUS_COMPLETED,
+                'production_date' => now()->toDateString(),
+                'expiry_date' => $originalBatch->expiry_date,
+                'notes' => 'Cloned from batch: ' . $originalBatch->batch_number,
+                'completed_by' => auth()->id(),
+                'completed_at' => now(),
+            ]);
+
+            // Clone ingredients
+            foreach ($originalBatch->ingredients as $ingredient) {
+                $newIngredient = ProductionBatchIngredient::create([
+                    'batch_id' => $newBatch->id,
+                    'raw_material_id' => $ingredient->raw_material_id,
+                    'unit_id' => $ingredient->unit_id,
+                    'required_quantity' => $ingredient->required_quantity,
+                    'actual_quantity' => $ingredient->actual_quantity,
+                    'unit_cost' => $ingredient->unit_cost,
+                    'total_cost' => $ingredient->total_cost,
+                ]);
+
+                // Deduct stock for cloned ingredients
+                $baseQty = $ingredient->unit->toBaseUnit($ingredient->actual_quantity ?? $ingredient->required_quantity);
+                $this->rawMaterialService->deductStock(
+                    $newBatch->merchant_id,
+                    $ingredient->raw_material_id,
+                    $baseQty,
+                    'production',
+                    'production_batches',
+                    $newBatch->id
+                );
+            }
+
+            // Recalculate costs
+            $newBatch->calculateCosts();
+            $newBatch->save();
+
+            // Add finished products to inventory
+            $this->addFinishedProducts($newBatch);
+
+            return $newBatch->fresh(['ingredients.rawMaterial', 'product', 'productVariation']);
+        });
+    }
+
+    /**
      * Add finished products to product inventory
      */
     protected function addFinishedProducts(ProductionBatch $batch): void
     {
-        $quantity = (int) $batch->actual_quantity;
+        $quantity = $batch->actual_quantity;
         $unitCost = $batch->unit_cost;
 
         // Update product variation stock
@@ -211,7 +278,7 @@ class ProductionService
     /**
      * Add cost layer to product inventory
      */
-    protected function addProductCostLayer(ProductionBatch $batch, int $quantity, float $unitCost): void
+    protected function addProductCostLayer(ProductionBatch $batch, float $quantity, float $unitCost): void
     {
         // Check if PosInventoryCost model exists
         if (class_exists(PosInventoryCost::class)) {
