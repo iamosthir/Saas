@@ -677,10 +677,15 @@ export default {
             // Check if the value has decimal places
             const hasDecimals = value % 1 !== 0;
 
-            return new Intl.NumberFormat('en-US', {
+            const formattedNumber = new Intl.NumberFormat('en-US', {
                 minimumFractionDigits: hasDecimals ? 1 : 0,
                 maximumFractionDigits: hasDecimals ? 2 : 0,
             }).format(value);
+
+            // Get currency from window.currency (set globally in master.blade.php)
+            const currency = window.currency || 'IQD';
+
+            return `${formattedNumber} ${currency}`;
         },
 
         // Initialize

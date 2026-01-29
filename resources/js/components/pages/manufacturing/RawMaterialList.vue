@@ -284,11 +284,30 @@ export default {
     },
 
     formatNumber(value) {
-      return parseFloat(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+      const amount = parseFloat(value || 0);
+      // Check if the value has decimal places
+      const hasDecimals = amount % 1 !== 0;
+
+      return new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: hasDecimals ? 1 : 0,
+        maximumFractionDigits: hasDecimals ? 4 : 0,
+      }).format(amount);
     },
 
     formatCurrency(value) {
-      return parseFloat(value || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+      const amount = parseFloat(value || 0);
+      // Check if the value has decimal places
+      const hasDecimals = amount % 1 !== 0;
+
+      const formattedNumber = new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: hasDecimals ? 1 : 0,
+        maximumFractionDigits: hasDecimals ? 2 : 0,
+      }).format(amount);
+
+      // Get currency from window.currency (set globally in master.blade.php)
+      const currency = window.currency || 'IQD';
+
+      return `${formattedNumber} ${currency}`;
     },
 
     formatDate(date) {

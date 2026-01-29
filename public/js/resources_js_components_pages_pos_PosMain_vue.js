@@ -170,10 +170,14 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       var value = amount || 0;
       // Check if the value has decimal places
       var hasDecimals = value % 1 !== 0;
-      return new Intl.NumberFormat('en-US', {
+      var formattedNumber = new Intl.NumberFormat('en-US', {
         minimumFractionDigits: hasDecimals ? 1 : 0,
         maximumFractionDigits: hasDecimals ? 2 : 0
       }).format(value);
+
+      // Get currency from window.currency (set globally in master.blade.php)
+      var currency = window.currency || 'IQD';
+      return "".concat(formattedNumber, " ").concat(currency);
     },
     // Initialize
     initialize: function initialize() {

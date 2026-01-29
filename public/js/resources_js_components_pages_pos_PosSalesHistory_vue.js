@@ -193,10 +193,16 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       }))();
     },
     formatCurrency: function formatCurrency(amount) {
-      return new Intl.NumberFormat('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      }).format(amount || 0);
+      var value = amount || 0;
+      var hasDecimals = value % 1 !== 0;
+      var formattedNumber = new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: hasDecimals ? 1 : 0,
+        maximumFractionDigits: hasDecimals ? 2 : 0
+      }).format(value);
+
+      // Get currency from window.currency (set globally in master.blade.php)
+      var currency = window.currency || 'IQD';
+      return "".concat(formattedNumber, " ").concat(currency);
     },
     formatDate: function formatDate(dateString) {
       if (!dateString) return '-';

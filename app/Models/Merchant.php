@@ -26,6 +26,7 @@ class Merchant extends Model
         'can_access_contracts',
         'can_access_manufacturing',
         'subscription_plan_id',
+        'currency',
     ];
 
     protected $casts = [

@@ -140,16 +140,26 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       return material.current_stock <= material.min_stock_level;
     },
     formatNumber: function formatNumber(value) {
-      return parseFloat(value || 0).toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 4
-      });
+      var amount = parseFloat(value || 0);
+      // Check if the value has decimal places
+      var hasDecimals = amount % 1 !== 0;
+      return new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: hasDecimals ? 1 : 0,
+        maximumFractionDigits: hasDecimals ? 4 : 0
+      }).format(amount);
     },
     formatCurrency: function formatCurrency(value) {
-      return parseFloat(value || 0).toLocaleString('en-US', {
-        style: 'currency',
-        currency: 'USD'
-      });
+      var amount = parseFloat(value || 0);
+      // Check if the value has decimal places
+      var hasDecimals = amount % 1 !== 0;
+      var formattedNumber = new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: hasDecimals ? 1 : 0,
+        maximumFractionDigits: hasDecimals ? 2 : 0
+      }).format(amount);
+
+      // Get currency from window.currency (set globally in master.blade.php)
+      var currency = window.currency || 'IQD';
+      return "".concat(formattedNumber, " ").concat(currency);
     },
     formatDate: function formatDate(date) {
       return new Date(date).toLocaleString();

@@ -654,6 +654,7 @@
 
     <script>
         window.role = "{{ auth()->user()->role }}";
+        window.currency = "{{ auth()->user()->merchant->currency ?? 'IQD' }}";
     </script>
     <script>
         function editInvoiceimages() {

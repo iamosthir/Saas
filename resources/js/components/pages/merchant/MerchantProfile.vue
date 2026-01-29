@@ -66,6 +66,23 @@
                               </div>
                           </div>
 
+                          <!-- Currency -->
+                          <div class="col-md-12 mb-4">
+                              <label class="form-label" for="formCurrency">العملة</label>
+                              <select
+                                  id="formCurrency"
+                                  class="form-select form-select-lg"
+                                  :class="{
+                                    'is-invalid' : form.errors.has('currency'),
+                                  }"
+                                  v-model="form.currency"
+                              >
+                                  <option value="IQD">IQD - دينار عراقي</option>
+                                  <option value="USD">USD - دولار أمريكي</option>
+                              </select>
+                              <HasError :form="form" field="currency"/>
+                          </div>
+
                           <!-- Current Logo Preview -->
                           <div class="col-md-12 mb-4" v-if="currentLogo">
                               <label class="form-label d-block">الشعار الحالي</label>
@@ -129,6 +146,7 @@ export default {
                 name: "",
                 phone: "",
                 address: "",
+                currency: "IQD",
                 logo: null,
             }),
             currentLogo: null,
@@ -159,6 +177,7 @@ export default {
                     this.form.name = data.data.name || "";
                     this.form.phone = data.data.phone || "";
                     this.form.address = data.data.address || "";
+                    this.form.currency = data.data.currency || "IQD";
                     this.currentLogo = data.data.logo || null;
 
                     // Re-initialize MDB inputs after data is loaded
@@ -215,6 +234,7 @@ export default {
                 formData.append('name', this.form.name);
                 formData.append('phone', this.form.phone || '');
                 formData.append('address', this.form.address || '');
+                formData.append('currency', this.form.currency);
 
                 if(this.form.logo) {
                     formData.append('logo', this.form.logo);

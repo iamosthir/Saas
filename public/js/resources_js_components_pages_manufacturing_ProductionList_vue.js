@@ -125,10 +125,17 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       return new Date(date).toLocaleDateString();
     },
     formatCurrency: function formatCurrency(value) {
-      return parseFloat(value || 0).toLocaleString('en-US', {
-        style: 'currency',
-        currency: 'USD'
-      });
+      var amount = parseFloat(value || 0);
+      // Check if the value has decimal places
+      var hasDecimals = amount % 1 !== 0;
+      var formattedNumber = new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: hasDecimals ? 1 : 0,
+        maximumFractionDigits: hasDecimals ? 2 : 0
+      }).format(amount);
+
+      // Get currency from window.currency (set globally in master.blade.php)
+      var currency = window.currency || 'IQD';
+      return "".concat(formattedNumber, " ").concat(currency);
     },
     startBatch: function startBatch(batch) {
       var _this2 = this;

@@ -43,6 +43,7 @@ class MerchantProfileController extends Controller
             'phone' => $merchant->phone_primary,
             'address' => $merchant->address1,
             'logo' => $merchant->logo,
+            'currency' => $merchant->currency ?? 'IQD',
         ];
 
         return response()->json([
@@ -78,13 +79,15 @@ class MerchantProfileController extends Controller
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'currency' => 'required|in:IQD,USD'
         ]);
 
         // Update basic info
         $merchant->name = $validated['name'];
         $merchant->phone_primary = $validated['phone'] ?? null;
         $merchant->address1 = $validated['address'] ?? null;
+        $merchant->currency = $validated['currency'];
 
         // Handle logo upload
         if ($request->hasFile('logo')) {
