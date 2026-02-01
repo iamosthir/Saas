@@ -44,9 +44,11 @@ return [
     | considered expired. If this value is null, personal access tokens do
     | not expire. This won't tweak the lifetime of first-party sessions.
     |
+    | For Electron POS app: Set to 525600 (1 year) for long-lived tokens
+    |
     */
 
-    'expiration' => null,
+    'expiration' => env('SANCTUM_TOKEN_EXPIRATION', 525600), // 1 year in minutes
 
     /*
     |--------------------------------------------------------------------------

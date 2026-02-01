@@ -1,0 +1,328 @@
+{
+  "info": {
+    "name": "Electron POS API",
+    "description": "API endpoints for Electron POS offline synchronization",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('access_token', jsonData.token);",
+                  "    pm.environment.set('user_id', jsonData.user.id);",
+                  "    pm.environment.set('merchant_id', jsonData.user.merchant_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('access_token', jsonData.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "refresh"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "logout"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout All Devices",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/logout-all",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "logout-all"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "POS Sync",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pos/sync/status",
+              "host": ["{{base_url}}"],
+              "path": ["pos", "sync", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sync Sales (Batch)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sales\": [\n    {\n      \"offline_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n      \"sale\": {\n        \"customer_id\": null,\n        \"status\": \"completed\",\n        \"subtotal\": 100.00,\n        \"discount_type\": null,\n        \"discount_amount\": 0,\n        \"discount_value\": 0,\n        \"tax_rate\": 0,\n        \"tax_amount\": 0,\n        \"total_amount\": 100.00,\n        \"paid_amount\": 100.00,\n        \"change_amount\": 0,\n        \"notes\": \"Test sale from Postman\",\n        \"created_at\": {{$timestamp}}000,\n        \"completed_at\": {{$timestamp}}000\n      },\n      \"items\": [\n        {\n          \"product_id\": 1,\n          \"product_variation_id\": null,\n          \"product_name\": \"Test Product\",\n          \"variation_name\": null,\n          \"sku\": \"TEST-001\",\n          \"barcode\": \"123456789\",\n          \"quantity\": 2,\n          \"unit_price\": 50.00,\n          \"unit_cost\": 20.00,\n          \"discount_type\": null,\n          \"discount_amount\": 0,\n          \"discount_value\": 0,\n          \"line_total\": 100.00,\n          \"notes\": null\n        }\n      ],\n      \"payments\": [\n        {\n          \"payment_method\": \"cash\",\n          \"amount\": 100.00,\n          \"tendered_amount\": 100.00,\n          \"change_given\": 0,\n          \"reference_number\": null,\n          \"metadata\": null\n        }\n      ]\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/pos/sync/sales",
+              "host": ["{{base_url}}"],
+              "path": ["pos", "sync", "sales"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Updated Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pos/sync/products?updated_after=0&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["pos", "sync", "products"],
+              "query": [
+                {
+                  "key": "updated_after",
+                  "value": "0",
+                  "description": "Timestamp in milliseconds (0 = all products)"
+                },
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "description": "Max number of records (default 500)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Updated Customers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pos/sync/customers?updated_after=0&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["pos", "sync", "customers"],
+              "query": [
+                {
+                  "key": "updated_after",
+                  "value": "0",
+                  "description": "Timestamp in milliseconds (0 = all customers)"
+                },
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "description": "Max number of records (default 500)"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pos/sync/categories",
+              "host": ["{{base_url}}"],
+              "path": ["pos", "sync", "categories"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Legacy Sync",
+      "item": [
+        {
+          "name": "Upload Offline Queue",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"actions\": [\n    {\n      \"offline_id\": \"uuid-here\",\n      \"action_type\": \"sale\",\n      \"payload\": {\n        \"customer_id\": null,\n        \"items\": [],\n        \"payments\": []\n      }\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/pos/sync/upload",
+              "host": ["{{base_url}}"],
+              "path": ["pos", "sync", "upload"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pending Sync Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pos/sync/pending",
+              "host": ["{{base_url}}"],
+              "path": ["pos", "sync", "pending"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Process Pending Queue",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pos/sync/process?limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["pos", "sync", "process"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Retry Failed Syncs",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pos/sync/retry",
+              "host": ["{{base_url}}"],
+              "path": ["pos", "sync", "retry"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "merchant_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

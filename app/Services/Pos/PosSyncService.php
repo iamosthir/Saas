@@ -275,4 +275,194 @@ class PosSyncService
                 ->count(),
         ];
     }
+
+    /**
+     * Create sale from offline Electron app data
+     *
+     * @param int $merchantId
+     * @param int $userId
+     * @param array $data
+     * @return array
+     */
+    public function createSaleFromOffline(int $merchantId, int $userId, array $data): array
+    {
+        $saleData = $data['sale'];
+        $offlineId = $data['offline_id'];
+
+        // Check if sale already exists
+        $existingSale = PosSale::where('offline_id', $offlineId)->first();
+
+        if ($existingSale) {
+            return [
+                'sale_id' => $existingSale->id,
+                'status' => 'already_exists'
+            ];
+        }
+
+        return DB::transaction(function () use ($merchantId, $userId, $saleData, $data, $offlineId) {
+            // Create sale
+            $sale = $this->posService->createSale(
+                $merchantId,
+                $saleData['customer_id'] ?? null
+            );
+
+            // Set offline tracking fields
+            $sale->offline_id = $offlineId;
+            $sale->synced = true;
+
+            // Set timestamps from offline data if available
+            if (isset($saleData['created_at'])) {
+                $sale->created_at = date('Y-m-d H:i:s', $saleData['created_at'] / 1000);
+            }
+
+            if (isset($saleData['completed_at'])) {
+                $sale->completed_at = date('Y-m-d H:i:s', $saleData['completed_at'] / 1000);
+            }
+
+            $sale->created_by = $userId;
+            $sale->completed_by = $userId;
+
+            // Add items
+            foreach ($data['items'] as $itemData) {
+                $this->posService->addItem($sale, [
+                    'product_id' => $itemData['product_id'],
+                    'product_variation_id' => $itemData['product_variation_id'] ?? null,
+                    'quantity' => $itemData['quantity'],
+                    'unit_price' => $itemData['unit_price'],
+                    'discount_type' => $itemData['discount_type'] ?? null,
+                    'discount_amount' => $itemData['discount_amount'] ?? 0,
+                    'notes' => $itemData['notes'] ?? null,
+                ]);
+            }
+
+            // Apply sale-level discount
+            if (!empty($saleData['discount_type'])) {
+                $this->posService->applySaleDiscount(
+                    $sale,
+                    $saleData['discount_type'],
+                    $saleData['discount_amount'] ?? 0
+                );
+            }
+
+            // Complete sale with payments
+            if (!empty($data['payments'])) {
+                $this->posService->completeSale($sale, $data['payments']);
+            }
+
+            $sale->save();
+
+            return [
+                'sale_id' => $sale->id,
+                'status' => 'created'
+            ];
+        });
+    }
+
+    /**
+     * Get products updated after timestamp for Electron sync
+     *
+     * @param int $merchantId
+     * @param int $updatedAfter Timestamp in milliseconds
+     * @param int $limit
+     * @return array
+     */
+    public function getUpdatedProducts(int $merchantId, int $updatedAfter, int $limit = 500): array
+    {
+        $updatedAfterDate = date('Y-m-d H:i:s', $updatedAfter / 1000);
+
+        $products = \App\Models\Product::with(['variations', 'category'])
+            ->where('merchant_id', $merchantId)
+            ->where('updated_at', '>', $updatedAfterDate)
+            ->limit($limit)
+            ->get()
+            ->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'sku' => $product->sku,
+                    'barcode' => $product->barcode,
+                    'category_id' => $product->category_id,
+                    'category_name' => $product->category->name ?? null,
+                    'price' => (float) $product->price,
+                    'cost' => (float) ($product->cost ?? 0),
+                    'stock_quantity' => (int) ($product->stock_quantity ?? 0),
+                    'low_stock_threshold' => (int) ($product->low_stock_threshold ?? 0),
+                    'image_url' => $product->image_url,
+                    'has_variations' => $product->variations->count() > 0,
+                    'variations' => $product->variations->map(function ($variation) {
+                        return [
+                            'id' => $variation->id,
+                            'name' => $variation->name,
+                            'sku' => $variation->sku,
+                            'barcode' => $variation->barcode,
+                            'price' => (float) $variation->price,
+                            'cost' => (float) ($variation->cost ?? 0),
+                            'stock_quantity' => (int) ($variation->stock_quantity ?? 0),
+                        ];
+                    }),
+                    'is_active' => (bool) $product->is_active,
+                    'updated_at' => $product->updated_at->timestamp * 1000
+                ];
+            });
+
+        return [
+            'data' => $products,
+            'has_more' => $products->count() === $limit
+        ];
+    }
+
+    /**
+     * Get customers updated after timestamp for Electron sync
+     *
+     * @param int $merchantId
+     * @param int $updatedAfter Timestamp in milliseconds
+     * @param int $limit
+     * @return array
+     */
+    public function getUpdatedCustomers(int $merchantId, int $updatedAfter, int $limit = 500): array
+    {
+        $updatedAfterDate = date('Y-m-d H:i:s', $updatedAfter / 1000);
+
+        $customers = \App\Models\Customer::where('merchant_id', $merchantId)
+            ->where('updated_at', '>', $updatedAfterDate)
+            ->limit($limit)
+            ->get()
+            ->map(function ($customer) {
+                return [
+                    'id' => $customer->id,
+                    'name' => $customer->name,
+                    'email' => $customer->email,
+                    'phone' => $customer->phone,
+                    'address' => $customer->address,
+                    'updated_at' => $customer->updated_at->timestamp * 1000
+                ];
+            });
+
+        return [
+            'data' => $customers,
+            'has_more' => $customers->count() === $limit
+        ];
+    }
+
+    /**
+     * Get all categories for Electron sync
+     *
+     * @param int $merchantId
+     * @return array
+     */
+    public function getCategories(int $merchantId): array
+    {
+        $categories = \App\Models\Category::where('merchant_id', $merchantId)
+            ->get()
+            ->map(function ($category) {
+                return [
+                    'id' => $category->id,
+                    'parent_id' => $category->parent_id,
+                    'name' => $category->name,
+                    'slug' => $category->slug ?? null,
+                ];
+            });
+
+        return $categories->toArray();
+    }
 }
