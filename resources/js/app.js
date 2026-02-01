@@ -180,6 +180,15 @@ if(document.getElementById("dashboard"))
         },
         mounted() {
             this.getSiteSetting();
+
+            // Hide the loading screen with fade-out animation
+            const loadingScreen = document.getElementById('app-loading-screen');
+            if (loadingScreen) {
+                loadingScreen.classList.add('fade-out');
+                setTimeout(() => {
+                    loadingScreen.remove();
+                }, 500); // Match the animation duration
+            }
         }
     })
 }

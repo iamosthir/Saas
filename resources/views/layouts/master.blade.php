@@ -467,11 +467,23 @@
             to { opacity: 1; }
         }
 
+        #app-loading-screen.fade-out {
+            animation: fadeOut 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
         .spinner-container {
             position: relative;
-            width: 120px;
-            height: 120px;
+            width: 140px;
+            height: 140px;
             margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .spinner-ring {
@@ -487,8 +499,6 @@
         .spinner-ring:nth-child(2) {
             width: 85%;
             height: 85%;
-            top: 7.5%;
-            left: 7.5%;
             border-top-color: rgba(255, 255, 255, 0.8);
             animation-duration: 0.75s;
             animation-direction: reverse;
@@ -497,8 +507,6 @@
         .spinner-ring:nth-child(3) {
             width: 70%;
             height: 70%;
-            top: 15%;
-            left: 15%;
             border-top-color: rgba(255, 255, 255, 0.6);
             animation-duration: 0.5s;
         }
@@ -506,6 +514,31 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        .loading-logo {
+            width: 70px;
+            height: 70px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            animation: float 3s ease-in-out infinite;
+            position: relative;
+            z-index: 10;
+        }
+
+        .loading-logo img {
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-5px) scale(1.05); }
         }
 
         .loading-text {
@@ -544,30 +577,6 @@
             0%, 80%, 100% { opacity: 0; }
             40% { opacity: 1; }
         }
-
-        .loading-logo {
-            width: 80px;
-            height: 80px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 2rem;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            animation: float 3s ease-in-out infinite;
-        }
-
-        .loading-logo img {
-            width: 50px;
-            height: 50px;
-            object-fit: contain;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
     </style>
 
 </head>
@@ -575,13 +584,13 @@
     <section id="dashboard">
         <!-- Loading Screen (will be replaced by Vue) -->
         <div id="app-loading-screen">
-            <div class="loading-logo">
-                <img src="{{ auth()->user()->merchant->logo ?? asset('/images/logo.png') }}" alt="Loading">
-            </div>
             <div class="spinner-container">
                 <div class="spinner-ring"></div>
                 <div class="spinner-ring"></div>
                 <div class="spinner-ring"></div>
+                <div class="loading-logo">
+                    <img src="{{ auth()->user()->merchant->logo ?? asset('/images/logo.png') }}" alt="Loading">
+                </div>
             </div>
             <div class="loading-text">
                 جاري التحميل<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>
