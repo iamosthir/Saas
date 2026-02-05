@@ -884,25 +884,37 @@ export default {
         },
 
         // Cart operations
-        increaseQty(index) {
+        async increaseQty(index) {
             this.currentCart.items[index].quantity++;
             this.updateItemTotal(index);
             this.recalculateCart();
+
+            if (this.currentCart.id) {
+                await this.syncCartToBackend();
+            }
         },
 
-        decreaseQty(index) {
+        async decreaseQty(index) {
             if (this.currentCart.items[index].quantity > 1) {
                 this.currentCart.items[index].quantity--;
                 this.updateItemTotal(index);
                 this.recalculateCart();
+
+                if (this.currentCart.id) {
+                    await this.syncCartToBackend();
+                }
             }
         },
 
-        updateQty(index, value) {
+        async updateQty(index, value) {
             const qty = parseInt(value) || 1;
             this.currentCart.items[index].quantity = Math.max(1, qty);
             this.updateItemTotal(index);
             this.recalculateCart();
+
+            if (this.currentCart.id) {
+                await this.syncCartToBackend();
+            }
         },
 
         updateItemTotal(index) {
@@ -920,10 +932,15 @@ export default {
             item.line_total = subtotal - discount;
         },
 
-        removeItem(index) {
+        async removeItem(index) {
             this.currentCart.items.splice(index, 1);
             this.selectedItemIndex = -1;
             this.recalculateCart();
+
+            // Sync to backend if cart has ID
+            if (this.currentCart.id) {
+                await this.syncCartToBackend();
+            }
         },
 
         selectItem(index) {
@@ -965,8 +982,19 @@ export default {
             this.selectedItemIndex = -1;
         },
 
-        closeCart(index) {
+        async closeCart(index) {
             if (this.carts.length <= 1) return;
+
+            const cart = this.carts[index];
+
+            // Delete draft sale from backend if it exists
+            if (cart.id) {
+                try {
+                    await axios.delete(`/dashboard/api/pos/sales/${cart.id}`);
+                } catch (error) {
+                    console.error('Failed to delete draft sale:', error);
+                }
+            }
 
             this.carts.splice(index, 1);
             if (this.currentCartIndex >= this.carts.length) {
@@ -991,11 +1019,15 @@ export default {
             }
         },
 
-        selectCustomer(customer) {
+        async selectCustomer(customer) {
             this.currentCart.customer = customer;
             this.showCustomerModal = false;
             this.customerSearch = '';
             this.customers = [];
+
+            if (this.currentCart.id) {
+                await this.syncCartToBackend();
+            }
         },
 
         async createCustomer() {
@@ -1013,8 +1045,12 @@ export default {
             }
         },
 
-        clearCustomer() {
+        async clearCustomer() {
             this.currentCart.customer = null;
+
+            if (this.currentCart.id) {
+                await this.syncCartToBackend();
+            }
         },
 
         // Discount
@@ -1034,7 +1070,7 @@ export default {
             this.showDiscountModal = true;
         },
 
-        applyDiscount() {
+        async applyDiscount() {
             if (this.discountTarget === 'item') {
                 const item = this.currentCart.items[this.discountItemIndex];
                 item.discount_type = this.discountForm.type;
@@ -1047,9 +1083,13 @@ export default {
 
             this.recalculateCart();
             this.showDiscountModal = false;
+
+            if (this.currentCart.id) {
+                await this.syncCartToBackend();
+            }
         },
 
-        clearDiscount() {
+        async clearDiscount() {
             if (this.discountTarget === 'item') {
                 const item = this.currentCart.items[this.discountItemIndex];
                 item.discount_type = null;
@@ -1062,6 +1102,10 @@ export default {
 
             this.recalculateCart();
             this.showDiscountModal = false;
+
+            if (this.currentCart.id) {
+                await this.syncCartToBackend();
+            }
         },
 
         // Payment
@@ -1273,7 +1317,19 @@ export default {
 
         // Sync
         async syncCartToBackend() {
-            // Implementation for syncing cart changes
+            if (!this.currentCart.id) return;
+
+            try {
+                // Update the sale with current cart items
+                await axios.put(`/dashboard/api/pos/sales/${this.currentCart.id}`, {
+                    customer_id: this.currentCart.customer?.id || null,
+                    items: this.currentCart.items,
+                    discount_type: this.currentCart.discount_type,
+                    discount_amount: this.currentCart.discount_amount,
+                });
+            } catch (error) {
+                console.error('Failed to sync cart to backend:', error);
+            }
         },
 
         // Keyboard shortcuts

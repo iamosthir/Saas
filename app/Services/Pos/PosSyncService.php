@@ -370,39 +370,13 @@ class PosSyncService
     {
         $updatedAfterDate = date('Y-m-d H:i:s', $updatedAfter / 1000);
 
-        $products = \App\Models\Product::with(['variations', 'category'])
+        $products = \App\Models\Product::with(['variation', 'category'])
             ->where('merchant_id', $merchantId)
             ->where('updated_at', '>', $updatedAfterDate)
             ->limit($limit)
             ->get()
-            ->map(function ($product) {
-                return [
-                    'id' => $product->id,
-                    'name' => $product->name,
-                    'sku' => $product->sku,
-                    'barcode' => $product->barcode,
-                    'category_id' => $product->category_id,
-                    'category_name' => $product->category->name ?? null,
-                    'price' => (float) $product->price,
-                    'cost' => (float) ($product->cost ?? 0),
-                    'stock_quantity' => (int) ($product->stock_quantity ?? 0),
-                    'low_stock_threshold' => (int) ($product->low_stock_threshold ?? 0),
-                    'image_url' => $product->image_url,
-                    'has_variations' => $product->variations->count() > 0,
-                    'variations' => $product->variations->map(function ($variation) {
-                        return [
-                            'id' => $variation->id,
-                            'name' => $variation->name,
-                            'sku' => $variation->sku,
-                            'barcode' => $variation->barcode,
-                            'price' => (float) $variation->price,
-                            'cost' => (float) ($variation->cost ?? 0),
-                            'stock_quantity' => (int) ($variation->stock_quantity ?? 0),
-                        ];
-                    }),
-                    'is_active' => (bool) $product->is_active,
-                    'updated_at' => $product->updated_at->timestamp * 1000
-                ];
+            ->each(function ($product) {
+                $product->image = $product->image ? asset('uploads/products/' . $product->image) : null;
             });
 
         return [

@@ -346,11 +346,22 @@ export default {
         async loadSales(page = 1) {
             this.loading = true;
             try {
+                // Build params, excluding empty filter values
                 const params = {
                     page,
                     per_page: this.pagination.per_page,
-                    ...this.filters,
                 };
+
+                // Only add filters if they have values
+                if (this.filters.status) {
+                    params.status = this.filters.status;
+                }
+                if (this.filters.from_date) {
+                    params.from_date = this.filters.from_date;
+                }
+                if (this.filters.to_date) {
+                    params.to_date = this.filters.to_date;
+                }
 
                 const response = await axios.get('/dashboard/api/pos/sales', { params });
                 const data = response.data.data;
@@ -464,10 +475,7 @@ export default {
         },
     },
     mounted() {
-        // Set default date range to today
-        const today = new Date().toISOString().split('T')[0];
-        this.filters.from_date = today;
-        this.filters.to_date = today;
+        // Load all sales without date filter
         this.loadSales();
 
         // Check mobile view on mount and window resize

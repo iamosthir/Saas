@@ -494,22 +494,76 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     },
     // Cart operations
     increaseQty: function increaseQty(index) {
-      this.currentCart.items[index].quantity++;
-      this.updateItemTotal(index);
-      this.recalculateCart();
+      var _this8 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
+        return _regeneratorRuntime().wrap(function _callee8$(_context8) {
+          while (1) switch (_context8.prev = _context8.next) {
+            case 0:
+              _this8.currentCart.items[index].quantity++;
+              _this8.updateItemTotal(index);
+              _this8.recalculateCart();
+              if (!_this8.currentCart.id) {
+                _context8.next = 6;
+                break;
+              }
+              _context8.next = 6;
+              return _this8.syncCartToBackend();
+            case 6:
+            case "end":
+              return _context8.stop();
+          }
+        }, _callee8);
+      }))();
     },
     decreaseQty: function decreaseQty(index) {
-      if (this.currentCart.items[index].quantity > 1) {
-        this.currentCart.items[index].quantity--;
-        this.updateItemTotal(index);
-        this.recalculateCart();
-      }
+      var _this9 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
+        return _regeneratorRuntime().wrap(function _callee9$(_context9) {
+          while (1) switch (_context9.prev = _context9.next) {
+            case 0:
+              if (!(_this9.currentCart.items[index].quantity > 1)) {
+                _context9.next = 7;
+                break;
+              }
+              _this9.currentCart.items[index].quantity--;
+              _this9.updateItemTotal(index);
+              _this9.recalculateCart();
+              if (!_this9.currentCart.id) {
+                _context9.next = 7;
+                break;
+              }
+              _context9.next = 7;
+              return _this9.syncCartToBackend();
+            case 7:
+            case "end":
+              return _context9.stop();
+          }
+        }, _callee9);
+      }))();
     },
     updateQty: function updateQty(index, value) {
-      var qty = parseInt(value) || 1;
-      this.currentCart.items[index].quantity = Math.max(1, qty);
-      this.updateItemTotal(index);
-      this.recalculateCart();
+      var _this10 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10() {
+        var qty;
+        return _regeneratorRuntime().wrap(function _callee10$(_context10) {
+          while (1) switch (_context10.prev = _context10.next) {
+            case 0:
+              qty = parseInt(value) || 1;
+              _this10.currentCart.items[index].quantity = Math.max(1, qty);
+              _this10.updateItemTotal(index);
+              _this10.recalculateCart();
+              if (!_this10.currentCart.id) {
+                _context10.next = 7;
+                break;
+              }
+              _context10.next = 7;
+              return _this10.syncCartToBackend();
+            case 7:
+            case "end":
+              return _context10.stop();
+          }
+        }, _callee10);
+      }))();
     },
     updateItemTotal: function updateItemTotal(index) {
       var item = this.currentCart.items[index];
@@ -524,9 +578,28 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       item.line_total = subtotal - discount;
     },
     removeItem: function removeItem(index) {
-      this.currentCart.items.splice(index, 1);
-      this.selectedItemIndex = -1;
-      this.recalculateCart();
+      var _this11 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
+        return _regeneratorRuntime().wrap(function _callee11$(_context11) {
+          while (1) switch (_context11.prev = _context11.next) {
+            case 0:
+              _this11.currentCart.items.splice(index, 1);
+              _this11.selectedItemIndex = -1;
+              _this11.recalculateCart();
+
+              // Sync to backend if cart has ID
+              if (!_this11.currentCart.id) {
+                _context11.next = 6;
+                break;
+              }
+              _context11.next = 6;
+              return _this11.syncCartToBackend();
+            case 6:
+            case "end":
+              return _context11.stop();
+          }
+        }, _callee11);
+      }))();
     },
     selectItem: function selectItem(index) {
       this.selectedItemIndex = this.selectedItemIndex === index ? -1 : index;
@@ -566,95 +639,162 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       this.selectedItemIndex = -1;
     },
     closeCart: function closeCart(index) {
-      if (this.carts.length <= 1) return;
-      this.carts.splice(index, 1);
-      if (this.currentCartIndex >= this.carts.length) {
-        this.currentCartIndex = this.carts.length - 1;
-      }
+      var _this12 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee12() {
+        var cart;
+        return _regeneratorRuntime().wrap(function _callee12$(_context12) {
+          while (1) switch (_context12.prev = _context12.next) {
+            case 0:
+              if (!(_this12.carts.length <= 1)) {
+                _context12.next = 2;
+                break;
+              }
+              return _context12.abrupt("return");
+            case 2:
+              cart = _this12.carts[index]; // Delete draft sale from backend if it exists
+              if (!cart.id) {
+                _context12.next = 12;
+                break;
+              }
+              _context12.prev = 4;
+              _context12.next = 7;
+              return axios__WEBPACK_IMPORTED_MODULE_0___default()["delete"]("/dashboard/api/pos/sales/".concat(cart.id));
+            case 7:
+              _context12.next = 12;
+              break;
+            case 9:
+              _context12.prev = 9;
+              _context12.t0 = _context12["catch"](4);
+              console.error('Failed to delete draft sale:', _context12.t0);
+            case 12:
+              _this12.carts.splice(index, 1);
+              if (_this12.currentCartIndex >= _this12.carts.length) {
+                _this12.currentCartIndex = _this12.carts.length - 1;
+              }
+            case 14:
+            case "end":
+              return _context12.stop();
+          }
+        }, _callee12, null, [[4, 9]]);
+      }))();
     },
     // Customer
     searchCustomers: function searchCustomers() {
-      var _this8 = this;
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
+      var _this13 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee13() {
         var response;
-        return _regeneratorRuntime().wrap(function _callee8$(_context8) {
-          while (1) switch (_context8.prev = _context8.next) {
+        return _regeneratorRuntime().wrap(function _callee13$(_context13) {
+          while (1) switch (_context13.prev = _context13.next) {
             case 0:
-              if (!(!_this8.customerSearch || _this8.customerSearch.length < 2)) {
-                _context8.next = 3;
+              if (!(!_this13.customerSearch || _this13.customerSearch.length < 2)) {
+                _context13.next = 3;
                 break;
               }
-              _this8.customers = [];
-              return _context8.abrupt("return");
+              _this13.customers = [];
+              return _context13.abrupt("return");
             case 3:
-              _context8.prev = 3;
-              _context8.next = 6;
+              _context13.prev = 3;
+              _context13.next = 6;
               return axios__WEBPACK_IMPORTED_MODULE_0___default().get('/dashboard/api/pos/customers', {
                 params: {
-                  q: _this8.customerSearch
+                  q: _this13.customerSearch
                 }
               });
             case 6:
-              response = _context8.sent;
-              _this8.customers = response.data.data || [];
-              _context8.next = 13;
+              response = _context13.sent;
+              _this13.customers = response.data.data || [];
+              _context13.next = 13;
               break;
             case 10:
-              _context8.prev = 10;
-              _context8.t0 = _context8["catch"](3);
-              console.error('Customer search error:', _context8.t0);
+              _context13.prev = 10;
+              _context13.t0 = _context13["catch"](3);
+              console.error('Customer search error:', _context13.t0);
             case 13:
             case "end":
-              return _context8.stop();
+              return _context13.stop();
           }
-        }, _callee8, null, [[3, 10]]);
+        }, _callee13, null, [[3, 10]]);
       }))();
     },
     selectCustomer: function selectCustomer(customer) {
-      this.currentCart.customer = customer;
-      this.showCustomerModal = false;
-      this.customerSearch = '';
-      this.customers = [];
-    },
-    createCustomer: function createCustomer() {
-      var _this9 = this;
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
-        var _this9$$toast, response, _this9$$toast2;
-        return _regeneratorRuntime().wrap(function _callee9$(_context9) {
-          while (1) switch (_context9.prev = _context9.next) {
+      var _this14 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee14() {
+        return _regeneratorRuntime().wrap(function _callee14$(_context14) {
+          while (1) switch (_context14.prev = _context14.next) {
             case 0:
-              if (!(!_this9.newCustomer.customer_name || !_this9.newCustomer.phone1)) {
-                _context9.next = 3;
+              _this14.currentCart.customer = customer;
+              _this14.showCustomerModal = false;
+              _this14.customerSearch = '';
+              _this14.customers = [];
+              if (!_this14.currentCart.id) {
+                _context14.next = 7;
                 break;
               }
-              (_this9$$toast = _this9.$toast) === null || _this9$$toast === void 0 ? void 0 : _this9$$toast.error('الاسم والهاتف مطلوبان');
-              return _context9.abrupt("return");
+              _context14.next = 7;
+              return _this14.syncCartToBackend();
+            case 7:
+            case "end":
+              return _context14.stop();
+          }
+        }, _callee14);
+      }))();
+    },
+    createCustomer: function createCustomer() {
+      var _this15 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee15() {
+        var _this15$$toast, response, _this15$$toast2;
+        return _regeneratorRuntime().wrap(function _callee15$(_context15) {
+          while (1) switch (_context15.prev = _context15.next) {
+            case 0:
+              if (!(!_this15.newCustomer.customer_name || !_this15.newCustomer.phone1)) {
+                _context15.next = 3;
+                break;
+              }
+              (_this15$$toast = _this15.$toast) === null || _this15$$toast === void 0 ? void 0 : _this15$$toast.error('الاسم والهاتف مطلوبان');
+              return _context15.abrupt("return");
             case 3:
-              _context9.prev = 3;
-              _context9.next = 6;
-              return axios__WEBPACK_IMPORTED_MODULE_0___default().post('/dashboard/api/pos/customers', _this9.newCustomer);
+              _context15.prev = 3;
+              _context15.next = 6;
+              return axios__WEBPACK_IMPORTED_MODULE_0___default().post('/dashboard/api/pos/customers', _this15.newCustomer);
             case 6:
-              response = _context9.sent;
-              _this9.selectCustomer(response.data.data);
-              _this9.newCustomer = {
+              response = _context15.sent;
+              _this15.selectCustomer(response.data.data);
+              _this15.newCustomer = {
                 customer_name: '',
                 phone1: ''
               };
-              _context9.next = 14;
+              _context15.next = 14;
               break;
             case 11:
-              _context9.prev = 11;
-              _context9.t0 = _context9["catch"](3);
-              (_this9$$toast2 = _this9.$toast) === null || _this9$$toast2 === void 0 ? void 0 : _this9$$toast2.error('فشل إنشاء العميل');
+              _context15.prev = 11;
+              _context15.t0 = _context15["catch"](3);
+              (_this15$$toast2 = _this15.$toast) === null || _this15$$toast2 === void 0 ? void 0 : _this15$$toast2.error('فشل إنشاء العميل');
             case 14:
             case "end":
-              return _context9.stop();
+              return _context15.stop();
           }
-        }, _callee9, null, [[3, 11]]);
+        }, _callee15, null, [[3, 11]]);
       }))();
     },
     clearCustomer: function clearCustomer() {
-      this.currentCart.customer = null;
+      var _this16 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee16() {
+        return _regeneratorRuntime().wrap(function _callee16$(_context16) {
+          while (1) switch (_context16.prev = _context16.next) {
+            case 0:
+              _this16.currentCart.customer = null;
+              if (!_this16.currentCart.id) {
+                _context16.next = 4;
+                break;
+              }
+              _context16.next = 4;
+              return _this16.syncCartToBackend();
+            case 4:
+            case "end":
+              return _context16.stop();
+          }
+        }, _callee16);
+      }))();
     },
     // Discount
     openItemDiscount: function openItemDiscount(index) {
@@ -672,42 +812,78 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       this.showDiscountModal = true;
     },
     applyDiscount: function applyDiscount() {
-      if (this.discountTarget === 'item') {
-        var item = this.currentCart.items[this.discountItemIndex];
-        item.discount_type = this.discountForm.type;
-        item.discount_amount = parseFloat(this.discountForm.amount) || 0;
-        this.updateItemTotal(this.discountItemIndex);
-      } else {
-        this.currentCart.discount_type = this.discountForm.type;
-        this.currentCart.discount_amount = parseFloat(this.discountForm.amount) || 0;
-      }
-      this.recalculateCart();
-      this.showDiscountModal = false;
+      var _this17 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee17() {
+        var item;
+        return _regeneratorRuntime().wrap(function _callee17$(_context17) {
+          while (1) switch (_context17.prev = _context17.next) {
+            case 0:
+              if (_this17.discountTarget === 'item') {
+                item = _this17.currentCart.items[_this17.discountItemIndex];
+                item.discount_type = _this17.discountForm.type;
+                item.discount_amount = parseFloat(_this17.discountForm.amount) || 0;
+                _this17.updateItemTotal(_this17.discountItemIndex);
+              } else {
+                _this17.currentCart.discount_type = _this17.discountForm.type;
+                _this17.currentCart.discount_amount = parseFloat(_this17.discountForm.amount) || 0;
+              }
+              _this17.recalculateCart();
+              _this17.showDiscountModal = false;
+              if (!_this17.currentCart.id) {
+                _context17.next = 6;
+                break;
+              }
+              _context17.next = 6;
+              return _this17.syncCartToBackend();
+            case 6:
+            case "end":
+              return _context17.stop();
+          }
+        }, _callee17);
+      }))();
     },
     clearDiscount: function clearDiscount() {
-      if (this.discountTarget === 'item') {
-        var item = this.currentCart.items[this.discountItemIndex];
-        item.discount_type = null;
-        item.discount_amount = 0;
-        this.updateItemTotal(this.discountItemIndex);
-      } else {
-        this.currentCart.discount_type = null;
-        this.currentCart.discount_amount = 0;
-      }
-      this.recalculateCart();
-      this.showDiscountModal = false;
+      var _this18 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee18() {
+        var item;
+        return _regeneratorRuntime().wrap(function _callee18$(_context18) {
+          while (1) switch (_context18.prev = _context18.next) {
+            case 0:
+              if (_this18.discountTarget === 'item') {
+                item = _this18.currentCart.items[_this18.discountItemIndex];
+                item.discount_type = null;
+                item.discount_amount = 0;
+                _this18.updateItemTotal(_this18.discountItemIndex);
+              } else {
+                _this18.currentCart.discount_type = null;
+                _this18.currentCart.discount_amount = 0;
+              }
+              _this18.recalculateCart();
+              _this18.showDiscountModal = false;
+              if (!_this18.currentCart.id) {
+                _context18.next = 6;
+                break;
+              }
+              _context18.next = 6;
+              return _this18.syncCartToBackend();
+            case 6:
+            case "end":
+              return _context18.stop();
+          }
+        }, _callee18);
+      }))();
     },
     // Payment
     openPayment: function openPayment() {
-      var _this10 = this;
+      var _this19 = this;
       this.payments = [];
       this.selectedPaymentMethod = 'cash';
       this.paymentAmount = this.currentCart.total_amount;
       this.paymentReference = '';
       this.showPaymentModal = true;
       this.$nextTick(function () {
-        var _this10$$refs$payment;
-        (_this10$$refs$payment = _this10.$refs.paymentInput) === null || _this10$$refs$payment === void 0 ? void 0 : _this10$$refs$payment.focus();
+        var _this19$$refs$payment;
+        (_this19$$refs$payment = _this19.$refs.paymentInput) === null || _this19$$refs$payment === void 0 ? void 0 : _this19$$refs$payment.focus();
       });
     },
     getMethodLabel: function getMethodLabel(method) {
@@ -734,189 +910,189 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       this.payments.splice(index, 1);
     },
     completeSale: function completeSale() {
-      var _this11 = this;
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10() {
-        var saleId, _this11$currentCart$c, createRes, response, _this11$$toast, _error$response, _error$response$data;
-        return _regeneratorRuntime().wrap(function _callee10$(_context10) {
-          while (1) switch (_context10.prev = _context10.next) {
+      var _this20 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee19() {
+        var saleId, _this20$currentCart$c, createRes, response, _this20$$toast, _error$response, _error$response$data;
+        return _regeneratorRuntime().wrap(function _callee19$(_context19) {
+          while (1) switch (_context19.prev = _context19.next) {
             case 0:
-              if (_this11.canCompleteSale) {
-                _context10.next = 2;
+              if (_this20.canCompleteSale) {
+                _context19.next = 2;
                 break;
               }
-              return _context10.abrupt("return");
+              return _context19.abrupt("return");
             case 2:
-              _context10.prev = 2;
+              _context19.prev = 2;
               // Create sale if not exists
-              saleId = _this11.currentCart.id;
+              saleId = _this20.currentCart.id;
               if (saleId) {
-                _context10.next = 9;
+                _context19.next = 9;
                 break;
               }
-              _context10.next = 7;
+              _context19.next = 7;
               return axios__WEBPACK_IMPORTED_MODULE_0___default().post('/dashboard/api/pos/sales', {
-                customer_id: (_this11$currentCart$c = _this11.currentCart.customer) === null || _this11$currentCart$c === void 0 ? void 0 : _this11$currentCart$c.id,
-                items: _this11.currentCart.items
+                customer_id: (_this20$currentCart$c = _this20.currentCart.customer) === null || _this20$currentCart$c === void 0 ? void 0 : _this20$currentCart$c.id,
+                items: _this20.currentCart.items
               });
             case 7:
-              createRes = _context10.sent;
+              createRes = _context19.sent;
               saleId = createRes.data.data.id;
             case 9:
-              if (!_this11.currentCart.discount_type) {
-                _context10.next = 12;
+              if (!_this20.currentCart.discount_type) {
+                _context19.next = 12;
                 break;
               }
-              _context10.next = 12;
+              _context19.next = 12;
               return axios__WEBPACK_IMPORTED_MODULE_0___default().put("/dashboard/api/pos/sales/".concat(saleId), {
-                discount_type: _this11.currentCart.discount_type,
-                discount_amount: _this11.currentCart.discount_amount
+                discount_type: _this20.currentCart.discount_type,
+                discount_amount: _this20.currentCart.discount_amount
               });
             case 12:
-              _context10.next = 14;
+              _context19.next = 14;
               return axios__WEBPACK_IMPORTED_MODULE_0___default().post("/dashboard/api/pos/sales/".concat(saleId, "/complete"), {
-                payments: _this11.payments
+                payments: _this20.payments
               });
             case 14:
-              response = _context10.sent;
-              _this11.completedSale = response.data.data;
-              _this11.showPaymentModal = false;
-              _this11.showReceiptModal = true;
+              response = _context19.sent;
+              _this20.completedSale = response.data.data;
+              _this20.showPaymentModal = false;
+              _this20.showReceiptModal = true;
 
               // Print if auto-print enabled
-              if (_this11.settings.print_receipt_auto) {
-                _this11.printReceipt();
+              if (_this20.settings.print_receipt_auto) {
+                _this20.printReceipt();
               }
-              _context10.next = 25;
+              _context19.next = 25;
               break;
             case 21:
-              _context10.prev = 21;
-              _context10.t0 = _context10["catch"](2);
-              console.error('Failed to complete sale:', _context10.t0);
-              (_this11$$toast = _this11.$toast) === null || _this11$$toast === void 0 ? void 0 : _this11$$toast.error(((_error$response = _context10.t0.response) === null || _error$response === void 0 ? void 0 : (_error$response$data = _error$response.data) === null || _error$response$data === void 0 ? void 0 : _error$response$data.message) || 'فشل إتمام البيع');
+              _context19.prev = 21;
+              _context19.t0 = _context19["catch"](2);
+              console.error('Failed to complete sale:', _context19.t0);
+              (_this20$$toast = _this20.$toast) === null || _this20$$toast === void 0 ? void 0 : _this20$$toast.error(((_error$response = _context19.t0.response) === null || _error$response === void 0 ? void 0 : (_error$response$data = _error$response.data) === null || _error$response$data === void 0 ? void 0 : _error$response$data.message) || 'فشل إتمام البيع');
             case 25:
             case "end":
-              return _context10.stop();
+              return _context19.stop();
           }
-        }, _callee10, null, [[2, 21]]);
+        }, _callee19, null, [[2, 21]]);
       }))();
     },
     quickPayCash: function quickPayCash() {
-      var _this12 = this;
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee11() {
-        var _this12$$toast;
-        return _regeneratorRuntime().wrap(function _callee11$(_context11) {
-          while (1) switch (_context11.prev = _context11.next) {
+      var _this21 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee20() {
+        var _this21$$toast;
+        return _regeneratorRuntime().wrap(function _callee20$(_context20) {
+          while (1) switch (_context20.prev = _context20.next) {
             case 0:
-              if (!(_this12.currentCart.items.length === 0)) {
-                _context11.next = 2;
+              if (!(_this21.currentCart.items.length === 0)) {
+                _context20.next = 2;
                 break;
               }
-              return _context11.abrupt("return");
+              return _context20.abrupt("return");
             case 2:
-              _context11.prev = 2;
+              _context20.prev = 2;
               // Set payment to cash with full amount
-              _this12.payments = [{
+              _this21.payments = [{
                 payment_method: 'cash',
-                amount: _this12.currentCart.total_amount,
-                tendered_amount: _this12.currentCart.total_amount
+                amount: _this21.currentCart.total_amount,
+                tendered_amount: _this21.currentCart.total_amount
               }];
 
               // Complete sale directly
-              _context11.next = 6;
-              return _this12.completeSale();
+              _context20.next = 6;
+              return _this21.completeSale();
             case 6:
-              _context11.next = 12;
+              _context20.next = 12;
               break;
             case 8:
-              _context11.prev = 8;
-              _context11.t0 = _context11["catch"](2);
-              console.error('Quick pay failed:', _context11.t0);
-              (_this12$$toast = _this12.$toast) === null || _this12$$toast === void 0 ? void 0 : _this12$$toast.error('فشل الدفع السريع');
+              _context20.prev = 8;
+              _context20.t0 = _context20["catch"](2);
+              console.error('Quick pay failed:', _context20.t0);
+              (_this21$$toast = _this21.$toast) === null || _this21$$toast === void 0 ? void 0 : _this21$$toast.error('فشل الدفع السريع');
             case 12:
             case "end":
-              return _context11.stop();
+              return _context20.stop();
           }
-        }, _callee11, null, [[2, 8]]);
+        }, _callee20, null, [[2, 8]]);
       }))();
     },
     // Park sale
     parkSale: function parkSale() {
-      var _this13 = this;
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee12() {
-        var _this13$$toast, saleId, _this13$currentCart$c, createRes, _this13$$toast2;
-        return _regeneratorRuntime().wrap(function _callee12$(_context12) {
-          while (1) switch (_context12.prev = _context12.next) {
+      var _this22 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee21() {
+        var _this22$$toast, saleId, _this22$currentCart$c, createRes, _this22$$toast2;
+        return _regeneratorRuntime().wrap(function _callee21$(_context21) {
+          while (1) switch (_context21.prev = _context21.next) {
             case 0:
-              if (!(_this13.currentCart.items.length === 0)) {
-                _context12.next = 2;
+              if (!(_this22.currentCart.items.length === 0)) {
+                _context21.next = 2;
                 break;
               }
-              return _context12.abrupt("return");
+              return _context21.abrupt("return");
             case 2:
-              _context12.prev = 2;
-              saleId = _this13.currentCart.id;
+              _context21.prev = 2;
+              saleId = _this22.currentCart.id;
               if (saleId) {
-                _context12.next = 9;
+                _context21.next = 9;
                 break;
               }
-              _context12.next = 7;
+              _context21.next = 7;
               return axios__WEBPACK_IMPORTED_MODULE_0___default().post('/dashboard/api/pos/sales', {
-                customer_id: (_this13$currentCart$c = _this13.currentCart.customer) === null || _this13$currentCart$c === void 0 ? void 0 : _this13$currentCart$c.id,
-                items: _this13.currentCart.items
+                customer_id: (_this22$currentCart$c = _this22.currentCart.customer) === null || _this22$currentCart$c === void 0 ? void 0 : _this22$currentCart$c.id,
+                items: _this22.currentCart.items
               });
             case 7:
-              createRes = _context12.sent;
+              createRes = _context21.sent;
               saleId = createRes.data.data.id;
             case 9:
-              _context12.next = 11;
+              _context21.next = 11;
               return axios__WEBPACK_IMPORTED_MODULE_0___default().post("/dashboard/api/pos/sales/".concat(saleId, "/park"), {
-                park_name: "Cart ".concat(_this13.currentCartIndex + 1)
+                park_name: "Cart ".concat(_this22.currentCartIndex + 1)
               });
             case 11:
-              _context12.next = 13;
-              return _this13.loadParkedSales();
+              _context21.next = 13;
+              return _this22.loadParkedSales();
             case 13:
               // Reset current cart
-              _this13.carts[_this13.currentCartIndex] = _this13.createEmptyCart();
-              (_this13$$toast = _this13.$toast) === null || _this13$$toast === void 0 ? void 0 : _this13$$toast.success('تم تأجيل البيع');
-              _context12.next = 21;
+              _this22.carts[_this22.currentCartIndex] = _this22.createEmptyCart();
+              (_this22$$toast = _this22.$toast) === null || _this22$$toast === void 0 ? void 0 : _this22$$toast.success('تم تأجيل البيع');
+              _context21.next = 21;
               break;
             case 17:
-              _context12.prev = 17;
-              _context12.t0 = _context12["catch"](2);
-              console.error('Failed to park sale:', _context12.t0);
-              (_this13$$toast2 = _this13.$toast) === null || _this13$$toast2 === void 0 ? void 0 : _this13$$toast2.error('فشل تأجيل البيع');
+              _context21.prev = 17;
+              _context21.t0 = _context21["catch"](2);
+              console.error('Failed to park sale:', _context21.t0);
+              (_this22$$toast2 = _this22.$toast) === null || _this22$$toast2 === void 0 ? void 0 : _this22$$toast2.error('فشل تأجيل البيع');
             case 21:
             case "end":
-              return _context12.stop();
+              return _context21.stop();
           }
-        }, _callee12, null, [[2, 17]]);
+        }, _callee21, null, [[2, 17]]);
       }))();
     },
     loadParkedSales: function loadParkedSales() {
-      var _this14 = this;
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee13() {
+      var _this23 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee22() {
         var response;
-        return _regeneratorRuntime().wrap(function _callee13$(_context13) {
-          while (1) switch (_context13.prev = _context13.next) {
+        return _regeneratorRuntime().wrap(function _callee22$(_context22) {
+          while (1) switch (_context22.prev = _context22.next) {
             case 0:
-              _context13.prev = 0;
-              _context13.next = 3;
+              _context22.prev = 0;
+              _context22.next = 3;
               return axios__WEBPACK_IMPORTED_MODULE_0___default().get('/dashboard/api/pos/sales/parked');
             case 3:
-              response = _context13.sent;
-              _this14.parkedSales = response.data.data || [];
-              _context13.next = 10;
+              response = _context22.sent;
+              _this23.parkedSales = response.data.data || [];
+              _context22.next = 10;
               break;
             case 7:
-              _context13.prev = 7;
-              _context13.t0 = _context13["catch"](0);
-              console.error('Failed to load parked sales:', _context13.t0);
+              _context22.prev = 7;
+              _context22.t0 = _context22["catch"](0);
+              console.error('Failed to load parked sales:', _context22.t0);
             case 10:
             case "end":
-              return _context13.stop();
+              return _context22.stop();
           }
-        }, _callee13, null, [[0, 7]]);
+        }, _callee22, null, [[0, 7]]);
       }))();
     },
     showParkedSales: function showParkedSales() {
@@ -924,106 +1100,106 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       this.showParkedModal = true;
     },
     resumeSale: function resumeSale(sale) {
-      var _this15 = this;
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee14() {
-        var _this15$$toast;
-        return _regeneratorRuntime().wrap(function _callee14$(_context14) {
-          while (1) switch (_context14.prev = _context14.next) {
+      var _this24 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee23() {
+        var _this24$$toast;
+        return _regeneratorRuntime().wrap(function _callee23$(_context23) {
+          while (1) switch (_context23.prev = _context23.next) {
             case 0:
-              _context14.prev = 0;
-              _context14.next = 3;
+              _context23.prev = 0;
+              _context23.next = 3;
               return axios__WEBPACK_IMPORTED_MODULE_0___default().post("/dashboard/api/pos/sales/".concat(sale.id, "/unpark"));
             case 3:
               // Load into cart
-              _this15.carts[_this15.currentCartIndex] = _this15.saleToCart(sale);
+              _this24.carts[_this24.currentCartIndex] = _this24.saleToCart(sale);
 
               // Remove from parked list
-              _context14.next = 6;
-              return _this15.loadParkedSales();
+              _context23.next = 6;
+              return _this24.loadParkedSales();
             case 6:
-              _this15.showParkedModal = false;
-              _context14.next = 13;
+              _this24.showParkedModal = false;
+              _context23.next = 13;
               break;
             case 9:
-              _context14.prev = 9;
-              _context14.t0 = _context14["catch"](0);
-              console.error('Failed to resume sale:', _context14.t0);
-              (_this15$$toast = _this15.$toast) === null || _this15$$toast === void 0 ? void 0 : _this15$$toast.error('فشل استعادة البيع');
+              _context23.prev = 9;
+              _context23.t0 = _context23["catch"](0);
+              console.error('Failed to resume sale:', _context23.t0);
+              (_this24$$toast = _this24.$toast) === null || _this24$$toast === void 0 ? void 0 : _this24$$toast.error('فشل استعادة البيع');
             case 13:
             case "end":
-              return _context14.stop();
+              return _context23.stop();
           }
-        }, _callee14, null, [[0, 9]]);
+        }, _callee23, null, [[0, 9]]);
       }))();
     },
     deleteParkedSale: function deleteParkedSale(saleId) {
-      var _this16 = this;
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee15() {
-        return _regeneratorRuntime().wrap(function _callee15$(_context15) {
-          while (1) switch (_context15.prev = _context15.next) {
+      var _this25 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee24() {
+        return _regeneratorRuntime().wrap(function _callee24$(_context24) {
+          while (1) switch (_context24.prev = _context24.next) {
             case 0:
               if (confirm('حذف هذا البيع المؤجل؟')) {
-                _context15.next = 2;
+                _context24.next = 2;
                 break;
               }
-              return _context15.abrupt("return");
+              return _context24.abrupt("return");
             case 2:
-              _context15.prev = 2;
-              _context15.next = 5;
+              _context24.prev = 2;
+              _context24.next = 5;
               return axios__WEBPACK_IMPORTED_MODULE_0___default()["delete"]("/dashboard/api/pos/sales/".concat(saleId));
             case 5:
-              _context15.next = 7;
-              return _this16.loadParkedSales();
+              _context24.next = 7;
+              return _this25.loadParkedSales();
             case 7:
-              _context15.next = 12;
+              _context24.next = 12;
               break;
             case 9:
-              _context15.prev = 9;
-              _context15.t0 = _context15["catch"](2);
-              console.error('Failed to delete parked sale:', _context15.t0);
+              _context24.prev = 9;
+              _context24.t0 = _context24["catch"](2);
+              console.error('Failed to delete parked sale:', _context24.t0);
             case 12:
             case "end":
-              return _context15.stop();
+              return _context24.stop();
           }
-        }, _callee15, null, [[2, 9]]);
+        }, _callee24, null, [[2, 9]]);
       }))();
     },
     // Receipt
     printReceipt: function printReceipt() {
-      var _this17 = this;
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee16() {
+      var _this26 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee25() {
         var response, printWindow;
-        return _regeneratorRuntime().wrap(function _callee16$(_context16) {
-          while (1) switch (_context16.prev = _context16.next) {
+        return _regeneratorRuntime().wrap(function _callee25$(_context25) {
+          while (1) switch (_context25.prev = _context25.next) {
             case 0:
-              if (_this17.completedSale) {
-                _context16.next = 2;
+              if (_this26.completedSale) {
+                _context25.next = 2;
                 break;
               }
-              return _context16.abrupt("return");
+              return _context25.abrupt("return");
             case 2:
-              _context16.prev = 2;
-              _context16.next = 5;
-              return axios__WEBPACK_IMPORTED_MODULE_0___default().get("/dashboard/api/pos/print/".concat(_this17.completedSale.id, "/html"), {
+              _context25.prev = 2;
+              _context25.next = 5;
+              return axios__WEBPACK_IMPORTED_MODULE_0___default().get("/dashboard/api/pos/print/".concat(_this26.completedSale.id, "/html"), {
                 responseType: 'text'
               });
             case 5:
-              response = _context16.sent;
+              response = _context25.sent;
               printWindow = window.open('', '_blank');
               printWindow.document.write(response.data);
               printWindow.document.close();
               printWindow.print();
-              _context16.next = 15;
+              _context25.next = 15;
               break;
             case 12:
-              _context16.prev = 12;
-              _context16.t0 = _context16["catch"](2);
-              console.error('Failed to print receipt:', _context16.t0);
+              _context25.prev = 12;
+              _context25.t0 = _context25["catch"](2);
+              console.error('Failed to print receipt:', _context25.t0);
             case 15:
             case "end":
-              return _context16.stop();
+              return _context25.stop();
           }
-        }, _callee16, null, [[2, 12]]);
+        }, _callee25, null, [[2, 12]]);
       }))();
     },
     closeReceipt: function closeReceipt() {
@@ -1040,17 +1216,40 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     },
     // Sync
     syncCartToBackend: function syncCartToBackend() {
-      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee17() {
-        return _regeneratorRuntime().wrap(function _callee17$(_context17) {
-          while (1) switch (_context17.prev = _context17.next) {
+      var _this27 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee26() {
+        var _this27$currentCart$c;
+        return _regeneratorRuntime().wrap(function _callee26$(_context26) {
+          while (1) switch (_context26.prev = _context26.next) {
             case 0:
+              if (_this27.currentCart.id) {
+                _context26.next = 2;
+                break;
+              }
+              return _context26.abrupt("return");
+            case 2:
+              _context26.prev = 2;
+              _context26.next = 5;
+              return axios__WEBPACK_IMPORTED_MODULE_0___default().put("/dashboard/api/pos/sales/".concat(_this27.currentCart.id), {
+                customer_id: ((_this27$currentCart$c = _this27.currentCart.customer) === null || _this27$currentCart$c === void 0 ? void 0 : _this27$currentCart$c.id) || null,
+                items: _this27.currentCart.items,
+                discount_type: _this27.currentCart.discount_type,
+                discount_amount: _this27.currentCart.discount_amount
+              });
+            case 5:
+              _context26.next = 10;
+              break;
+            case 7:
+              _context26.prev = 7;
+              _context26.t0 = _context26["catch"](2);
+              console.error('Failed to sync cart to backend:', _context26.t0);
+            case 10:
             case "end":
-              return _context17.stop();
+              return _context26.stop();
           }
-        }, _callee17);
+        }, _callee26, null, [[2, 7]]);
       }))();
-    } // Implementation for syncing cart changes
-    ,
+    },
     // Keyboard shortcuts
     handleKeydown: function handleKeydown(e) {
       var _this$$refs$searchInp3;
@@ -1127,16 +1326,16 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     }
   },
   mounted: function mounted() {
-    var _this18 = this,
+    var _this28 = this,
       _this$$refs$searchInp4;
     this.initialize();
 
     // Online/offline detection
     window.addEventListener('online', function () {
-      _this18.isOnline = true;
+      _this28.isOnline = true;
     });
     window.addEventListener('offline', function () {
-      _this18.isOnline = false;
+      _this28.isOnline = false;
     });
 
     // Focus search on mount

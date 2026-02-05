@@ -30,12 +30,14 @@ class PosService
      */
     public function createSale(int $merchantId, ?int $customerId = null): PosSale
     {
-        return PosSale::create([
-            'merchant_id' => $merchantId,
-            'customer_id' => $customerId,
-            'sale_number' => PosSale::generateSaleNumber($merchantId),
-            'status' => 'draft',
-        ]);
+        return DB::transaction(function () use ($merchantId, $customerId) {
+            return PosSale::create([
+                'merchant_id' => $merchantId,
+                'customer_id' => $customerId,
+                'sale_number' => PosSale::generateSaleNumber($merchantId),
+                'status' => 'draft',
+            ]);
+        });
     }
 
     /**

@@ -71,12 +71,19 @@ class PosSale extends Model
      */
     public static function generateSaleNumber($merchantId): string
     {
-        $lastSale = self::where('merchant_id', $merchantId)
-            ->orderBy('id', 'desc')
+        // Use database locking to prevent race conditions
+        // Include soft-deleted records to ensure we don't reuse sale numbers
+        $lastSale = self::withTrashed()
+            ->where('merchant_id', $merchantId)
+            ->whereNotNull('sale_number')
+            ->orderByRaw('CAST(SUBSTRING(sale_number, 5) AS UNSIGNED) DESC')
+            ->lockForUpdate()
             ->first();
 
         $lastNumber = $lastSale ? intval(substr($lastSale->sale_number, 4)) : 0;
-        return 'POS-' . str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
+        $nextNumber = $lastNumber + 1;
+
+        return 'POS-' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
     }
 
     // Relationships
