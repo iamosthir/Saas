@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
+use App\Models\Merchant;
 
 class AuthController extends Controller
 {
@@ -44,15 +45,9 @@ class AuthController extends Controller
             ], 403);
         }
 
-        // Check if user has POS permission (optional - adjust based on your permission system)
-        // if (!$user->hasPermissionTo('pos')) {
-        //     return response()->json([
-        //         'message' => 'Unauthorized. POS access required.'
-        //     ], 403);
-        // }
-
-        // Delete old tokens (optional - keep only latest token)
-        // $user->tokens()->delete();
+        // Check merchant subscription status
+        $merchant = $user->merchant;
+        $accountExpired = !$merchant->subscription_end_date || $merchant->subscription_end_date->isPast();
 
         // Create token
         $token = $user->createToken('pos-app', ['pos:access'])->plainTextToken;
@@ -61,7 +56,13 @@ class AuthController extends Controller
             'success' => true,
             'token' => $token,
             'token_type' => 'Bearer',
-            'expires_in' => config('sanctum.expiration', 525600), // 1 year in minutes
+            'expires_in' => config('sanctum.expiration', 525600),
+            'account_status' => $accountExpired ? 'expired' : 'active',
+            'subscription' => [
+                'start_date' => $merchant->subscription_start_date,
+                'end_date' => $merchant->subscription_end_date,
+                'is_expired' => $accountExpired,
+            ],
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,

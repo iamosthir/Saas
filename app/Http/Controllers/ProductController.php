@@ -374,7 +374,10 @@ class ProductController extends Controller
 
         if($req->search != "")
         {
-            $products->where("name","like","%$req->search%")->orWhere("id",$req->search);
+            $products->where(function($query) use ($req) {
+                $query->where("name","like","%$req->search%")
+                      ->orWhere("id",$req->search);
+            });
         }
 
         if ($req->measurementSearch != "") {
