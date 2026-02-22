@@ -65,27 +65,38 @@ DashboardRouter.beforeEach((to, from, next) => {
     }
 
     // Check if permission is defined in route meta
-    if(!to.meta || !to.meta.permission)
-    {
+    if(!to.meta || !to.meta.permission) {
         next();
         return;
     }
 
-    if(to.meta.permission.includes("all"))
-    {
-        next();
-    }
-    else
-    {
-        if(to.meta.permission.includes(window.role))
-        {
+    const userRole = window.role;
+    const routePermissions = to.meta.permission;
+
+    // POS-only role: restrict to POS screen and related pages
+    if(userRole === 'pos_only') {
+        const allowedRoutes = ['pos', 'pos.history', 'my-profile', 'no-permission'];
+
+        if(allowedRoutes.includes(to.name)) {
             next();
+        } else if(to.name === 'dashboard' || to.name === 'home') {
+            // Redirect to POS instead of dashboard home
+            next({ name: 'pos' });
+        } else {
+            // Block access to all other routes
+            next({ name: 'no-permission' });
         }
-        else
-        {
-            next({
-                name: 'no-permission'
-            })
+        return;
+    }
+
+    // Standard permission check for super/staff roles
+    if(routePermissions.includes("all")) {
+        next();
+    } else {
+        if(routePermissions.includes(userRole)) {
+            next();
+        } else {
+            next({ name: 'no-permission' });
         }
     }
 });

@@ -189,7 +189,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     submitComplete: function submitComplete() {
       var _this3 = this;
       return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
-        var _error$response2, _error$response2$data;
+        var response, inventory, _error$response2, _error$response2$data;
         return _regeneratorRuntime().wrap(function _callee3$(_context3) {
           while (1) switch (_context3.prev = _context3.next) {
             case 0:
@@ -205,24 +205,43 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               _context3.next = 7;
               return axios.post("/dashboard/api/manufacturing/batches/".concat(_this3.selectedBatch.id, "/complete"), _this3.completeForm);
             case 7:
-              toastr.success('تم إكمال الإنتاج');
+              response = _context3.sent;
+              if (!response.data.success) {
+                _context3.next = 14;
+                break;
+              }
+              inventory = response.data.inventory_update;
+              _context3.next = 12;
+              return swal.fire({
+                icon: 'success',
+                title: 'تم إكمال الإنتاج بنجاح',
+                html: "\n              <div class=\"text-start\">\n                <p><strong>\u0627\u0644\u0645\u0646\u062A\u062C:</strong> ".concat(inventory.product_name, "</p>\n                <p><strong>\u0627\u0644\u0643\u0645\u064A\u0629 \u0627\u0644\u0645\u0636\u0627\u0641\u0629:</strong> ").concat(inventory.quantity_added, "</p>\n                <p><strong>\u0625\u062C\u0645\u0627\u0644\u064A \u0627\u0644\u0645\u062E\u0632\u0648\u0646 \u0627\u0644\u062C\u062F\u064A\u062F:</strong> ").concat(inventory.new_total_stock, "</p>\n                <p class=\"text-success mt-2\">\n                  <i class=\"fas fa-check-circle\"></i>\n                  \u0627\u0644\u0645\u0646\u062A\u062C \u0645\u062A\u0627\u062D \u0627\u0644\u0622\u0646 \u0644\u0644\u0628\u064A\u0639 \u0641\u064A \u0646\u0642\u0637\u0629 \u0627\u0644\u0628\u064A\u0639\n                </p>\n              </div>\n            "),
+                confirmButtonText: 'حسناً'
+              });
+            case 12:
               $('#completeModal').modal('hide');
               _this3.fetchBatches(_this3.pagination.current_page);
-              _context3.next = 15;
+            case 14:
+              _context3.next = 19;
               break;
-            case 12:
-              _context3.prev = 12;
+            case 16:
+              _context3.prev = 16;
               _context3.t0 = _context3["catch"](4);
-              toastr.error(((_error$response2 = _context3.t0.response) === null || _error$response2 === void 0 ? void 0 : (_error$response2$data = _error$response2.data) === null || _error$response2$data === void 0 ? void 0 : _error$response2$data.message) || 'فشل إكمال الإنتاج');
-            case 15:
-              _context3.prev = 15;
+              swal.fire({
+                icon: 'error',
+                title: 'فشل إكمال الإنتاج',
+                text: ((_error$response2 = _context3.t0.response) === null || _error$response2 === void 0 ? void 0 : (_error$response2$data = _error$response2.data) === null || _error$response2$data === void 0 ? void 0 : _error$response2$data.message) || 'حدث خطأ غير متوقع',
+                confirmButtonText: 'حسناً'
+              });
+            case 19:
+              _context3.prev = 19;
               _this3.completing = false;
-              return _context3.finish(15);
-            case 18:
+              return _context3.finish(19);
+            case 22:
             case "end":
               return _context3.stop();
           }
-        }, _callee3, null, [[4, 12, 15, 18]]);
+        }, _callee3, null, [[4, 16, 19, 22]]);
       }))();
     },
     viewDetails: function viewDetails(batch) {
@@ -515,7 +534,12 @@ var render = function render() {
       staticClass: "text-muted"
     }, [_vm._v("\n                  (" + _vm._s(batch.product_variation.var_name) + ")\n                ")]) : _vm._e()]), _vm._v(" "), _c("td", [_vm._v(_vm._s((_batch$recipe = batch.recipe) === null || _batch$recipe === void 0 ? void 0 : _batch$recipe.name))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm.formatDate(batch.production_date)))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(batch.planned_quantity))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(batch.actual_quantity || "-"))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm.formatCurrency(batch.total_cost)))]), _vm._v(" "), _c("td", [_c("span", {
       "class": "badge bg-" + _vm.getStatusColor(batch.status)
-    }, [_vm._v("\n                  " + _vm._s(_vm.formatStatus(batch.status)) + "\n                ")])]), _vm._v(" "), _c("td", [_c("div", {
+    }, [_vm._v("\n                  " + _vm._s(_vm.formatStatus(batch.status)) + "\n                  "), batch.status !== "completed" && batch.status !== "cancelled" ? _c("i", {
+      staticClass: "fas fa-exclamation-circle ms-1",
+      attrs: {
+        title: "المخزون لم يتم تحديثه بعد"
+      }
+    }) : _vm._e()])]), _vm._v(" "), _c("td", [_c("div", {
       staticClass: "btn-group btn-group-sm"
     }, [batch.status === "draft" ? _c("button", {
       staticClass: "btn btn-outline-primary",
@@ -662,6 +686,12 @@ var render = function render() {
   })]), _vm._v(" "), _vm.selectedBatch ? _c("div", {
     staticClass: "modal-body"
   }, [_c("div", {
+    staticClass: "alert alert-info mb-3"
+  }, [_c("i", {
+    staticClass: "fas fa-info-circle"
+  }), _vm._v(" "), _c("strong", [_vm._v("ملاحظة هامة:")]), _vm._v(" عند إكمال الإنتاج، سيتم:\n            "), _c("ul", {
+    staticClass: "mb-0 mt-2"
+  }, [_c("li", [_vm._v("خصم المواد الخام المستخدمة من المخزون")]), _vm._v(" "), _c("li", [_vm._v("إضافة " + _vm._s(_vm.completeForm.actual_quantity || 0) + " وحدة إلى مخزون المنتج")]), _vm._v(" "), _c("li", [_vm._v("تحديث تكلفة المنتج")]), _vm._v(" "), _c("li", [_vm._v("إتاحة المنتج للبيع في نقطة البيع")])])]), _vm._v(" "), _c("div", {
     staticClass: "mb-3"
   }, [_vm._m(3), _vm._v(" "), _c("input", {
     directives: [{

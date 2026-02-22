@@ -20,7 +20,7 @@ class UserController extends Controller
             "name" => "required",
             "phone" => 'required|unique:users,phone',
             "password" => "required|min:8",
-            "role" => 'required|in:staff,super',
+            "role" => 'required|in:staff,super,pos_only',
         ]);
 
         if(auth()->user()->role == "super")
@@ -94,7 +94,7 @@ class UserController extends Controller
             "name" => "required",
             "phone" => "required|unique:users,phone,$req->userid,id",
             "password" => "nullable|min:8",
-            "role" => 'required|in:staff,super',
+            "role" => 'required|in:staff,super,pos_only',
         ]);
 
         if(auth()->user()->role == "super")

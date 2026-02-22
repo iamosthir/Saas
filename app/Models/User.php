@@ -55,4 +55,28 @@ class User extends Authenticatable implements Authorizable
     {
         return $this->belongsTo(Merchant::class);
     }
+
+    /**
+     * Check if user has pos_only role
+     */
+    public function isPosOnly(): bool
+    {
+        return $this->role === 'pos_only';
+    }
+
+    /**
+     * Check if user has super role
+     */
+    public function isSuper(): bool
+    {
+        return $this->role === 'super';
+    }
+
+    /**
+     * Check if user has staff role
+     */
+    public function isStaff(): bool
+    {
+        return $this->role === 'staff';
+    }
 }

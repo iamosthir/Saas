@@ -617,6 +617,8 @@
 
                         <!-- Navigation links -->
                         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            @if(auth()->user()->role !== 'pos_only')
+                            {{-- Full navigation for super and staff users --}}
                             <li class="nav-item">
                                 <router-link :to="{name: 'dashboard'}" class="nav-link">
                                     <i class="fas fa-home"></i> الرئيسية
@@ -665,6 +667,19 @@
                             <li class="nav-item">
                                 <router-link :to="{name: 'contracts.list'}" class="nav-link">
                                     <i class="fas fa-file-contract"></i> العقود
+                                </router-link>
+                            </li>
+                            @endif
+                            @else
+                            {{-- Minimal navigation for pos_only users --}}
+                            <li class="nav-item">
+                                <router-link :to="{name: 'pos'}" class="nav-link">
+                                    <i class="fas fa-cash-register"></i> نقطة البيع
+                                </router-link>
+                            </li>
+                            <li class="nav-item">
+                                <router-link :to="{name: 'pos.history'}" class="nav-link">
+                                    <i class="fas fa-history"></i> سجل المبيعات
                                 </router-link>
                             </li>
                             @endif

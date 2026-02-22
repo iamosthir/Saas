@@ -40,4 +40,20 @@ class LoginController extends Controller
     {
         return 'phone';
     }
+
+    /**
+     * Redirect users based on their role after login.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  mixed  $user
+     * @return \Illuminate\Http\Response
+     */
+    protected function authenticated($request, $user)
+    {
+        if ($user->role === 'pos_only') {
+            return redirect('/dashboard/pos');
+        }
+
+        return redirect()->intended(RouteServiceProvider::HOME);
+    }
 }

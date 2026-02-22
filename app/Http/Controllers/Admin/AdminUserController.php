@@ -37,7 +37,7 @@ class AdminUserController extends Controller
             'phone' => 'required|string|max:255|unique:users,phone',
             'email' => 'nullable|email|unique:users,email',
             'password' => 'required|string|min:6',
-            'role' => 'required|in:super,staff',
+            'role' => 'required|in:super,staff,pos_only',
         ]);
 
         User::create([
@@ -74,7 +74,7 @@ class AdminUserController extends Controller
             'phone' => 'required|string|max:255|unique:users,phone,' . $user->id,
             'email' => 'nullable|email|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:6',
-            'role' => 'required|in:super,staff',
+            'role' => 'required|in:super,staff,pos_only',
         ]);
 
         $updateData = [

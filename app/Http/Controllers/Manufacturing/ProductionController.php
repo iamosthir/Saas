@@ -202,21 +202,45 @@ class ProductionController extends Controller
         ]);
 
         try {
+            \Log::info("Starting production completion", [
+                'batch_id' => $id,
+                'actual_quantity' => $request->actual_quantity,
+                'user_id' => auth()->id()
+            ]);
+
             $batch = $this->productionService->completeProduction(
                 $id,
                 $request->actual_quantity,
                 $request->actual_ingredients
             );
 
+            \Log::info("Production completed successfully", [
+                'batch_id' => $id,
+                'batch_number' => $batch->batch_number,
+                'product_stock_after' => $batch->product->total_stock
+            ]);
+
             return response()->json([
                 'success' => true,
-                'message' => 'Production completed successfully',
-                'data' => $batch,
+                'message' => 'تم إكمال الإنتاج وتحديث المخزون بنجاح',
+                'data' => $batch->load('product', 'productVariation'),
+                'inventory_update' => [
+                    'product_id' => $batch->product_id,
+                    'product_name' => $batch->product->name,
+                    'quantity_added' => $batch->actual_quantity,
+                    'new_total_stock' => $batch->product->fresh()->total_stock
+                ]
             ]);
         } catch (\Exception $e) {
+            \Log::error("Production completion failed", [
+                'batch_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage(),
+                'message' => 'فشل إكمال الإنتاج: ' . $e->getMessage()
             ], 400);
         }
     }

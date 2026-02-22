@@ -73,6 +73,9 @@
                 <td>
                   <span :class="'badge bg-' + getStatusColor(batch.status)">
                     {{ formatStatus(batch.status) }}
+                    <i v-if="batch.status !== 'completed' && batch.status !== 'cancelled'"
+                       class="fas fa-exclamation-circle ms-1"
+                       title="المخزون لم يتم تحديثه بعد"></i>
                   </span>
                 </td>
                 <td>
@@ -142,6 +145,17 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body" v-if="selectedBatch">
+            <div class="alert alert-info mb-3">
+              <i class="fas fa-info-circle"></i>
+              <strong>ملاحظة هامة:</strong> عند إكمال الإنتاج، سيتم:
+              <ul class="mb-0 mt-2">
+                <li>خصم المواد الخام المستخدمة من المخزون</li>
+                <li>إضافة {{ completeForm.actual_quantity || 0 }} وحدة إلى مخزون المنتج</li>
+                <li>تحديث تكلفة المنتج</li>
+                <li>إتاحة المنتج للبيع في نقطة البيع</li>
+              </ul>
+            </div>
+
             <div class="mb-3">
               <label class="form-label">كمية الإنتاج الفعلية <span class="text-danger">*</span></label>
               <input type="number" class="form-control" v-model="completeForm.actual_quantity" min="0" step="0.01">
@@ -440,12 +454,38 @@ export default {
 
       this.completing = true;
       try {
-        await axios.post(`/dashboard/api/manufacturing/batches/${this.selectedBatch.id}/complete`, this.completeForm);
-        toastr.success('تم إكمال الإنتاج');
-        $('#completeModal').modal('hide');
-        this.fetchBatches(this.pagination.current_page);
+        const response = await axios.post(`/dashboard/api/manufacturing/batches/${this.selectedBatch.id}/complete`, this.completeForm);
+
+        if (response.data.success) {
+          const inventory = response.data.inventory_update;
+
+          await swal.fire({
+            icon: 'success',
+            title: 'تم إكمال الإنتاج بنجاح',
+            html: `
+              <div class="text-start">
+                <p><strong>المنتج:</strong> ${inventory.product_name}</p>
+                <p><strong>الكمية المضافة:</strong> ${inventory.quantity_added}</p>
+                <p><strong>إجمالي المخزون الجديد:</strong> ${inventory.new_total_stock}</p>
+                <p class="text-success mt-2">
+                  <i class="fas fa-check-circle"></i>
+                  المنتج متاح الآن للبيع في نقطة البيع
+                </p>
+              </div>
+            `,
+            confirmButtonText: 'حسناً'
+          });
+
+          $('#completeModal').modal('hide');
+          this.fetchBatches(this.pagination.current_page);
+        }
       } catch (error) {
-        toastr.error(error.response?.data?.message || 'فشل إكمال الإنتاج');
+        swal.fire({
+          icon: 'error',
+          title: 'فشل إكمال الإنتاج',
+          text: error.response?.data?.message || 'حدث خطأ غير متوقع',
+          confirmButtonText: 'حسناً'
+        });
       } finally {
         this.completing = false;
       }

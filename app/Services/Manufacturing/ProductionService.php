@@ -104,6 +104,38 @@ class ProductionService
                 throw new \Exception('Batch cannot be completed');
             }
 
+            // Validate product exists
+            if (!$batch->product) {
+                throw new \Exception("Product not found for batch {$batch->batch_number}");
+            }
+
+            // Validate product variation if specified
+            if ($batch->product_variation_id && !$batch->productVariation) {
+                throw new \Exception("Product variation not found for batch {$batch->batch_number}");
+            }
+
+            // Validate actual quantity is reasonable
+            if ($actualQuantity <= 0) {
+                throw new \Exception("Actual quantity must be greater than zero");
+            }
+
+            if ($actualQuantity > $batch->planned_quantity * 1.5) {
+                // Warning for quantities significantly higher than planned
+                \Log::warning("Actual quantity significantly exceeds planned", [
+                    'batch' => $batch->batch_number,
+                    'planned' => $batch->planned_quantity,
+                    'actual' => $actualQuantity
+                ]);
+            }
+
+            // Log the operation
+            \Log::info("Completing production batch", [
+                'batch_id' => $batch->id,
+                'batch_number' => $batch->batch_number,
+                'actual_quantity' => $actualQuantity,
+                'product_id' => $batch->product_id
+            ]);
+
             $merchantId = $batch->merchant_id;
             $totalMaterialCost = 0;
 
@@ -270,6 +302,14 @@ class ProductionService
         // Update product total_stock
         $batch->product->total_stock = $batch->product->variations()->sum('quantity');
         $batch->product->save();
+
+        // Log inventory update
+        \Log::info("Inventory updated after production", [
+            'batch_number' => $batch->batch_number,
+            'product_id' => $batch->product_id,
+            'quantity_added' => $quantity,
+            'new_total_stock' => $batch->product->total_stock
+        ]);
 
         // Add cost layer for FIFO (using existing POS inventory system)
         $this->addProductCostLayer($batch, $quantity, $unitCost);

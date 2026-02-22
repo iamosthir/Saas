@@ -655,6 +655,9 @@ export default {
         }
     },
     computed: {
+        isPosOnly() {
+            return this.role === 'pos_only';
+        },
         canAccessPos() {
             return this.permissions.can_access_pos;
         },
@@ -666,6 +669,11 @@ export default {
         }
     },
     mounted() {
+        if(this.isPosOnly) {
+            this.$router.push({ name: 'pos' });
+            return;
+        }
+
         this.getSettingData();
         this.getMerchantPermissions();
     },

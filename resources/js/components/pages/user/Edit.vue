@@ -43,14 +43,18 @@
                               </div>
                           </div>
   
-                          <div class="col-md-6 mb-4">
+                          <div class="col-md-12 mb-4">
                               <label for="">دور المستخدم</label>
                               <select class="form-select" v-model="form.role" :class="{'is-invalid' : form.errors.has('role')}">
-                                  <option value="" hidden selected></option>
-                                  <option value="staff">موضف</option>
-                                  <option value="super">مدير</option>
+                                  <option value="" hidden selected>اختر الصلاحية</option>
+                                  <option value="super">مدير - صلاحيات كاملة</option>
+                                  <option value="staff">موظف - صلاحيات محدودة</option>
+                                  <option value="pos_only">كاشير - نقطة البيع فقط</option>
                               </select>
-                              <HasError :form="form" field="page_name"/>
+                              <small class="text-muted form-text">
+                                  <strong>كاشير:</strong> يمكنه فقط الوصول إلى شاشة نقطة البيع وسجل المبيعات
+                              </small>
+                              <HasError :form="form" field="role"/>
                           </div>
   
                           <div class="col-md-12 mb-4">
