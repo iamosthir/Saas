@@ -51,6 +51,7 @@ class MerchantRegistrationController extends Controller
             'subscription_end_date'  => Carbon::now()->addDays($plan->duration),
             'is_active'              => true,
             'subscription_plan_id'   => $validated['subscription_plan_id'],
+            'can_access_pos' => 1, // default to true, can be adjusted based on plan features
         ]);
 
         $user = User::create([

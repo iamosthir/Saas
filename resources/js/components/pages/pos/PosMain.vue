@@ -833,7 +833,15 @@ export default {
             // Check if product has variations (using variation or variations property)
             const variations = product.variation || product.variations || [];
 
-            if (variations && variations.length > 0) {
+            if (variations && variations.length === 1) {
+                // Single variation - add directly to cart without modal
+                const variation = variations[0];
+                if (variation.quantity <= 0) {
+                    this.$toast?.warning('Out of stock');
+                    return;
+                }
+                this.addToCart(product, variation);
+            } else if (variations && variations.length > 1) {
                 this.selectedProduct = { ...product, variations: variations };
                 this.showVariationModal = true;
             } else {

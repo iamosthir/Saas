@@ -424,7 +424,7 @@ const router = new VueRouter({
             component: ExpenseReport,
             meta: {
                 title: "Expense Report",
-                permission: ['super'],
+                permission: ['super', 'accountant'],
             }
         },
         {
@@ -433,7 +433,7 @@ const router = new VueRouter({
             component: SalesReport,
             meta: {
                 title: "Sales Report",
-                permission: ['super'],
+                permission: ['super', 'accountant'],
             }
         },
         {
@@ -442,7 +442,7 @@ const router = new VueRouter({
             component: PurchaseReport,
             meta: {
                 title: "Purchase Report",
-                permission: ['super'],
+                permission: ['super', 'accountant'],
             }
         },
         {
@@ -451,7 +451,7 @@ const router = new VueRouter({
             component: ProfitLossReport,
             meta: {
                 title: "Profit & Loss Report",
-                permission: ['super'],
+                permission: ['super', 'accountant'],
             }
         },
         {

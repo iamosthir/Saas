@@ -544,4 +544,49 @@ class ProductController extends Controller
 
         return view('pages.product-barcode', compact('product'));
     }
+
+    public function label(Request $req, $id)
+    {
+        $merchantId = auth()->user()->merchant_id;
+
+        $product = Product::where('id', $id)
+            ->where('merchant_id', $merchantId)
+            ->firstOrFail();
+
+        $merchantName = optional(auth()->user()->merchant)->name ?? '';
+        $products = collect([$product]);
+
+        return view('pages.product-labels', compact('products', 'merchantName'));
+    }
+
+    public function labels(Request $req)
+    {
+        $merchantId = auth()->user()->merchant_id;
+        $ids = collect(explode(',', (string) $req->query('ids', '')))
+            ->map(function ($id) {
+                return (int) trim($id);
+            })
+            ->filter(function ($id) {
+                return $id > 0;
+            })
+            ->unique()
+            ->values();
+
+        if ($ids->isEmpty()) {
+            abort(422, 'No products selected for labels');
+        }
+
+        $products = Product::where('merchant_id', $merchantId)
+            ->whereIn('id', $ids)
+            ->orderBy('id', 'desc')
+            ->get();
+
+        if ($products->isEmpty()) {
+            abort(404, 'Products not found');
+        }
+
+        $merchantName = optional(auth()->user()->merchant)->name ?? '';
+
+        return view('pages.product-labels', compact('products', 'merchantName'));
+    }
 }

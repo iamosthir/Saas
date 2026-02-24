@@ -2,18 +2,34 @@
   <div class="row justify-content-center">
     <div class="col-md-12">
       <div class="card shadow-sm">
+
+        <!-- Header -->
         <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="mb-0"><i class="fas fa-list"></i> قائمة المنتجات</h5>
-          <router-link :to="{name: 'products.add'}" class="btn btn-sm btn-success">
-            <i class="fas fa-plus"></i> إضافة منتج
-          </router-link>
+          <h5 class="mb-0">
+            <i class="fas fa-list"></i> قائمة المنتجات
+          </h5>
+
+          <div class="header-actions">
+            <button class="btn btn-sm btn-primary" @click="printBulkLabels">
+              <i class="fas fa-tags"></i> طباعة ليبل جماعي
+            </button>
+
+            <router-link :to="{name: 'products.add'}" class="btn btn-sm btn-success">
+              <i class="fas fa-plus"></i> إضافة منتج
+            </router-link>
+          </div>
         </div>
+
         <div class="card-body">
-          <!-- Search and Filters -->
+
+          <!-- Search & Filters -->
           <div class="row mb-4">
+
             <div class="col-md-4 mb-2">
               <div class="input-group">
-                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                <span class="input-group-text">
+                  <i class="fas fa-search"></i>
+                </span>
                 <input
                   type="text"
                   class="form-control"
@@ -23,6 +39,7 @@
                 >
               </div>
             </div>
+
             <div class="col-md-3 mb-2">
               <input
                 type="text"
@@ -32,6 +49,7 @@
                 @input="filterProduct"
               >
             </div>
+
             <div class="col-md-3 mb-2">
               <select class="form-control" v-model="categoryFilter" @change="filterProduct">
                 <option :value="null">جميع التصنيفات</option>
@@ -40,19 +58,58 @@
                 </option>
               </select>
             </div>
+
             <div class="col-md-2 mb-2">
               <button class="btn btn-secondary w-100" @click="clearFilters">
                 <i class="fas fa-redo"></i> إعادة تعيين
               </button>
             </div>
+
+          </div>
+
+          <!-- Bulk Selection -->
+          <div
+            class="bulk-selection-toolbar"
+            v-if="paginateData.data && paginateData.data.length > 0"
+          >
+            <label class="selection-check">
+              <input
+                type="checkbox"
+                :checked="areAllCurrentPageSelected"
+                @change="toggleSelectAllCurrentPage"
+              >
+              <span>تحديد كل الصفحة</span>
+            </label>
+
+            <span class="selected-count">
+              المحدد: {{ selectedProductIds.length }}
+            </span>
           </div>
 
           <!-- Products Grid -->
           <div v-if="paginateData.data && paginateData.data.length > 0">
+
             <div class="row">
-              <div class="col-md-12 col-lg-6 col-xl-4 mb-4" v-for="(product, i) in paginateData.data" :key="product.id">
+              <div
+                class="col-md-12 col-lg-6 col-xl-4 mb-4"
+                v-for="(product, i) in paginateData.data"
+                :key="product.id"
+              >
                 <div class="product-card">
-                  <!-- Product Image -->
+
+                  <!-- Select Checkbox -->
+                  <div class="product-select-box">
+                    <label class="selection-check">
+                      <input
+                        type="checkbox"
+                        :checked="selectedProductIds.includes(product.id)"
+                        @change="toggleProductSelection(product.id)"
+                      >
+                      <span>ليبل جماعي</span>
+                    </label>
+                  </div>
+
+                  <!-- Image -->
                   <div class="product-image-container">
                     <img
                       v-if="product.image"
@@ -64,15 +121,17 @@
                       v-else
                       src="/uploads/products/default.jpg"
                       class="product-image"
-                      alt="No Image"
+                      alt="لا توجد صورة"
                     >
+
                     <div class="product-badge" v-if="product.discount_type">
                       <i class="fas fa-tag"></i> خصم
                     </div>
                   </div>
 
-                  <!-- Product Info -->
+                  <!-- Info -->
                   <div class="product-info">
+
                     <div class="product-header">
                       <h6 class="product-title">{{ product.name }}</h6>
                       <span class="product-id">#{{ product.id }}</span>
@@ -82,138 +141,107 @@
                       <span class="badge bg-secondary" v-if="product.model_name">
                         <i class="fas fa-barcode"></i> {{ product.model_name }}
                       </span>
+
                       <span class="badge bg-info" v-if="product.category">
                         <i class="fas fa-tag"></i> {{ product.category.name }}
                       </span>
                     </div>
 
                     <div class="product-description" v-if="product.description">
-                      <small class="text-muted">{{ product.description.substring(0, 80) }}{{ product.description.length > 80 ? '...' : '' }}</small>
+                      <small class="text-muted">
+                        {{ product.description.substring(0, 80) }}
+                        {{ product.description.length > 80 ? '...' : '' }}
+                      </small>
                     </div>
 
-                    <!-- Price Summary -->
+                    <!-- Prices -->
                     <div class="price-summary">
+
                       <div class="price-row">
                         <span class="price-label">سعر الشراء:</span>
-                        <span class="price-value purchase">{{ formatPrice(product.purchase_price) }} IQD</span>
+                        <span class="price-value purchase">
+                          {{ formatPrice(product.purchase_price) }} IQD
+                        </span>
                       </div>
+
                       <div class="price-row">
                         <span class="price-label">سعر البيع:</span>
-                        <span class="price-value sale">{{ formatPrice(product.sell_price) }} IQD</span>
+                        <span class="price-value sale">
+                          {{ formatPrice(product.sell_price) }} IQD
+                        </span>
                       </div>
+
                       <div class="price-row" v-if="product.discount_type">
                         <span class="price-label">الخصم:</span>
                         <span class="price-value discount">
-                          {{ product.discount_amount }}{{ product.discount_type === 'percentage' ? '%' : ' IQD' }}
+                          {{ product.discount_amount }}
+                          {{ product.discount_type === 'percentage' ? '%' : ' IQD' }}
                         </span>
                       </div>
+
                     </div>
 
-                    <!-- Stock Summary -->
+                    <!-- Stock -->
                     <div class="stock-summary">
                       <div class="stock-info">
                         <i class="fas fa-boxes"></i>
                         <span class="stock-label">إجمالي المخزون:</span>
-                        <span class="stock-value" :class="getStockClass(product.total_stock)">
+                        <span
+                          class="stock-value"
+                          :class="getStockClass(product.total_stock)"
+                        >
                           {{ product.total_stock }}
                         </span>
                       </div>
                     </div>
 
-                    <!-- Variations Toggle -->
+                    <!-- Variations Button -->
                     <div class="variations-toggle">
                       <button
                         class="btn btn-sm btn-outline-primary w-100"
                         @click="toggleVariations(i)"
                       >
-                        <i class="fas" :class="product.showVariations ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                        <i
+                          class="fas"
+                          :class="product.showVariations ? 'fa-chevron-up' : 'fa-chevron-down'"
+                        ></i>
                         المتغيرات ({{ product.variation ? product.variation.length : 0 }})
                       </button>
                     </div>
 
-                    <!-- Variations Table (Collapsible) -->
-                    <div v-if="product.showVariations" class="variations-container">
-                      <div class="table-responsive">
-                        <table class="table table-sm table-bordered variations-table">
-                          <thead>
-                            <tr>
-                              <th>المتغير</th>
-                              <th>الشراء</th>
-                              <th>البيع</th>
-                              <th>المخزون</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr v-for="(variation, k) in product.variation" :key="variation.id">
-                              <td>
-                                <div class="variation-name">
-                                  {{ variation.var_name }}
-                                  <div class="attribute-tags" v-if="variation.attribute_values">
-                                    <span
-                                      v-for="(value, attr) in variation.attribute_values"
-                                      :key="attr"
-                                      class="attribute-tag"
-                                    >
-                                      {{ attr }}: {{ value }}
-                                    </span>
-                                  </div>
-                                </div>
-                              </td>
-                              <td class="text-center">
-                                <span class="badge bg-warning text-dark">
-                                  {{ formatPrice(variation.purchase_price) }}
-                                </span>
-                              </td>
-                              <td class="text-center">
-                                <span class="badge bg-success">
-                                  {{ formatPrice(variation.price) }}
-                                </span>
-                              </td>
-                              <td>
-                                <div class="stock-controls">
-                                  <button
-                                    class="stock-btn minus"
-                                    @click="quantityUpdate(variation.id, i, k, 'minus')"
-                                    :disabled="variation.quantity <= 0"
-                                  >
-                                    <i class="fas fa-minus"></i>
-                                  </button>
-                                  <span class="stock-quantity">{{ variation.quantity }}</span>
-                                  <button
-                                    class="stock-btn plus"
-                                    @click="quantityUpdate(variation.id, i, k, 'plus')"
-                                  >
-                                    <i class="fas fa-plus"></i>
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-
-                    <!-- Action Buttons -->
+                    <!-- Actions -->
                     <div class="product-actions">
+
                       <router-link
                         :to="{name: 'product.edit', params: {productId: product.id}}"
                         class="btn btn-sm btn-warning"
                       >
                         <i class="fas fa-edit"></i> تعديل
                       </router-link>
+
                       <button
                         @click="printBarcode(product.id)"
                         class="btn btn-sm btn-info"
                       >
                         <i class="fas fa-barcode"></i> باركود
                       </button>
+
+                      <button
+                        @click="printSingleLabel(product.id)"
+                        class="btn btn-sm btn-primary"
+                      >
+                        <i class="fas fa-tag"></i> ليبل
+                      </button>
+
                       <button
                         @click="deleteProduct(product.id, i)"
                         class="btn btn-sm btn-danger"
                       >
                         <i class="fas fa-trash"></i> حذف
                       </button>
+
                     </div>
+
                   </div>
                 </div>
               </div>
@@ -221,25 +249,34 @@
 
             <!-- Pagination -->
             <div class="d-flex justify-content-center mt-4">
-              <pagination :limit="8" :data="paginateData" @pagination-change-page="getProductList"></pagination>
+              <pagination
+                :limit="8"
+                :data="paginateData"
+                @pagination-change-page="getProductList"
+              ></pagination>
             </div>
+
           </div>
 
           <!-- Empty State -->
-          <div v-else class="empty-state">
-            <i class="fas fa-box-open"></i>
+          <div v-else class="empty-state text-center py-5">
+            <i class="fas fa-box-open fa-3x mb-3"></i>
             <h5>لا توجد منتجات</h5>
             <p class="text-muted">ابدأ بإضافة منتج جديد</p>
-            <router-link :to="{name: 'products.add'}" class="btn btn-primary">
+
+            <router-link
+              :to="{name: 'products.add'}"
+              class="btn btn-primary"
+            >
               <i class="fas fa-plus"></i> إضافة منتج
             </router-link>
           </div>
+
         </div>
       </div>
     </div>
   </div>
 </template>
-
 <script>
 export default {
   data() {
@@ -252,7 +289,17 @@ export default {
       measurementSearch: '',
       categoryFilter: null,
       myTimeOut: null,
+      selectedProductIds: [],
     }
+  },
+  computed: {
+    areAllCurrentPageSelected() {
+      if (!this.paginateData.data || this.paginateData.data.length === 0) {
+        return false;
+      }
+
+      return this.paginateData.data.every(product => this.selectedProductIds.includes(product.id));
+    },
   },
   methods: {
     async fetchCategories() {
@@ -337,35 +384,65 @@ export default {
         });
       } catch (err) {
         console.error(err.response?.data);
-        swal.fire("خطأ", "فشل تحميل المنتجات", "error");
+        swal.fire("Ø®Ø·Ø£", "ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª", "error");
       }
     },
     printBarcode(productId) {
       // Open barcode in a new tab
       window.open(`/dashboard/product-barcode/${productId}`, '_blank');
     },
+    printSingleLabel(productId) {
+      window.open(`/dashboard/product-label/${productId}`, '_blank');
+    },
+    printBulkLabels() {
+      if (!this.selectedProductIds.length) {
+        swal.fire("تنبيه", "حدد المنتجات أولاً لطباعة الليبل الجماعي", "warning");
+        return;
+      }
+
+      const ids = this.selectedProductIds.join(',');
+      window.open(`/dashboard/product-labels?ids=${ids}`, '_blank');
+    },
+    toggleProductSelection(productId) {
+      if (this.selectedProductIds.includes(productId)) {
+        this.selectedProductIds = this.selectedProductIds.filter(id => id !== productId);
+        return;
+      }
+      this.selectedProductIds.push(productId);
+    },
+    toggleSelectAllCurrentPage() {
+      const currentPageIds = this.paginateData.data.map(product => product.id);
+
+      if (this.areAllCurrentPageSelected) {
+        this.selectedProductIds = this.selectedProductIds.filter(id => !currentPageIds.includes(id));
+        return;
+      }
+
+      this.selectedProductIds = Array.from(new Set([...this.selectedProductIds, ...currentPageIds]));
+    },
     async deleteProduct(id, index) {
       const result = await swal.fire({
-        title: 'هل أنت متأكد؟',
-        text: "لن تتمكن من استعادة هذا المنتج!",
+        title: 'Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ØŸ',
+        text: "Ù„Ù† ØªØªÙ…ÙƒÙ† Ù…Ù† Ø§Ø³ØªØ¹Ø§Ø¯Ø© Ù‡Ø°Ø§ Ø§Ù„Ù…Ù†ØªØ¬!",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
         cancelButtonColor: '#6c757d',
-        confirmButtonText: 'نعم، احذفه!',
-        cancelButtonText: 'إلغاء'
+        confirmButtonText: 'Ù†Ø¹Ù…ØŒ Ø§Ø­Ø°ÙÙ‡!',
+        cancelButtonText: 'Ø¥Ù„ØºØ§Ø¡'
       });
 
       if (result.isConfirmed) {
         try {
           const response = await axios.post("/dashboard/api/delete-product", { productId: id });
           if (response.data.status === "ok") {
-            swal.fire("تم الحذف!", response.data.msg, "success");
+            swal.fire("ØªÙ… Ø§Ù„Ø­Ø°Ù!", response.data.msg, "success");
             this.paginateData.data.splice(index, 1);
+            this.selectedProductIds = this.selectedProductIds.filter(productId => productId !== id);
           }
         } catch (err) {
           console.error(err.response?.data);
-          swal.fire("خطأ", "فشل حذف المنتج", "error");
+          swal.fire("Ø®Ø·Ø£", "ÙØ´Ù„ Ø­Ø°Ù Ø§Ù„Ù…Ù†ØªØ¬", "error");
         }
       }
     }
@@ -378,6 +455,46 @@ export default {
 </script>
 
 <style scoped>
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.bulk-selection-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8f9fa;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.product-select-box {
+  padding: 0.55rem 0.8rem 0.15rem 0.8rem;
+}
+
+.selection-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: #334155;
+  margin: 0;
+}
+
+.selection-check input {
+  cursor: pointer;
+}
+
+.selected-count {
+  font-size: 0.85rem;
+  color: #475569;
+  font-weight: 600;
+}
+
 /* Product Card */
 .product-card {
   background: white;

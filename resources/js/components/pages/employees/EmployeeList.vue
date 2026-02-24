@@ -164,44 +164,80 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">{{ editingEmployee ? 'تعديل موظف' : 'إضافة موظف' }}</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <button type="button" class="btn-close" @click="closeModal"></button>
           </div>
           <form @submit.prevent="submitForm">
             <div class="modal-body">
-              <div class="mb-3">
-                <label class="form-label">الاسم الكامل <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" v-model="form.full_name" required>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">الهاتف</label>
-                <input type="tel" class="form-control" v-model="form.phone">
-              </div>
-              <div class="mb-3">
-                <label class="form-label">المسمى الوظيفي <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" v-model="form.job_title" required placeholder="مثل: خباز، كاشير، مدير">
-              </div>
-              <div class="mb-3">
-                <label class="form-label">الراتب الشهري <span class="text-danger">*</span></label>
-                <input type="number" class="form-control" v-model="form.monthly_salary" required min="0" step="0.01">
-              </div>
-              <div class="mb-3">
-                <label class="form-label">تاريخ التوظيف</label>
-                <input type="date" class="form-control" v-model="form.hire_date">
-              </div>
-              <div class="mb-3" v-if="editingEmployee">
-                <label class="form-label">الحالة</label>
-                <select class="form-select" v-model="form.status">
-                  <option value="active">نشط</option>
-                  <option value="inactive">غير نشط</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">ملاحظات</label>
-                <textarea class="form-control" v-model="form.notes" rows="2"></textarea>
-              </div>
+              <!-- Add mode: create user + employee -->
+              <template v-if="!editingEmployee">
+                <div class="mb-3">
+                  <label class="form-label">الاسم <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" v-model="form.name" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">البريد الإلكتروني</label>
+                  <input type="email" class="form-control" v-model="form.email">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">الهاتف</label>
+                  <input type="tel" class="form-control" v-model="form.phone">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">كلمة المرور <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" v-model="form.password" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">الدور <span class="text-danger">*</span></label>
+                  <select class="form-select" v-model="form.role" required>
+                    <option value="super">Super</option>
+                    <option value="cashier">Cashier</option>
+                    <option value="accountant">Accountant</option>
+                    <option value="deliveryman">Deliveryman</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">الراتب الشهري <span class="text-danger">*</span></label>
+                  <input type="number" class="form-control" v-model="form.monthly_salary" required min="0" step="0.01">
+                </div>
+              </template>
+
+              <!-- Edit mode: update employee fields -->
+              <template v-else>
+                <div class="mb-3">
+                  <label class="form-label">الاسم الكامل <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" v-model="form.full_name" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">الهاتف</label>
+                  <input type="tel" class="form-control" v-model="form.phone">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">المسمى الوظيفي <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" v-model="form.job_title" required placeholder="مثل: خباز، كاشير، مدير">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">الراتب الشهري <span class="text-danger">*</span></label>
+                  <input type="number" class="form-control" v-model="form.monthly_salary" required min="0" step="0.01">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">تاريخ التوظيف</label>
+                  <input type="date" class="form-control" v-model="form.hire_date">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">الحالة</label>
+                  <select class="form-select" v-model="form.status">
+                    <option value="active">نشط</option>
+                    <option value="inactive">غير نشط</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">ملاحظات</label>
+                  <textarea class="form-control" v-model="form.notes" rows="2"></textarea>
+                </div>
+              </template>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+              <button type="button" class="btn btn-secondary" @click="closeModal">إلغاء</button>
               <button type="submit" class="btn btn-primary" :disabled="saving">
                 <span v-if="saving" class="spinner-border spinner-border-sm me-1"></span>
                 {{ editingEmployee ? 'تحديث' : 'إنشاء' }}
@@ -238,16 +274,7 @@ export default {
         totalSalary: 0,
       },
       editingEmployee: null,
-      form: {
-        full_name: '',
-        phone: '',
-        job_title: '',
-        monthly_salary: '',
-        hire_date: '',
-        status: 'active',
-        notes: '',
-      },
-      employeeModal: null,
+      form: {},
       debounceTimer: null,
     };
   },
@@ -316,17 +343,19 @@ export default {
         };
       } else {
         this.form = {
-          full_name: '',
+          name: '',
+          email: '',
           phone: '',
-          job_title: '',
+          password: '123456',
+          role: 'cashier',
           monthly_salary: '',
-          hire_date: '',
-          status: 'active',
-          notes: '',
         };
       }
-      this.employeeModal = new bootstrap.Modal(document.getElementById('employeeModal'));
-      this.employeeModal.show();
+      $('#employeeModal').modal('show');
+    },
+
+    closeModal() {
+      $('#employeeModal').modal('hide');
     },
 
     async submitForm() {
@@ -339,7 +368,7 @@ export default {
           await axios.post('/dashboard/api/employees', this.form);
           toastr.success('تم إنشاء الموظف');
         }
-        this.employeeModal.hide();
+        this.closeModal();
         this.fetchEmployees(this.pagination.current_page);
       } catch (error) {
         toastr.error(error.response?.data?.message || 'فشل حفظ الموظف');

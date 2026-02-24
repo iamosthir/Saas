@@ -160,6 +160,30 @@
                               <h6 style="font-weight: 700; color: #2d3748;">المنتجات</h6>
                           </div>
 
+
+                          <!-- Invoice Settings  -->
+                          <div class="col-md-12 mb-4">
+                              <div class="modern-form-group">
+                                  <label class="modern-form-label">توقيعات الفاتورة</label>
+                                  <div class="d-flex gap-3">
+                                      <div class="form-check">
+                                          <input class="form-check-input" type="radio" name="signatureSetting"
+                                              id="signatureEnabled" :value="1" v-model="form.enable_signature">
+                                          <label class="form-check-label" for="signatureEnabled">
+                                              مفعّل
+                                          </label>
+                                      </div>
+                                      <div class="form-check">
+                                          <input class="form-check-input" type="radio" name="signatureSetting"
+                                              id="signatureDisabled" :value="0" v-model="form.enable_signature">
+                                          <label class="form-check-label" for="signatureDisabled">
+                                              معطّل
+                                          </label>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+
                           <!-- نوع الدفع -->
                           <div class="col-md-12 mb-4">
                               <div class="modern-form-group">
@@ -482,6 +506,7 @@ export default {
                 invoice_template_id: null,
                 custom_fields: {},
                 items: [],
+                enable_signature: 1,
             }),
 
             useExistingCustomer: false,
@@ -623,6 +648,10 @@ export default {
                 this.form.sponsor_name = "";
                 this.form.sponsor_phone = "";
             }
+        },
+
+        'form.enable_signature': function(val) {
+            localStorage.setItem('invoice_enable_signature', val);
         }
     },
 
@@ -841,6 +870,12 @@ export default {
     async mounted() {
         this.loadProductList();
         this.loadTemplates();
+
+        // Restore signature preference from localStorage
+        const savedSignature = localStorage.getItem('invoice_enable_signature');
+        if (savedSignature !== null) {
+            this.form.enable_signature = parseInt(savedSignature);
+        }
 
         // Check if customer ID is passed from Quick Invoice
         const customerId = this.$route.query.customerId;

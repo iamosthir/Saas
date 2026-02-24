@@ -308,6 +308,7 @@
     </div>
 
     <!-- Signatures -->
+    @if($invoice->enable_signature)
     <div class="signature-section">
         <div class="signature-box">
             <div class="signature-line">توقيع العميل</div>
@@ -316,6 +317,7 @@
             <div class="signature-line">توقيع المحاسب</div>
         </div>
     </div>
+    @endif
 
     <!-- Footer -->
     <div class="footer">

@@ -617,7 +617,7 @@
 
                         <!-- Navigation links -->
                         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                            @if(auth()->user()->role !== 'pos_only')
+                            @if(!in_array(auth()->user()->role, ['pos_only', 'cashier', 'accountant']))
                             {{-- Full navigation for super and staff users --}}
                             <li class="nav-item">
                                 <router-link :to="{name: 'dashboard'}" class="nav-link">
@@ -670,8 +670,35 @@
                                 </router-link>
                             </li>
                             @endif
+                            @elseif(auth()->user()->role === 'accountant')
+                            {{-- Accountant navigation: sales and reports only --}}
+                            <li class="nav-item">
+                                <router-link :to="{name: 'invoice-list'}" class="nav-link">
+                                    <i class="fas fa-list"></i> قائمة الطلبات
+                                </router-link>
+                            </li>
+                            <li class="nav-item">
+                                <router-link :to="{name: 'sales.report'}" class="nav-link">
+                                    <i class="fas fa-chart-line"></i> تقرير المبيعات
+                                </router-link>
+                            </li>
+                            <li class="nav-item">
+                                <router-link :to="{name: 'purchases.report'}" class="nav-link">
+                                    <i class="fas fa-chart-bar"></i> تقرير المشتريات
+                                </router-link>
+                            </li>
+                            <li class="nav-item">
+                                <router-link :to="{name: 'profitloss.report'}" class="nav-link">
+                                    <i class="fas fa-balance-scale"></i> الأرباح والخسائر
+                                </router-link>
+                            </li>
+                            <li class="nav-item">
+                                <router-link :to="{name: 'expenses.report'}" class="nav-link">
+                                    <i class="fas fa-file-invoice-dollar"></i> تقرير المصروفات
+                                </router-link>
+                            </li>
                             @else
-                            {{-- Minimal navigation for pos_only users --}}
+                            {{-- Minimal navigation for pos_only/cashier users --}}
                             <li class="nav-item">
                                 <router-link :to="{name: 'pos'}" class="nav-link">
                                     <i class="fas fa-cash-register"></i> نقطة البيع

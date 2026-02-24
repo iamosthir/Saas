@@ -80,6 +80,8 @@ Route::group(["prefix" => "dashboard", "middleware" => "auth"],function(){
     Route::get("/print-new-invoice/{id}","InvoiceController@print");
     // Barcode
     Route::get("/product-barcode/{id}","ProductController@barcode");
+    Route::get("/product-label/{id}","ProductController@label");
+    Route::get("/product-labels","ProductController@labels");
 
 
     // Print contracts (requires contracts permission)

@@ -3247,7 +3247,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         notes: "",
         invoice_template_id: null,
         custom_fields: {},
-        items: []
+        items: [],
+        enable_signature: 1
       }),
       useExistingCustomer: false,
       showCustomerForm: false,
@@ -3375,6 +3376,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         this.form.sponsor_name = "";
         this.form.sponsor_phone = "";
       }
+    },
+    'form.enable_signature': function formEnable_signature(val) {
+      localStorage.setItem('invoice_enable_signature', val);
     }
   },
   methods: {
@@ -3679,27 +3683,33 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
   mounted: function mounted() {
     var _this10 = this;
     return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
-      var customerId, response, customer;
+      var savedSignature, customerId, response, customer;
       return _regeneratorRuntime().wrap(function _callee7$(_context7) {
         while (1) switch (_context7.prev = _context7.next) {
           case 0:
             _this10.loadProductList();
             _this10.loadTemplates();
 
+            // Restore signature preference from localStorage
+            savedSignature = localStorage.getItem('invoice_enable_signature');
+            if (savedSignature !== null) {
+              _this10.form.enable_signature = parseInt(savedSignature);
+            }
+
             // Check if customer ID is passed from Quick Invoice
             customerId = _this10.$route.query.customerId;
             if (!customerId) {
-              _context7.next = 15;
+              _context7.next = 17;
               break;
             }
-            _context7.prev = 4;
-            _context7.next = 7;
+            _context7.prev = 6;
+            _context7.next = 9;
             return axios.get('/dashboard/api/customers', {
               params: {
                 search: ''
               }
             });
-          case 7:
+          case 9:
             response = _context7.sent;
             customer = response.data.find(function (c) {
               return c.id == customerId;
@@ -3716,17 +3726,17 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               _this10.form.customer_state = customer.state;
               _this10.form.customer_city = customer.city;
             }
-            _context7.next = 15;
+            _context7.next = 17;
             break;
-          case 12:
-            _context7.prev = 12;
-            _context7.t0 = _context7["catch"](4);
+          case 14:
+            _context7.prev = 14;
+            _context7.t0 = _context7["catch"](6);
             console.error('Error loading pre-selected customer:', _context7.t0);
-          case 15:
+          case 17:
           case "end":
             return _context7.stop();
         }
-      }, _callee7, null, [[4, 12]]);
+      }, _callee7, null, [[6, 14]]);
     }))();
   }
 });
@@ -8988,6 +8998,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
 function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return exports; }; var exports = {}, Op = Object.prototype, hasOwn = Op.hasOwnProperty, defineProperty = Object.defineProperty || function (obj, key, desc) { obj[key] = desc.value; }, $Symbol = "function" == typeof Symbol ? Symbol : {}, iteratorSymbol = $Symbol.iterator || "@@iterator", asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator", toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag"; function define(obj, key, value) { return Object.defineProperty(obj, key, { value: value, enumerable: !0, configurable: !0, writable: !0 }), obj[key]; } try { define({}, ""); } catch (err) { define = function define(obj, key, value) { return obj[key] = value; }; } function wrap(innerFn, outerFn, self, tryLocsList) { var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator, generator = Object.create(protoGenerator.prototype), context = new Context(tryLocsList || []); return defineProperty(generator, "_invoke", { value: makeInvokeMethod(innerFn, self, context) }), generator; } function tryCatch(fn, obj, arg) { try { return { type: "normal", arg: fn.call(obj, arg) }; } catch (err) { return { type: "throw", arg: err }; } } exports.wrap = wrap; var ContinueSentinel = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var IteratorPrototype = {}; define(IteratorPrototype, iteratorSymbol, function () { return this; }); var getProto = Object.getPrototypeOf, NativeIteratorPrototype = getProto && getProto(getProto(values([]))); NativeIteratorPrototype && NativeIteratorPrototype !== Op && hasOwn.call(NativeIteratorPrototype, iteratorSymbol) && (IteratorPrototype = NativeIteratorPrototype); var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(IteratorPrototype); function defineIteratorMethods(prototype) { ["next", "throw", "return"].forEach(function (method) { define(prototype, method, function (arg) { return this._invoke(method, arg); }); }); } function AsyncIterator(generator, PromiseImpl) { function invoke(method, arg, resolve, reject) { var record = tryCatch(generator[method], generator, arg); if ("throw" !== record.type) { var result = record.arg, value = result.value; return value && "object" == _typeof(value) && hasOwn.call(value, "__await") ? PromiseImpl.resolve(value.__await).then(function (value) { invoke("next", value, resolve, reject); }, function (err) { invoke("throw", err, resolve, reject); }) : PromiseImpl.resolve(value).then(function (unwrapped) { result.value = unwrapped, resolve(result); }, function (error) { return invoke("throw", error, resolve, reject); }); } reject(record.arg); } var previousPromise; defineProperty(this, "_invoke", { value: function value(method, arg) { function callInvokeWithMethodAndArg() { return new PromiseImpl(function (resolve, reject) { invoke(method, arg, resolve, reject); }); } return previousPromise = previousPromise ? previousPromise.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(innerFn, self, context) { var state = "suspendedStart"; return function (method, arg) { if ("executing" === state) throw new Error("Generator is already running"); if ("completed" === state) { if ("throw" === method) throw arg; return doneResult(); } for (context.method = method, context.arg = arg;;) { var delegate = context.delegate; if (delegate) { var delegateResult = maybeInvokeDelegate(delegate, context); if (delegateResult) { if (delegateResult === ContinueSentinel) continue; return delegateResult; } } if ("next" === context.method) context.sent = context._sent = context.arg;else if ("throw" === context.method) { if ("suspendedStart" === state) throw state = "completed", context.arg; context.dispatchException(context.arg); } else "return" === context.method && context.abrupt("return", context.arg); state = "executing"; var record = tryCatch(innerFn, self, context); if ("normal" === record.type) { if (state = context.done ? "completed" : "suspendedYield", record.arg === ContinueSentinel) continue; return { value: record.arg, done: context.done }; } "throw" === record.type && (state = "completed", context.method = "throw", context.arg = record.arg); } }; } function maybeInvokeDelegate(delegate, context) { var methodName = context.method, method = delegate.iterator[methodName]; if (undefined === method) return context.delegate = null, "throw" === methodName && delegate.iterator["return"] && (context.method = "return", context.arg = undefined, maybeInvokeDelegate(delegate, context), "throw" === context.method) || "return" !== methodName && (context.method = "throw", context.arg = new TypeError("The iterator does not provide a '" + methodName + "' method")), ContinueSentinel; var record = tryCatch(method, delegate.iterator, context.arg); if ("throw" === record.type) return context.method = "throw", context.arg = record.arg, context.delegate = null, ContinueSentinel; var info = record.arg; return info ? info.done ? (context[delegate.resultName] = info.value, context.next = delegate.nextLoc, "return" !== context.method && (context.method = "next", context.arg = undefined), context.delegate = null, ContinueSentinel) : info : (context.method = "throw", context.arg = new TypeError("iterator result is not an object"), context.delegate = null, ContinueSentinel); } function pushTryEntry(locs) { var entry = { tryLoc: locs[0] }; 1 in locs && (entry.catchLoc = locs[1]), 2 in locs && (entry.finallyLoc = locs[2], entry.afterLoc = locs[3]), this.tryEntries.push(entry); } function resetTryEntry(entry) { var record = entry.completion || {}; record.type = "normal", delete record.arg, entry.completion = record; } function Context(tryLocsList) { this.tryEntries = [{ tryLoc: "root" }], tryLocsList.forEach(pushTryEntry, this), this.reset(!0); } function values(iterable) { if (iterable) { var iteratorMethod = iterable[iteratorSymbol]; if (iteratorMethod) return iteratorMethod.call(iterable); if ("function" == typeof iterable.next) return iterable; if (!isNaN(iterable.length)) { var i = -1, next = function next() { for (; ++i < iterable.length;) if (hasOwn.call(iterable, i)) return next.value = iterable[i], next.done = !1, next; return next.value = undefined, next.done = !0, next; }; return next.next = next; } } return { next: doneResult }; } function doneResult() { return { value: undefined, done: !0 }; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, defineProperty(Gp, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), defineProperty(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, toStringTagSymbol, "GeneratorFunction"), exports.isGeneratorFunction = function (genFun) { var ctor = "function" == typeof genFun && genFun.constructor; return !!ctor && (ctor === GeneratorFunction || "GeneratorFunction" === (ctor.displayName || ctor.name)); }, exports.mark = function (genFun) { return Object.setPrototypeOf ? Object.setPrototypeOf(genFun, GeneratorFunctionPrototype) : (genFun.__proto__ = GeneratorFunctionPrototype, define(genFun, toStringTagSymbol, "GeneratorFunction")), genFun.prototype = Object.create(Gp), genFun; }, exports.awrap = function (arg) { return { __await: arg }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, asyncIteratorSymbol, function () { return this; }), exports.AsyncIterator = AsyncIterator, exports.async = function (innerFn, outerFn, self, tryLocsList, PromiseImpl) { void 0 === PromiseImpl && (PromiseImpl = Promise); var iter = new AsyncIterator(wrap(innerFn, outerFn, self, tryLocsList), PromiseImpl); return exports.isGeneratorFunction(outerFn) ? iter : iter.next().then(function (result) { return result.done ? result.value : iter.next(); }); }, defineIteratorMethods(Gp), define(Gp, toStringTagSymbol, "Generator"), define(Gp, iteratorSymbol, function () { return this; }), define(Gp, "toString", function () { return "[object Generator]"; }), exports.keys = function (val) { var object = Object(val), keys = []; for (var key in object) keys.push(key); return keys.reverse(), function next() { for (; keys.length;) { var key = keys.pop(); if (key in object) return next.value = key, next.done = !1, next; } return next.done = !0, next; }; }, exports.values = values, Context.prototype = { constructor: Context, reset: function reset(skipTempReset) { if (this.prev = 0, this.next = 0, this.sent = this._sent = undefined, this.done = !1, this.delegate = null, this.method = "next", this.arg = undefined, this.tryEntries.forEach(resetTryEntry), !skipTempReset) for (var name in this) "t" === name.charAt(0) && hasOwn.call(this, name) && !isNaN(+name.slice(1)) && (this[name] = undefined); }, stop: function stop() { this.done = !0; var rootRecord = this.tryEntries[0].completion; if ("throw" === rootRecord.type) throw rootRecord.arg; return this.rval; }, dispatchException: function dispatchException(exception) { if (this.done) throw exception; var context = this; function handle(loc, caught) { return record.type = "throw", record.arg = exception, context.next = loc, caught && (context.method = "next", context.arg = undefined), !!caught; } for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i], record = entry.completion; if ("root" === entry.tryLoc) return handle("end"); if (entry.tryLoc <= this.prev) { var hasCatch = hasOwn.call(entry, "catchLoc"), hasFinally = hasOwn.call(entry, "finallyLoc"); if (hasCatch && hasFinally) { if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0); if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc); } else if (hasCatch) { if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0); } else { if (!hasFinally) throw new Error("try statement without catch or finally"); if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc); } } } }, abrupt: function abrupt(type, arg) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.tryLoc <= this.prev && hasOwn.call(entry, "finallyLoc") && this.prev < entry.finallyLoc) { var finallyEntry = entry; break; } } finallyEntry && ("break" === type || "continue" === type) && finallyEntry.tryLoc <= arg && arg <= finallyEntry.finallyLoc && (finallyEntry = null); var record = finallyEntry ? finallyEntry.completion : {}; return record.type = type, record.arg = arg, finallyEntry ? (this.method = "next", this.next = finallyEntry.finallyLoc, ContinueSentinel) : this.complete(record); }, complete: function complete(record, afterLoc) { if ("throw" === record.type) throw record.arg; return "break" === record.type || "continue" === record.type ? this.next = record.arg : "return" === record.type ? (this.rval = this.arg = record.arg, this.method = "return", this.next = "end") : "normal" === record.type && afterLoc && (this.next = afterLoc), ContinueSentinel; }, finish: function finish(finallyLoc) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.finallyLoc === finallyLoc) return this.complete(entry.completion, entry.afterLoc), resetTryEntry(entry), ContinueSentinel; } }, "catch": function _catch(tryLoc) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.tryLoc === tryLoc) { var record = entry.completion; if ("throw" === record.type) { var thrown = record.arg; resetTryEntry(entry); } return thrown; } } throw new Error("illegal catch attempt"); }, delegateYield: function delegateYield(iterable, resultName, nextLoc) { return this.delegate = { iterator: values(iterable), resultName: resultName, nextLoc: nextLoc }, "next" === this.method && (this.arg = undefined), ContinueSentinel; } }, exports; }
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -9001,12 +9017,24 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       search: "",
       measurementSearch: '',
       categoryFilter: null,
-      myTimeOut: null
+      myTimeOut: null,
+      selectedProductIds: []
     };
+  },
+  computed: {
+    areAllCurrentPageSelected: function areAllCurrentPageSelected() {
+      var _this = this;
+      if (!this.paginateData.data || this.paginateData.data.length === 0) {
+        return false;
+      }
+      return this.paginateData.data.every(function (product) {
+        return _this.selectedProductIds.includes(product.id);
+      });
+    }
   },
   methods: {
     fetchCategories: function fetchCategories() {
-      var _this = this;
+      var _this2 = this;
       return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
         var response;
         return _regeneratorRuntime().wrap(function _callee$(_context) {
@@ -9017,7 +9045,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               return axios.get('/dashboard/api/categories');
             case 3:
               response = _context.sent;
-              _this.categories = response.data;
+              _this2.categories = response.data;
               _context.next = 10;
               break;
             case 7:
@@ -9079,17 +9107,17 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       this.getProductList();
     },
     filterProduct: function filterProduct() {
-      var _this2 = this;
+      var _this3 = this;
       if (this.myTimeOut != null) {
         clearTimeout(this.myTimeOut);
       }
       this.myTimeOut = setTimeout(function () {
-        _this2.getProductList();
+        _this3.getProductList();
       }, 500);
     },
     getProductList: function getProductList() {
       var _arguments = arguments,
-        _this3 = this;
+        _this4 = this;
       return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
         var page, params, response, _err$response2;
         return _regeneratorRuntime().wrap(function _callee2$(_context2) {
@@ -9098,9 +9126,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               page = _arguments.length > 0 && _arguments[0] !== undefined ? _arguments[0] : 1;
               _context2.prev = 1;
               params = {
-                search: _this3.search,
-                measurementSearch: _this3.measurementSearch,
-                category_id: _this3.categoryFilter,
+                search: _this4.search,
+                measurementSearch: _this4.measurementSearch,
+                category_id: _this4.categoryFilter,
                 page: page
               };
               _context2.next = 5;
@@ -9109,11 +9137,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               });
             case 5:
               response = _context2.sent;
-              _this3.paginateData = response.data;
+              _this4.paginateData = response.data;
 
               // Initialize showVariations property
-              _this3.paginateData.data.forEach(function (product) {
-                _this3.$set(product, 'showVariations', false);
+              _this4.paginateData.data.forEach(function (product) {
+                _this4.$set(product, 'showVariations', false);
               });
               _context2.next = 14;
               break;
@@ -9121,7 +9149,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               _context2.prev = 10;
               _context2.t0 = _context2["catch"](1);
               console.error((_err$response2 = _context2.t0.response) === null || _err$response2 === void 0 ? void 0 : _err$response2.data);
-              swal.fire("خطأ", "فشل تحميل المنتجات", "error");
+              swal.fire("Ø®Ø·Ø£", "ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª", "error");
             case 14:
             case "end":
               return _context2.stop();
@@ -9133,8 +9161,40 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       // Open barcode in a new tab
       window.open("/dashboard/product-barcode/".concat(productId), '_blank');
     },
+    printSingleLabel: function printSingleLabel(productId) {
+      window.open("/dashboard/product-label/".concat(productId), '_blank');
+    },
+    printBulkLabels: function printBulkLabels() {
+      if (!this.selectedProductIds.length) {
+        swal.fire("تنبيه", "حدد المنتجات أولاً لطباعة الليبل الجماعي", "warning");
+        return;
+      }
+      var ids = this.selectedProductIds.join(',');
+      window.open("/dashboard/product-labels?ids=".concat(ids), '_blank');
+    },
+    toggleProductSelection: function toggleProductSelection(productId) {
+      if (this.selectedProductIds.includes(productId)) {
+        this.selectedProductIds = this.selectedProductIds.filter(function (id) {
+          return id !== productId;
+        });
+        return;
+      }
+      this.selectedProductIds.push(productId);
+    },
+    toggleSelectAllCurrentPage: function toggleSelectAllCurrentPage() {
+      var currentPageIds = this.paginateData.data.map(function (product) {
+        return product.id;
+      });
+      if (this.areAllCurrentPageSelected) {
+        this.selectedProductIds = this.selectedProductIds.filter(function (id) {
+          return !currentPageIds.includes(id);
+        });
+        return;
+      }
+      this.selectedProductIds = Array.from(new Set([].concat(_toConsumableArray(this.selectedProductIds), _toConsumableArray(currentPageIds))));
+    },
     deleteProduct: function deleteProduct(id, index) {
-      var _this4 = this;
+      var _this5 = this;
       return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
         var result, response, _err$response3;
         return _regeneratorRuntime().wrap(function _callee3$(_context3) {
@@ -9142,14 +9202,14 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             case 0:
               _context3.next = 2;
               return swal.fire({
-                title: 'هل أنت متأكد؟',
-                text: "لن تتمكن من استعادة هذا المنتج!",
+                title: 'Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ØŸ',
+                text: "Ù„Ù† ØªØªÙ…ÙƒÙ† Ù…Ù† Ø§Ø³ØªØ¹Ø§Ø¯Ø© Ù‡Ø°Ø§ Ø§Ù„Ù…Ù†ØªØ¬!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
                 cancelButtonColor: '#6c757d',
-                confirmButtonText: 'نعم، احذفه!',
-                cancelButtonText: 'إلغاء'
+                confirmButtonText: 'Ù†Ø¹Ù…ØŒ Ø§Ø­Ø°ÙÙ‡!',
+                cancelButtonText: 'Ø¥Ù„ØºØ§Ø¡'
               });
             case 2:
               result = _context3.sent;
@@ -9165,8 +9225,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             case 7:
               response = _context3.sent;
               if (response.data.status === "ok") {
-                swal.fire("تم الحذف!", response.data.msg, "success");
-                _this4.paginateData.data.splice(index, 1);
+                swal.fire("ØªÙ… Ø§Ù„Ø­Ø°Ù!", response.data.msg, "success");
+                _this5.paginateData.data.splice(index, 1);
+                _this5.selectedProductIds = _this5.selectedProductIds.filter(function (productId) {
+                  return productId !== id;
+                });
               }
               _context3.next = 15;
               break;
@@ -9174,7 +9237,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               _context3.prev = 11;
               _context3.t0 = _context3["catch"](4);
               console.error((_err$response3 = _context3.t0.response) === null || _err$response3 === void 0 ? void 0 : _err$response3.data);
-              swal.fire("خطأ", "فشل حذف المنتج", "error");
+              swal.fire("Ø®Ø·Ø£", "ÙØ´Ù„ Ø­Ø°Ù Ø§Ù„Ù…Ù†ØªØ¬", "error");
             case 15:
             case "end":
               return _context3.stop();
@@ -14274,6 +14337,72 @@ var render = function render() {
   })], 1)]) : _vm._e()]), _vm._v(" "), _c("hr"), _vm._v(" "), _c("div", {
     staticClass: "row"
   }, [_vm._m(3), _vm._v(" "), _c("div", {
+    staticClass: "col-md-12 mb-4"
+  }, [_c("div", {
+    staticClass: "modern-form-group"
+  }, [_c("label", {
+    staticClass: "modern-form-label"
+  }, [_vm._v("توقيعات الفاتورة")]), _vm._v(" "), _c("div", {
+    staticClass: "d-flex gap-3"
+  }, [_c("div", {
+    staticClass: "form-check"
+  }, [_c("input", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.form.enable_signature,
+      expression: "form.enable_signature"
+    }],
+    staticClass: "form-check-input",
+    attrs: {
+      type: "radio",
+      name: "signatureSetting",
+      id: "signatureEnabled"
+    },
+    domProps: {
+      value: 1,
+      checked: _vm._q(_vm.form.enable_signature, 1)
+    },
+    on: {
+      change: function change($event) {
+        return _vm.$set(_vm.form, "enable_signature", 1);
+      }
+    }
+  }), _vm._v(" "), _c("label", {
+    staticClass: "form-check-label",
+    attrs: {
+      "for": "signatureEnabled"
+    }
+  }, [_vm._v("\n                                          مفعّل\n                                      ")])]), _vm._v(" "), _c("div", {
+    staticClass: "form-check"
+  }, [_c("input", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.form.enable_signature,
+      expression: "form.enable_signature"
+    }],
+    staticClass: "form-check-input",
+    attrs: {
+      type: "radio",
+      name: "signatureSetting",
+      id: "signatureDisabled"
+    },
+    domProps: {
+      value: 0,
+      checked: _vm._q(_vm.form.enable_signature, 0)
+    },
+    on: {
+      change: function change($event) {
+        return _vm.$set(_vm.form, "enable_signature", 0);
+      }
+    }
+  }), _vm._v(" "), _c("label", {
+    staticClass: "form-check-label",
+    attrs: {
+      "for": "signatureDisabled"
+    }
+  }, [_vm._v("\n                                          معطّل\n                                      ")])])])])]), _vm._v(" "), _c("div", {
     staticClass: "col-md-12 mb-4"
   }, [_c("div", {
     staticClass: "modern-form-group"
@@ -26129,7 +26258,16 @@ var render = function render() {
     staticClass: "card shadow-sm"
   }, [_c("div", {
     staticClass: "card-header d-flex justify-content-between align-items-center"
-  }, [_vm._m(0), _vm._v(" "), _c("router-link", {
+  }, [_vm._m(0), _vm._v(" "), _c("div", {
+    staticClass: "header-actions"
+  }, [_c("button", {
+    staticClass: "btn btn-sm btn-primary",
+    on: {
+      click: _vm.printBulkLabels
+    }
+  }, [_c("i", {
+    staticClass: "fas fa-tags"
+  }), _vm._v(" طباعة ليبل جماعي\n          ")]), _vm._v(" "), _c("router-link", {
     staticClass: "btn btn-sm btn-success",
     attrs: {
       to: {
@@ -26138,7 +26276,7 @@ var render = function render() {
     }
   }, [_c("i", {
     staticClass: "fas fa-plus"
-  }), _vm._v(" إضافة منتج\n        ")])], 1), _vm._v(" "), _c("div", {
+  }), _vm._v(" إضافة منتج\n          ")])], 1)]), _vm._v(" "), _c("div", {
     staticClass: "card-body"
   }, [_c("div", {
     staticClass: "row mb-4"
@@ -26231,7 +26369,23 @@ var render = function render() {
     }
   }, [_c("i", {
     staticClass: "fas fa-redo"
-  }), _vm._v(" إعادة تعيين\n            ")])])]), _vm._v(" "), _vm.paginateData.data && _vm.paginateData.data.length > 0 ? _c("div", [_c("div", {
+  }), _vm._v(" إعادة تعيين\n            ")])])]), _vm._v(" "), _vm.paginateData.data && _vm.paginateData.data.length > 0 ? _c("div", {
+    staticClass: "bulk-selection-toolbar"
+  }, [_c("label", {
+    staticClass: "selection-check"
+  }, [_c("input", {
+    attrs: {
+      type: "checkbox"
+    },
+    domProps: {
+      checked: _vm.areAllCurrentPageSelected
+    },
+    on: {
+      change: _vm.toggleSelectAllCurrentPage
+    }
+  }), _vm._v(" "), _c("span", [_vm._v("تحديد كل الصفحة")])]), _vm._v(" "), _c("span", {
+    staticClass: "selected-count"
+  }, [_vm._v("\n            المحدد: " + _vm._s(_vm.selectedProductIds.length) + "\n          ")])]) : _vm._e(), _vm._v(" "), _vm.paginateData.data && _vm.paginateData.data.length > 0 ? _c("div", [_c("div", {
     staticClass: "row"
   }, _vm._l(_vm.paginateData.data, function (product, i) {
     return _c("div", {
@@ -26240,6 +26394,22 @@ var render = function render() {
     }, [_c("div", {
       staticClass: "product-card"
     }, [_c("div", {
+      staticClass: "product-select-box"
+    }, [_c("label", {
+      staticClass: "selection-check"
+    }, [_c("input", {
+      attrs: {
+        type: "checkbox"
+      },
+      domProps: {
+        checked: _vm.selectedProductIds.includes(product.id)
+      },
+      on: {
+        change: function change($event) {
+          return _vm.toggleProductSelection(product.id);
+        }
+      }
+    }), _vm._v(" "), _c("span", [_vm._v("ليبل جماعي")])])]), _vm._v(" "), _c("div", {
       staticClass: "product-image-container"
     }, [product.image ? _c("img", {
       staticClass: "product-image",
@@ -26251,7 +26421,7 @@ var render = function render() {
       staticClass: "product-image",
       attrs: {
         src: "/uploads/products/default.jpg",
-        alt: "No Image"
+        alt: "لا توجد صورة"
       }
     }), _vm._v(" "), product.discount_type ? _c("div", {
       staticClass: "product-badge"
@@ -26279,7 +26449,7 @@ var render = function render() {
       staticClass: "product-description"
     }, [_c("small", {
       staticClass: "text-muted"
-    }, [_vm._v(_vm._s(product.description.substring(0, 80)) + _vm._s(product.description.length > 80 ? "..." : ""))])]) : _vm._e(), _vm._v(" "), _c("div", {
+    }, [_vm._v("\n                      " + _vm._s(product.description.substring(0, 80)) + "\n                      " + _vm._s(product.description.length > 80 ? "..." : "") + "\n                    ")])]) : _vm._e(), _vm._v(" "), _c("div", {
       staticClass: "price-summary"
     }, [_c("div", {
       staticClass: "price-row"
@@ -26287,19 +26457,19 @@ var render = function render() {
       staticClass: "price-label"
     }, [_vm._v("سعر الشراء:")]), _vm._v(" "), _c("span", {
       staticClass: "price-value purchase"
-    }, [_vm._v(_vm._s(_vm.formatPrice(product.purchase_price)) + " IQD")])]), _vm._v(" "), _c("div", {
+    }, [_vm._v("\n                        " + _vm._s(_vm.formatPrice(product.purchase_price)) + " IQD\n                      ")])]), _vm._v(" "), _c("div", {
       staticClass: "price-row"
     }, [_c("span", {
       staticClass: "price-label"
     }, [_vm._v("سعر البيع:")]), _vm._v(" "), _c("span", {
       staticClass: "price-value sale"
-    }, [_vm._v(_vm._s(_vm.formatPrice(product.sell_price)) + " IQD")])]), _vm._v(" "), product.discount_type ? _c("div", {
+    }, [_vm._v("\n                        " + _vm._s(_vm.formatPrice(product.sell_price)) + " IQD\n                      ")])]), _vm._v(" "), product.discount_type ? _c("div", {
       staticClass: "price-row"
     }, [_c("span", {
       staticClass: "price-label"
     }, [_vm._v("الخصم:")]), _vm._v(" "), _c("span", {
       staticClass: "price-value discount"
-    }, [_vm._v("\n                        " + _vm._s(product.discount_amount) + _vm._s(product.discount_type === "percentage" ? "%" : " IQD") + "\n                      ")])]) : _vm._e()]), _vm._v(" "), _c("div", {
+    }, [_vm._v("\n                        " + _vm._s(product.discount_amount) + "\n                        " + _vm._s(product.discount_type === "percentage" ? "%" : " IQD") + "\n                      ")])]) : _vm._e()]), _vm._v(" "), _c("div", {
       staticClass: "stock-summary"
     }, [_c("div", {
       staticClass: "stock-info"
@@ -26322,59 +26492,7 @@ var render = function render() {
     }, [_c("i", {
       staticClass: "fas",
       "class": product.showVariations ? "fa-chevron-up" : "fa-chevron-down"
-    }), _vm._v("\n                      المتغيرات (" + _vm._s(product.variation ? product.variation.length : 0) + ")\n                    ")])]), _vm._v(" "), product.showVariations ? _c("div", {
-      staticClass: "variations-container"
-    }, [_c("div", {
-      staticClass: "table-responsive"
-    }, [_c("table", {
-      staticClass: "table table-sm table-bordered variations-table"
-    }, [_vm._m(2, true), _vm._v(" "), _c("tbody", _vm._l(product.variation, function (variation, k) {
-      return _c("tr", {
-        key: variation.id
-      }, [_c("td", [_c("div", {
-        staticClass: "variation-name"
-      }, [_vm._v("\n                                " + _vm._s(variation.var_name) + "\n                                "), variation.attribute_values ? _c("div", {
-        staticClass: "attribute-tags"
-      }, _vm._l(variation.attribute_values, function (value, attr) {
-        return _c("span", {
-          key: attr,
-          staticClass: "attribute-tag"
-        }, [_vm._v("\n                                    " + _vm._s(attr) + ": " + _vm._s(value) + "\n                                  ")]);
-      }), 0) : _vm._e()])]), _vm._v(" "), _c("td", {
-        staticClass: "text-center"
-      }, [_c("span", {
-        staticClass: "badge bg-warning text-dark"
-      }, [_vm._v("\n                                " + _vm._s(_vm.formatPrice(variation.purchase_price)) + "\n                              ")])]), _vm._v(" "), _c("td", {
-        staticClass: "text-center"
-      }, [_c("span", {
-        staticClass: "badge bg-success"
-      }, [_vm._v("\n                                " + _vm._s(_vm.formatPrice(variation.price)) + "\n                              ")])]), _vm._v(" "), _c("td", [_c("div", {
-        staticClass: "stock-controls"
-      }, [_c("button", {
-        staticClass: "stock-btn minus",
-        attrs: {
-          disabled: variation.quantity <= 0
-        },
-        on: {
-          click: function click($event) {
-            return _vm.quantityUpdate(variation.id, i, k, "minus");
-          }
-        }
-      }, [_c("i", {
-        staticClass: "fas fa-minus"
-      })]), _vm._v(" "), _c("span", {
-        staticClass: "stock-quantity"
-      }, [_vm._v(_vm._s(variation.quantity))]), _vm._v(" "), _c("button", {
-        staticClass: "stock-btn plus",
-        on: {
-          click: function click($event) {
-            return _vm.quantityUpdate(variation.id, i, k, "plus");
-          }
-        }
-      }, [_c("i", {
-        staticClass: "fas fa-plus"
-      })])])])]);
-    }), 0)])])]) : _vm._e(), _vm._v(" "), _c("div", {
+    }), _vm._v("\n                      المتغيرات (" + _vm._s(product.variation ? product.variation.length : 0) + ")\n                    ")])]), _vm._v(" "), _c("div", {
       staticClass: "product-actions"
     }, [_c("router-link", {
       staticClass: "btn btn-sm btn-warning",
@@ -26398,6 +26516,15 @@ var render = function render() {
     }, [_c("i", {
       staticClass: "fas fa-barcode"
     }), _vm._v(" باركود\n                    ")]), _vm._v(" "), _c("button", {
+      staticClass: "btn btn-sm btn-primary",
+      on: {
+        click: function click($event) {
+          return _vm.printSingleLabel(product.id);
+        }
+      }
+    }, [_c("i", {
+      staticClass: "fas fa-tag"
+    }), _vm._v(" ليبل\n                    ")]), _vm._v(" "), _c("button", {
       staticClass: "btn btn-sm btn-danger",
       on: {
         click: function click($event) {
@@ -26418,9 +26545,9 @@ var render = function render() {
       "pagination-change-page": _vm.getProductList
     }
   })], 1)]) : _c("div", {
-    staticClass: "empty-state"
+    staticClass: "empty-state text-center py-5"
   }, [_c("i", {
-    staticClass: "fas fa-box-open"
+    staticClass: "fas fa-box-open fa-3x mb-3"
   }), _vm._v(" "), _c("h5", [_vm._v("لا توجد منتجات")]), _vm._v(" "), _c("p", {
     staticClass: "text-muted"
   }, [_vm._v("ابدأ بإضافة منتج جديد")]), _vm._v(" "), _c("router-link", {
@@ -26441,7 +26568,7 @@ var staticRenderFns = [function () {
     staticClass: "mb-0"
   }, [_c("i", {
     staticClass: "fas fa-list"
-  }), _vm._v(" قائمة المنتجات")]);
+  }), _vm._v(" قائمة المنتجات\n        ")]);
 }, function () {
   var _vm = this,
     _c = _vm._self._c;
@@ -26450,10 +26577,6 @@ var staticRenderFns = [function () {
   }, [_c("i", {
     staticClass: "fas fa-search"
   })]);
-}, function () {
-  var _vm = this,
-    _c = _vm._self._c;
-  return _c("thead", [_c("tr", [_c("th", [_vm._v("المتغير")]), _vm._v(" "), _c("th", [_vm._v("الشراء")]), _vm._v(" "), _c("th", [_vm._v("البيع")]), _vm._v(" "), _c("th", [_vm._v("المخزون")])])]);
 }];
 render._withStripped = true;
 
@@ -31683,20 +31806,27 @@ _routes_dashboard__WEBPACK_IMPORTED_MODULE_8__["default"].beforeEach(function (t
   var userRole = window.role;
   var routePermissions = to.meta.permission;
 
-  // POS-only role: restrict to POS screen and related pages
-  if (userRole === 'pos_only') {
+  // POS-only roles: restrict to POS screen and related pages
+  if (userRole === 'pos_only' || userRole === 'cashier') {
     var allowedRoutes = ['pos', 'pos.history', 'my-profile', 'no-permission'];
     if (allowedRoutes.includes(to.name)) {
       next();
-    } else if (to.name === 'dashboard' || to.name === 'home') {
-      // Redirect to POS instead of dashboard home
+    } else {
       next({
         name: 'pos'
       });
+    }
+    return;
+  }
+
+  // Accountant role: restrict to sales and reports only
+  if (userRole === 'accountant') {
+    var _allowedRoutes = ['invoice-list', 'invoice-list-cancel', 'invoice-list-complate', 'invoice-list-padding', 'invoice-list-barcode', 'invoice.details', 'sales.report', 'purchases.report', 'profitloss.report', 'expenses.report', 'my-profile', 'no-permission'];
+    if (_allowedRoutes.includes(to.name)) {
+      next();
     } else {
-      // Block access to all other routes
       next({
-        name: 'no-permission'
+        name: 'sales.report'
       });
     }
     return;
@@ -32366,7 +32496,7 @@ var router = new vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]({
     component: _components_pages_ExpenseReport_vue__WEBPACK_IMPORTED_MODULE_32__["default"],
     meta: {
       title: "Expense Report",
-      permission: ['super']
+      permission: ['super', 'accountant']
     }
   }, {
     path: prefix + "sales/report",
@@ -32374,7 +32504,7 @@ var router = new vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]({
     component: _components_pages_SalesReport_vue__WEBPACK_IMPORTED_MODULE_33__["default"],
     meta: {
       title: "Sales Report",
-      permission: ['super']
+      permission: ['super', 'accountant']
     }
   }, {
     path: prefix + "purchases/report",
@@ -32382,7 +32512,7 @@ var router = new vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]({
     component: _components_pages_PurchaseReport_vue__WEBPACK_IMPORTED_MODULE_34__["default"],
     meta: {
       title: "Purchase Report",
-      permission: ['super']
+      permission: ['super', 'accountant']
     }
   }, {
     path: prefix + "profit-loss/report",
@@ -32390,7 +32520,7 @@ var router = new vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]({
     component: _components_pages_ProfitLossReport_vue__WEBPACK_IMPORTED_MODULE_35__["default"],
     meta: {
       title: "Profit & Loss Report",
-      permission: ['super']
+      permission: ['super', 'accountant']
     }
   }, {
     path: prefix + "whole-sale",
@@ -46913,7 +47043,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_laravel_mix_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n/* Product Card */\n.product-card[data-v-62ca46f2] {\n  background: white;\n  border-radius: 12px;\n  overflow: hidden;\n  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);\n  transition: all 0.3s ease;\n  height: 100%;\n  display: flex;\n  flex-direction: column;\n}\n.product-card[data-v-62ca46f2]:hover {\n  transform: translateY(-5px);\n  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);\n}\n\n/* Product Image */\n.product-image-container[data-v-62ca46f2] {\n  position: relative;\n  height: 200px;\n  overflow: hidden;\n  background: #f8f9fa;\n}\n.product-image[data-v-62ca46f2] {\n  width: 100%;\n  height: 100%;\n  -o-object-fit: contain;\n     object-fit: contain;\n  transition: transform 0.3s ease;\n}\n.product-card:hover .product-image[data-v-62ca46f2] {\n  transform: scale(1.05);\n}\n.product-badge[data-v-62ca46f2] {\n  position: absolute;\n  top: 10px;\n  right: 10px;\n  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n  color: white;\n  padding: 5px 12px;\n  border-radius: 20px;\n  font-size: 0.75rem;\n  font-weight: 600;\n}\n\n/* Product Info */\n.product-info[data-v-62ca46f2] {\n  padding: 1rem;\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n}\n.product-header[data-v-62ca46f2] {\n  display: flex;\n  justify-content: space-between;\n  align-items: flex-start;\n  margin-bottom: 0.5rem;\n}\n.product-title[data-v-62ca46f2] {\n  font-size: 1.1rem;\n  font-weight: 700;\n  color: #2d3748;\n  margin: 0;\n  flex: 1;\n}\n.product-id[data-v-62ca46f2] {\n  color: #718096;\n  font-size: 0.85rem;\n  font-weight: 500;\n}\n.product-meta[data-v-62ca46f2] {\n  display: flex;\n  gap: 0.5rem;\n  margin-bottom: 0.75rem;\n  flex-wrap: wrap;\n}\n.product-description[data-v-62ca46f2] {\n  margin-bottom: 1rem;\n  line-height: 1.5;\n}\n\n/* Price Summary */\n.price-summary[data-v-62ca46f2] {\n  background: #f8f9fa;\n  border-radius: 8px;\n  padding: 0.75rem;\n  margin-bottom: 1rem;\n}\n.price-row[data-v-62ca46f2] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 0.5rem;\n}\n.price-row[data-v-62ca46f2]:last-child {\n  margin-bottom: 0;\n}\n.price-label[data-v-62ca46f2] {\n  font-size: 0.85rem;\n  color: #718096;\n  font-weight: 500;\n}\n.price-value[data-v-62ca46f2] {\n  font-size: 0.95rem;\n  font-weight: 700;\n}\n.price-value.purchase[data-v-62ca46f2] {\n  color: #f59e0b;\n}\n.price-value.sale[data-v-62ca46f2] {\n  color: #10b981;\n}\n.price-value.discount[data-v-62ca46f2] {\n  color: #667eea;\n}\n\n/* Stock Summary */\n.stock-summary[data-v-62ca46f2] {\n  background: #f0f4ff;\n  border-radius: 8px;\n  padding: 0.5rem 0.75rem;\n  margin-bottom: 1rem;\n}\n.stock-info[data-v-62ca46f2] {\n  display: flex;\n  align-items: center;\n  gap: 0.5rem;\n  font-size: 0.9rem;\n}\n.stock-info i[data-v-62ca46f2] {\n  color: #667eea;\n}\n.stock-label[data-v-62ca46f2] {\n  color: #718096;\n  font-weight: 500;\n}\n.stock-value[data-v-62ca46f2] {\n  font-weight: 700;\n  margin-right: auto;\n}\n\n/* Variations */\n.variations-toggle[data-v-62ca46f2] {\n  margin-bottom: 1rem;\n}\n.variations-container[data-v-62ca46f2] {\n  margin-bottom: 1rem;\n  background: #f8f9fa;\n  border-radius: 8px;\n  padding: 0.75rem;\n}\n.variations-table[data-v-62ca46f2] {\n  margin: 0;\n  font-size: 0.85rem;\n}\n.variations-table thead th[data-v-62ca46f2] {\n  background: #667eea;\n  color: white;\n  font-weight: 600;\n  border: none;\n  padding: 0.5rem;\n  font-size: 0.8rem;\n}\n.variations-table tbody td[data-v-62ca46f2] {\n  padding: 0.5rem;\n  vertical-align: middle;\n}\n.variation-name[data-v-62ca46f2] {\n  font-weight: 600;\n  color: #2d3748;\n}\n.attribute-tags[data-v-62ca46f2] {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 0.25rem;\n  margin-top: 0.25rem;\n}\n.attribute-tag[data-v-62ca46f2] {\n  background: #e0e7ff;\n  color: #4c51bf;\n  padding: 2px 6px;\n  border-radius: 4px;\n  font-size: 0.7rem;\n  font-weight: 500;\n}\n\n/* Stock Controls */\n.stock-controls[data-v-62ca46f2] {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: 0.5rem;\n}\n.stock-btn[data-v-62ca46f2] {\n  width: 24px;\n  height: 24px;\n  border-radius: 4px;\n  border: 1px solid #d1d5db;\n  background: white;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  font-size: 0.75rem;\n}\n.stock-btn[data-v-62ca46f2]:hover:not(:disabled) {\n  background: #667eea;\n  color: white;\n  border-color: #667eea;\n}\n.stock-btn[data-v-62ca46f2]:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n}\n.stock-btn.minus[data-v-62ca46f2] {\n  color: #dc2626;\n}\n.stock-btn.plus[data-v-62ca46f2] {\n  color: #059669;\n}\n.stock-quantity[data-v-62ca46f2] {\n  font-weight: 700;\n  min-width: 30px;\n  text-align: center;\n}\n\n/* Product Actions */\n.product-actions[data-v-62ca46f2] {\n  display: flex;\n  gap: 0.5rem;\n  margin-top: auto;\n}\n.product-actions .btn[data-v-62ca46f2] {\n  flex: 1;\n  font-size: 0.85rem;\n}\n\n/* Empty State */\n.empty-state[data-v-62ca46f2] {\n  text-align: center;\n  padding: 3rem 1rem;\n}\n.empty-state i[data-v-62ca46f2] {\n  font-size: 4rem;\n  color: #cbd5e0;\n  margin-bottom: 1rem;\n}\n.empty-state h5[data-v-62ca46f2] {\n  color: #2d3748;\n  margin-bottom: 0.5rem;\n}\n\n/* Responsive */\n@media (max-width: 768px) {\n.product-image-container[data-v-62ca46f2] {\n    height: 150px;\n}\n.product-title[data-v-62ca46f2] {\n    font-size: 1rem;\n}\n.price-summary[data-v-62ca46f2] {\n    padding: 0.5rem;\n}\n.variations-table[data-v-62ca46f2] {\n    font-size: 0.75rem;\n}\n}\n\n/* Badge Customization */\n.badge[data-v-62ca46f2] {\n  font-size: 0.75rem;\n  padding: 0.35em 0.65em;\n}\n\n/* Input Group */\n.input-group-text[data-v-62ca46f2] {\n  background: #f8f9fa;\n  border-right: none;\n}\n.input-group .form-control[data-v-62ca46f2] {\n  border-left: none;\n}\n.input-group .form-control[data-v-62ca46f2]:focus {\n  border-color: #ced4da;\n  box-shadow: none;\n}\n.input-group .form-control:focus + .input-group-text[data-v-62ca46f2] {\n  border-color: #667eea;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n.header-actions[data-v-62ca46f2] {\n  display: flex;\n  gap: 0.5rem;\n  align-items: center;\n}\n.bulk-selection-toolbar[data-v-62ca46f2] {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  background: #f8f9fa;\n  border: 1px solid #e5e7eb;\n  border-radius: 8px;\n  padding: 0.5rem 0.75rem;\n  margin-bottom: 1rem;\n}\n.product-select-box[data-v-62ca46f2] {\n  padding: 0.55rem 0.8rem 0.15rem 0.8rem;\n}\n.selection-check[data-v-62ca46f2] {\n  display: inline-flex;\n  align-items: center;\n  gap: 0.4rem;\n  font-size: 0.85rem;\n  color: #334155;\n  margin: 0;\n}\n.selection-check input[data-v-62ca46f2] {\n  cursor: pointer;\n}\n.selected-count[data-v-62ca46f2] {\n  font-size: 0.85rem;\n  color: #475569;\n  font-weight: 600;\n}\n\n/* Product Card */\n.product-card[data-v-62ca46f2] {\n  background: white;\n  border-radius: 12px;\n  overflow: hidden;\n  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);\n  transition: all 0.3s ease;\n  height: 100%;\n  display: flex;\n  flex-direction: column;\n}\n.product-card[data-v-62ca46f2]:hover {\n  transform: translateY(-5px);\n  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);\n}\n\n/* Product Image */\n.product-image-container[data-v-62ca46f2] {\n  position: relative;\n  height: 200px;\n  overflow: hidden;\n  background: #f8f9fa;\n}\n.product-image[data-v-62ca46f2] {\n  width: 100%;\n  height: 100%;\n  -o-object-fit: contain;\n     object-fit: contain;\n  transition: transform 0.3s ease;\n}\n.product-card:hover .product-image[data-v-62ca46f2] {\n  transform: scale(1.05);\n}\n.product-badge[data-v-62ca46f2] {\n  position: absolute;\n  top: 10px;\n  right: 10px;\n  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n  color: white;\n  padding: 5px 12px;\n  border-radius: 20px;\n  font-size: 0.75rem;\n  font-weight: 600;\n}\n\n/* Product Info */\n.product-info[data-v-62ca46f2] {\n  padding: 1rem;\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n}\n.product-header[data-v-62ca46f2] {\n  display: flex;\n  justify-content: space-between;\n  align-items: flex-start;\n  margin-bottom: 0.5rem;\n}\n.product-title[data-v-62ca46f2] {\n  font-size: 1.1rem;\n  font-weight: 700;\n  color: #2d3748;\n  margin: 0;\n  flex: 1;\n}\n.product-id[data-v-62ca46f2] {\n  color: #718096;\n  font-size: 0.85rem;\n  font-weight: 500;\n}\n.product-meta[data-v-62ca46f2] {\n  display: flex;\n  gap: 0.5rem;\n  margin-bottom: 0.75rem;\n  flex-wrap: wrap;\n}\n.product-description[data-v-62ca46f2] {\n  margin-bottom: 1rem;\n  line-height: 1.5;\n}\n\n/* Price Summary */\n.price-summary[data-v-62ca46f2] {\n  background: #f8f9fa;\n  border-radius: 8px;\n  padding: 0.75rem;\n  margin-bottom: 1rem;\n}\n.price-row[data-v-62ca46f2] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 0.5rem;\n}\n.price-row[data-v-62ca46f2]:last-child {\n  margin-bottom: 0;\n}\n.price-label[data-v-62ca46f2] {\n  font-size: 0.85rem;\n  color: #718096;\n  font-weight: 500;\n}\n.price-value[data-v-62ca46f2] {\n  font-size: 0.95rem;\n  font-weight: 700;\n}\n.price-value.purchase[data-v-62ca46f2] {\n  color: #f59e0b;\n}\n.price-value.sale[data-v-62ca46f2] {\n  color: #10b981;\n}\n.price-value.discount[data-v-62ca46f2] {\n  color: #667eea;\n}\n\n/* Stock Summary */\n.stock-summary[data-v-62ca46f2] {\n  background: #f0f4ff;\n  border-radius: 8px;\n  padding: 0.5rem 0.75rem;\n  margin-bottom: 1rem;\n}\n.stock-info[data-v-62ca46f2] {\n  display: flex;\n  align-items: center;\n  gap: 0.5rem;\n  font-size: 0.9rem;\n}\n.stock-info i[data-v-62ca46f2] {\n  color: #667eea;\n}\n.stock-label[data-v-62ca46f2] {\n  color: #718096;\n  font-weight: 500;\n}\n.stock-value[data-v-62ca46f2] {\n  font-weight: 700;\n  margin-right: auto;\n}\n\n/* Variations */\n.variations-toggle[data-v-62ca46f2] {\n  margin-bottom: 1rem;\n}\n.variations-container[data-v-62ca46f2] {\n  margin-bottom: 1rem;\n  background: #f8f9fa;\n  border-radius: 8px;\n  padding: 0.75rem;\n}\n.variations-table[data-v-62ca46f2] {\n  margin: 0;\n  font-size: 0.85rem;\n}\n.variations-table thead th[data-v-62ca46f2] {\n  background: #667eea;\n  color: white;\n  font-weight: 600;\n  border: none;\n  padding: 0.5rem;\n  font-size: 0.8rem;\n}\n.variations-table tbody td[data-v-62ca46f2] {\n  padding: 0.5rem;\n  vertical-align: middle;\n}\n.variation-name[data-v-62ca46f2] {\n  font-weight: 600;\n  color: #2d3748;\n}\n.attribute-tags[data-v-62ca46f2] {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 0.25rem;\n  margin-top: 0.25rem;\n}\n.attribute-tag[data-v-62ca46f2] {\n  background: #e0e7ff;\n  color: #4c51bf;\n  padding: 2px 6px;\n  border-radius: 4px;\n  font-size: 0.7rem;\n  font-weight: 500;\n}\n\n/* Stock Controls */\n.stock-controls[data-v-62ca46f2] {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: 0.5rem;\n}\n.stock-btn[data-v-62ca46f2] {\n  width: 24px;\n  height: 24px;\n  border-radius: 4px;\n  border: 1px solid #d1d5db;\n  background: white;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  font-size: 0.75rem;\n}\n.stock-btn[data-v-62ca46f2]:hover:not(:disabled) {\n  background: #667eea;\n  color: white;\n  border-color: #667eea;\n}\n.stock-btn[data-v-62ca46f2]:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n}\n.stock-btn.minus[data-v-62ca46f2] {\n  color: #dc2626;\n}\n.stock-btn.plus[data-v-62ca46f2] {\n  color: #059669;\n}\n.stock-quantity[data-v-62ca46f2] {\n  font-weight: 700;\n  min-width: 30px;\n  text-align: center;\n}\n\n/* Product Actions */\n.product-actions[data-v-62ca46f2] {\n  display: flex;\n  gap: 0.5rem;\n  margin-top: auto;\n}\n.product-actions .btn[data-v-62ca46f2] {\n  flex: 1;\n  font-size: 0.85rem;\n}\n\n/* Empty State */\n.empty-state[data-v-62ca46f2] {\n  text-align: center;\n  padding: 3rem 1rem;\n}\n.empty-state i[data-v-62ca46f2] {\n  font-size: 4rem;\n  color: #cbd5e0;\n  margin-bottom: 1rem;\n}\n.empty-state h5[data-v-62ca46f2] {\n  color: #2d3748;\n  margin-bottom: 0.5rem;\n}\n\n/* Responsive */\n@media (max-width: 768px) {\n.product-image-container[data-v-62ca46f2] {\n    height: 150px;\n}\n.product-title[data-v-62ca46f2] {\n    font-size: 1rem;\n}\n.price-summary[data-v-62ca46f2] {\n    padding: 0.5rem;\n}\n.variations-table[data-v-62ca46f2] {\n    font-size: 0.75rem;\n}\n}\n\n/* Badge Customization */\n.badge[data-v-62ca46f2] {\n  font-size: 0.75rem;\n  padding: 0.35em 0.65em;\n}\n\n/* Input Group */\n.input-group-text[data-v-62ca46f2] {\n  background: #f8f9fa;\n  border-right: none;\n}\n.input-group .form-control[data-v-62ca46f2] {\n  border-left: none;\n}\n.input-group .form-control[data-v-62ca46f2]:focus {\n  border-color: #ced4da;\n  box-shadow: none;\n}\n.input-group .form-control:focus + .input-group-text[data-v-62ca46f2] {\n  border-color: #667eea;\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

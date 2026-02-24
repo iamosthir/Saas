@@ -50,8 +50,12 @@ class LoginController extends Controller
      */
     protected function authenticated($request, $user)
     {
-        if ($user->role === 'pos_only') {
+        if (in_array($user->role, ['pos_only', 'cashier'])) {
             return redirect('/dashboard/pos');
+        }
+
+        if ($user->role === 'accountant') {
+            return redirect('/dashboard/sales/report');
         }
 
         return redirect()->intended(RouteServiceProvider::HOME);

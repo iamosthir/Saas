@@ -43,16 +43,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         totalSalary: 0
       },
       editingEmployee: null,
-      form: {
-        full_name: '',
-        phone: '',
-        job_title: '',
-        monthly_salary: '',
-        hire_date: '',
-        status: 'active',
-        notes: ''
-      },
-      employeeModal: null,
+      form: {},
       debounceTimer: null
     };
   },
@@ -152,17 +143,18 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         };
       } else {
         this.form = {
-          full_name: '',
+          name: '',
+          email: '',
           phone: '',
-          job_title: '',
-          monthly_salary: '',
-          hire_date: '',
-          status: 'active',
-          notes: ''
+          password: '123456',
+          role: 'cashier',
+          monthly_salary: ''
         };
       }
-      this.employeeModal = new bootstrap.Modal(document.getElementById('employeeModal'));
-      this.employeeModal.show();
+      $('#employeeModal').modal('show');
+    },
+    closeModal: function closeModal() {
+      $('#employeeModal').modal('hide');
     },
     submitForm: function submitForm() {
       var _this3 = this;
@@ -189,7 +181,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             case 10:
               toastr.success('تم إنشاء الموظف');
             case 11:
-              _this3.employeeModal.hide();
+              _this3.closeModal();
               _this3.fetchEmployees(_this3.pagination.current_page);
               _context2.next = 18;
               break;
@@ -545,8 +537,10 @@ var render = function render() {
   }, [_vm._v(_vm._s(_vm.editingEmployee ? "تعديل موظف" : "إضافة موظف"))]), _vm._v(" "), _c("button", {
     staticClass: "btn-close",
     attrs: {
-      type: "button",
-      "data-bs-dismiss": "modal"
+      type: "button"
+    },
+    on: {
+      click: _vm.closeModal
     }
   })]), _vm._v(" "), _c("form", {
     on: {
@@ -557,9 +551,168 @@ var render = function render() {
     }
   }, [_c("div", {
     staticClass: "modal-body"
-  }, [_c("div", {
+  }, [!_vm.editingEmployee ? [_c("div", {
     staticClass: "mb-3"
   }, [_vm._m(3), _vm._v(" "), _c("input", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.form.name,
+      expression: "form.name"
+    }],
+    staticClass: "form-control",
+    attrs: {
+      type: "text",
+      required: ""
+    },
+    domProps: {
+      value: _vm.form.name
+    },
+    on: {
+      input: function input($event) {
+        if ($event.target.composing) return;
+        _vm.$set(_vm.form, "name", $event.target.value);
+      }
+    }
+  })]), _vm._v(" "), _c("div", {
+    staticClass: "mb-3"
+  }, [_c("label", {
+    staticClass: "form-label"
+  }, [_vm._v("البريد الإلكتروني")]), _vm._v(" "), _c("input", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.form.email,
+      expression: "form.email"
+    }],
+    staticClass: "form-control",
+    attrs: {
+      type: "email"
+    },
+    domProps: {
+      value: _vm.form.email
+    },
+    on: {
+      input: function input($event) {
+        if ($event.target.composing) return;
+        _vm.$set(_vm.form, "email", $event.target.value);
+      }
+    }
+  })]), _vm._v(" "), _c("div", {
+    staticClass: "mb-3"
+  }, [_c("label", {
+    staticClass: "form-label"
+  }, [_vm._v("الهاتف")]), _vm._v(" "), _c("input", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.form.phone,
+      expression: "form.phone"
+    }],
+    staticClass: "form-control",
+    attrs: {
+      type: "tel"
+    },
+    domProps: {
+      value: _vm.form.phone
+    },
+    on: {
+      input: function input($event) {
+        if ($event.target.composing) return;
+        _vm.$set(_vm.form, "phone", $event.target.value);
+      }
+    }
+  })]), _vm._v(" "), _c("div", {
+    staticClass: "mb-3"
+  }, [_vm._m(4), _vm._v(" "), _c("input", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.form.password,
+      expression: "form.password"
+    }],
+    staticClass: "form-control",
+    attrs: {
+      type: "text",
+      required: ""
+    },
+    domProps: {
+      value: _vm.form.password
+    },
+    on: {
+      input: function input($event) {
+        if ($event.target.composing) return;
+        _vm.$set(_vm.form, "password", $event.target.value);
+      }
+    }
+  })]), _vm._v(" "), _c("div", {
+    staticClass: "mb-3"
+  }, [_vm._m(5), _vm._v(" "), _c("select", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.form.role,
+      expression: "form.role"
+    }],
+    staticClass: "form-select",
+    attrs: {
+      required: ""
+    },
+    on: {
+      change: function change($event) {
+        var $$selectedVal = Array.prototype.filter.call($event.target.options, function (o) {
+          return o.selected;
+        }).map(function (o) {
+          var val = "_value" in o ? o._value : o.value;
+          return val;
+        });
+        _vm.$set(_vm.form, "role", $event.target.multiple ? $$selectedVal : $$selectedVal[0]);
+      }
+    }
+  }, [_c("option", {
+    attrs: {
+      value: "super"
+    }
+  }, [_vm._v("Super")]), _vm._v(" "), _c("option", {
+    attrs: {
+      value: "cashier"
+    }
+  }, [_vm._v("Cashier")]), _vm._v(" "), _c("option", {
+    attrs: {
+      value: "accountant"
+    }
+  }, [_vm._v("Accountant")]), _vm._v(" "), _c("option", {
+    attrs: {
+      value: "deliveryman"
+    }
+  }, [_vm._v("Deliveryman")])])]), _vm._v(" "), _c("div", {
+    staticClass: "mb-3"
+  }, [_vm._m(6), _vm._v(" "), _c("input", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.form.monthly_salary,
+      expression: "form.monthly_salary"
+    }],
+    staticClass: "form-control",
+    attrs: {
+      type: "number",
+      required: "",
+      min: "0",
+      step: "0.01"
+    },
+    domProps: {
+      value: _vm.form.monthly_salary
+    },
+    on: {
+      input: function input($event) {
+        if ($event.target.composing) return;
+        _vm.$set(_vm.form, "monthly_salary", $event.target.value);
+      }
+    }
+  })])] : [_c("div", {
+    staticClass: "mb-3"
+  }, [_vm._m(7), _vm._v(" "), _c("input", {
     directives: [{
       name: "model",
       rawName: "v-model",
@@ -606,7 +759,7 @@ var render = function render() {
     }
   })]), _vm._v(" "), _c("div", {
     staticClass: "mb-3"
-  }, [_vm._m(4), _vm._v(" "), _c("input", {
+  }, [_vm._m(8), _vm._v(" "), _c("input", {
     directives: [{
       name: "model",
       rawName: "v-model",
@@ -630,7 +783,7 @@ var render = function render() {
     }
   })]), _vm._v(" "), _c("div", {
     staticClass: "mb-3"
-  }, [_vm._m(5), _vm._v(" "), _c("input", {
+  }, [_vm._m(9), _vm._v(" "), _c("input", {
     directives: [{
       name: "model",
       rawName: "v-model",
@@ -677,7 +830,7 @@ var render = function render() {
         _vm.$set(_vm.form, "hire_date", $event.target.value);
       }
     }
-  })]), _vm._v(" "), _vm.editingEmployee ? _c("div", {
+  })]), _vm._v(" "), _c("div", {
     staticClass: "mb-3"
   }, [_c("label", {
     staticClass: "form-label"
@@ -708,7 +861,7 @@ var render = function render() {
     attrs: {
       value: "inactive"
     }
-  }, [_vm._v("غير نشط")])])]) : _vm._e(), _vm._v(" "), _c("div", {
+  }, [_vm._v("غير نشط")])])]), _vm._v(" "), _c("div", {
     staticClass: "mb-3"
   }, [_c("label", {
     staticClass: "form-label"
@@ -732,13 +885,15 @@ var render = function render() {
         _vm.$set(_vm.form, "notes", $event.target.value);
       }
     }
-  })])]), _vm._v(" "), _c("div", {
+  })])]], 2), _vm._v(" "), _c("div", {
     staticClass: "modal-footer"
   }, [_c("button", {
     staticClass: "btn btn-secondary",
     attrs: {
-      type: "button",
-      "data-bs-dismiss": "modal"
+      type: "button"
+    },
+    on: {
+      click: _vm.closeModal
     }
   }, [_vm._v("إلغاء")]), _vm._v(" "), _c("button", {
     staticClass: "btn btn-primary",
@@ -773,6 +928,38 @@ var staticRenderFns = [function () {
   }, [_c("div", {
     staticClass: "spinner-border text-primary"
   })])]);
+}, function () {
+  var _vm = this,
+    _c = _vm._self._c;
+  return _c("label", {
+    staticClass: "form-label"
+  }, [_vm._v("الاسم "), _c("span", {
+    staticClass: "text-danger"
+  }, [_vm._v("*")])]);
+}, function () {
+  var _vm = this,
+    _c = _vm._self._c;
+  return _c("label", {
+    staticClass: "form-label"
+  }, [_vm._v("كلمة المرور "), _c("span", {
+    staticClass: "text-danger"
+  }, [_vm._v("*")])]);
+}, function () {
+  var _vm = this,
+    _c = _vm._self._c;
+  return _c("label", {
+    staticClass: "form-label"
+  }, [_vm._v("الدور "), _c("span", {
+    staticClass: "text-danger"
+  }, [_vm._v("*")])]);
+}, function () {
+  var _vm = this,
+    _c = _vm._self._c;
+  return _c("label", {
+    staticClass: "form-label"
+  }, [_vm._v("الراتب الشهري "), _c("span", {
+    staticClass: "text-danger"
+  }, [_vm._v("*")])]);
 }, function () {
   var _vm = this,
     _c = _vm._self._c;

@@ -30,6 +30,7 @@ class Invoice extends Model
         'is_fully_paid',
         'notes',
         'custom_fields',
+        'enable_signature',
         'created_by',
     ];
 
@@ -41,6 +42,7 @@ class Invoice extends Model
         'paid_amount' => 'decimal:2',
         'remaining_amount' => 'decimal:2',
         'is_fully_paid' => 'boolean',
+        'enable_signature' => 'boolean',
         'installment_months' => 'integer',
         'custom_fields' => 'array',
     ];

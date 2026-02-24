@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Employee;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class EmployeeController extends Controller
 {
@@ -72,37 +75,56 @@ class EmployeeController extends Controller
     }
 
     /**
-     * Create a new employee
+     * Create a new user + employee
      */
     public function store(Request $request)
     {
         $request->validate([
-            'full_name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:20',
-            'job_title' => 'required|string|max:255',
+            'name'           => 'required|string|max:255',
+            'email'          => 'nullable|email|unique:users,email',
+            'phone'          => 'nullable|string|max:20',
+            'password'       => 'required|string|min:6',
+            'role'           => 'required|in:super,cashier,accountant,deliveryman',
             'monthly_salary' => 'required|numeric|min:0',
-            'hire_date' => 'nullable|date',
-            'notes' => 'nullable|string',
         ]);
 
         $merchantId = auth()->user()->merchant_id;
 
-        $employee = Employee::create([
-            'merchant_id' => $merchantId,
-            'full_name' => $request->full_name,
-            'phone' => $request->phone,
-            'job_title' => $request->job_title,
-            'monthly_salary' => $request->monthly_salary,
-            'hire_date' => $request->hire_date,
-            'notes' => $request->notes,
-            'status' => Employee::STATUS_ACTIVE,
-        ]);
+        DB::beginTransaction();
+        try {
+            $user = User::create([
+                'merchant_id' => $merchantId,
+                'name'        => $request->name,
+                'email'       => $request->email,
+                'phone'       => $request->phone,
+                'password'    => Hash::make($request->password),
+                'role'        => $request->role,
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Employee created successfully',
-            'data' => $employee,
-        ]);
+            $employee = Employee::create([
+                'merchant_id'    => $merchantId,
+                'user_id'        => $user->id,
+                'full_name'      => $request->name,
+                'phone'          => $request->phone,
+                'job_title'      => $request->role,
+                'monthly_salary' => $request->monthly_salary,
+                'status'         => Employee::STATUS_ACTIVE,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Employee and user created successfully',
+                'data'    => $employee,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**

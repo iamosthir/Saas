@@ -73,18 +73,31 @@ DashboardRouter.beforeEach((to, from, next) => {
     const userRole = window.role;
     const routePermissions = to.meta.permission;
 
-    // POS-only role: restrict to POS screen and related pages
-    if(userRole === 'pos_only') {
+    // POS-only roles: restrict to POS screen and related pages
+    if(userRole === 'pos_only' || userRole === 'cashier') {
         const allowedRoutes = ['pos', 'pos.history', 'my-profile', 'no-permission'];
 
         if(allowedRoutes.includes(to.name)) {
             next();
-        } else if(to.name === 'dashboard' || to.name === 'home') {
-            // Redirect to POS instead of dashboard home
-            next({ name: 'pos' });
         } else {
-            // Block access to all other routes
-            next({ name: 'no-permission' });
+            next({ name: 'pos' });
+        }
+        return;
+    }
+
+    // Accountant role: restrict to sales and reports only
+    if(userRole === 'accountant') {
+        const allowedRoutes = [
+            'invoice-list', 'invoice-list-cancel', 'invoice-list-complate',
+            'invoice-list-padding', 'invoice-list-barcode', 'invoice.details',
+            'sales.report', 'purchases.report', 'profitloss.report', 'expenses.report',
+            'my-profile', 'no-permission'
+        ];
+
+        if(allowedRoutes.includes(to.name)) {
+            next();
+        } else {
+            next({ name: 'sales.report' });
         }
         return;
     }

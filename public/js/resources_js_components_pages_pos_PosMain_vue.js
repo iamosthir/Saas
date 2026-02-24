@@ -431,7 +431,16 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     selectProduct: function selectProduct(product) {
       // Check if product has variations (using variation or variations property)
       var variations = product.variation || product.variations || [];
-      if (variations && variations.length > 0) {
+      if (variations && variations.length === 1) {
+        // Single variation - add directly to cart without modal
+        var variation = variations[0];
+        if (variation.quantity <= 0) {
+          var _this$$toast;
+          (_this$$toast = this.$toast) === null || _this$$toast === void 0 ? void 0 : _this$$toast.warning('Out of stock');
+          return;
+        }
+        this.addToCart(product, variation);
+      } else if (variations && variations.length > 1) {
         this.selectedProduct = _objectSpread(_objectSpread({}, product), {}, {
           variations: variations
         });
@@ -442,8 +451,8 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     },
     addVariationToCart: function addVariationToCart(variation) {
       if (variation.quantity <= 0) {
-        var _this$$toast;
-        (_this$$toast = this.$toast) === null || _this$$toast === void 0 ? void 0 : _this$$toast.warning('Out of stock');
+        var _this$$toast2;
+        (_this$$toast2 = this.$toast) === null || _this$$toast2 === void 0 ? void 0 : _this$$toast2.warning('Out of stock');
         return;
       }
       this.addToCart(this.selectedProduct, variation);

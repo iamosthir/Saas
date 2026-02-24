@@ -40,6 +40,7 @@ class InvoiceController extends Controller
             'notes' => 'nullable|string',
             'invoice_template_id' => 'nullable|exists:invoice_templates,id',
             'custom_fields' => 'nullable|array',
+            'enable_signature' => 'nullable|boolean',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.product_variation_id' => 'nullable|exists:product_variations,id',
@@ -123,6 +124,7 @@ class InvoiceController extends Controller
                 'is_fully_paid' => false,
                 'notes' => $request->notes,
                 'custom_fields' => $request->custom_fields,
+                'enable_signature' => $request->enable_signature ?? 1,
                 'created_by' => $user->id,
             ]);
 
