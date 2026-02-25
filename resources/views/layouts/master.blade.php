@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Dashboard</title>
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
@@ -655,6 +656,11 @@
                                     <i class="fas fa-users"></i> الموظفين
                                 </router-link>
                             </li>
+                            <li class="nav-item">
+                                <router-link :to="{name: 'exchange-rates'}" class="nav-link">
+                                    <i class="fas fa-exchange-alt"></i> أسعار الصرف
+                                </router-link>
+                            </li>
                             @endif
                             @if(auth()->user()->merchant && auth()->user()->merchant->canAccessPos())
                             <li class="nav-item">
@@ -715,14 +721,31 @@
 
                     <!-- Right elements -->
                     <div class="d-flex align-items-center">
+                        <!-- Currency Switcher -->
+                        <div class="dropdown me-3">
+                            <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" id="currencySwitcher" data-mdb-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-coins me-1"></i> {{ auth()->user()->currency ?? 'USD' }}
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="currencySwitcher">
+                                <li>
+                                    <a class="dropdown-item {{ (auth()->user()->currency ?? 'USD') === 'USD' ? 'active' : '' }}" href="#" onclick="switchCurrency('USD')">
+                                        <i class="fas fa-dollar-sign me-1"></i> USD
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item {{ (auth()->user()->currency ?? 'USD') === 'IQD' ? 'active' : '' }}" href="#" onclick="switchCurrency('IQD')">
+                                        <span class="me-1">د.ع</span> IQD
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+
                         <button v-cloak @click="showSidebar2=true" v-if="editinvoiceQuee.length > 0" class="btn btn-sm btn-warning me-3">
                             <i class="fas fa-edit me-1"></i> تعديل (@{{ editinvoiceQuee.length }})
                         </button>
                         <button v-cloak @click="showSidebar=true" v-if="printQuee.length > 0" class="btn btn-sm btn-warning me-3">
                             <i class="fas fa-print me-1"></i> طبع (@{{ printQuee.length }})
                         </button>
-
-                        <h5 class="me-3 d-none d-md-block"><strong>{{ auth()->user()->name }}</strong></h5>
 
                         <div class="dropdown">
                             <a class="dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdownMenuAvatar" role="button" data-mdb-toggle="dropdown" aria-expanded="false">
@@ -848,6 +871,25 @@
     <script>
         window.role = "{{ auth()->user()->role }}";
         window.currency = "{{ auth()->user()->merchant->currency ?? 'IQD' }}";
+        window.currencyName = "{{ auth()->user()->currency ?? 'USD' }}";
+
+        function switchCurrency(currency) {
+            fetch('/dashboard/api/update-user-currency', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ currency: currency })
+            })
+            .then(function(response) { return response.json(); })
+            .then(function() {
+                window.location.reload();
+            })
+            .catch(function(error) {
+                console.error('Failed to switch currency:', error);
+            });
+        }
     </script>
     <script>
         function editInvoiceimages() {

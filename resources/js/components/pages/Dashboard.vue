@@ -22,7 +22,9 @@
               </div>
               <div class="stat-content">
                 <h6 class="stat-label">السعر الإجمالي للمنتج</h6>
-                <h3 class="stat-value" v-cloak>{{ settingData.total_price }} <small>IQD</small></h3>
+                <h3 class="stat-value" v-cloak>{{ settingData.total_price }}
+                     <small>{{ currencyName }}</small>
+                </h3>
               </div>
             </div>
           </div>
@@ -676,6 +678,7 @@ export default {
     data() {
         return{
             role: role,
+            currencyName: window.currencyName || 'USD',
             permissions: {
                 can_access_pos: false,
                 can_access_contracts: false,

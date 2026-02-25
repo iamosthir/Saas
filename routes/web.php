@@ -467,6 +467,12 @@ Route::group(["prefix" => "dashboard", "middleware" => "auth"],function(){
         Route::post('/employees/{id}/toggle-status', 'EmployeeController@toggleStatus');
         // End Employees
 
+        // Currency
+        Route::post('/update-user-currency', 'UserCurrencyController@update');
+        Route::get('/exchange-rates', 'ExchangeRateController@index');
+        Route::post('/exchange-rates', 'ExchangeRateController@update');
+        // End Currency
+
     });
     // End
 

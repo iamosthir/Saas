@@ -92,6 +92,9 @@ const SalaryList = () => import("../components/pages/employees/SalaryList.vue");
 
 // Delivery Module
 const OrderStatusManager = () => import("../components/pages/delivery/OrderStatusManager.vue");
+
+// Exchange Rates
+import ExchangeRates from "../components/pages/ExchangeRates.vue";
 //
 
 const router = new VueRouter({
@@ -817,6 +820,18 @@ const router = new VueRouter({
             }
         },
         // Delivery Module Routes
+        {
+            path: prefix + "exchange-rates",
+            name: "exchange-rates",
+            component: ExchangeRates,
+            meta: {
+                title: "Exchange Rates",
+                pageTitle: "أسعار الصرف",
+                pageIcon: "fas fa-exchange-alt",
+                pageSubtitle: "إدارة أسعار صرف العملات",
+                permission: ["super"]
+            }
+        },
         {
             path: prefix + "delivery/order-statuses",
             name: "delivery.order-statuses",

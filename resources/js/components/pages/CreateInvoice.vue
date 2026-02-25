@@ -36,7 +36,7 @@
                                   <label class="modern-form-label">بحث عن عميل</label>
                                   <multiselect v-model="selectedCustomer"
                                       :options="customers"
-                                      placeholder="ابحث بالاسم أو رقم الهاتف..."
+                                      placeholder="ابحث برقم العميل، الهاتف أو الاسم..."
                                       label="name"
                                       track-by="id"
                                       :searchable="true"
@@ -45,7 +45,7 @@
                                       select-label="">
                                       <template slot="option" slot-scope="props">
                                           <div>
-                                              <strong>{{ props.option.name }}</strong> - {{ props.option.phone }}
+                                              <strong>#{{ props.option.id }} - {{ props.option.name }}</strong> - {{ props.option.phone }}
                                           </div>
                                       </template>
                                   </multiselect>
@@ -229,7 +229,6 @@
                               <div class="modern-form-group">
                                   <label class="modern-form-label">النوع/الخيار (اختياري)</label>
                                   <select class="modern-select" v-model="currentItem.product_variation_id">
-                                      <option value="">بدون خيار</option>
                                       <option v-for="variation in productVariations"
                                           :key="variation.id"
                                           :value="variation.id">
@@ -560,7 +559,7 @@ export default {
     computed: {
         subtotal() {
             return this.invoiceItems.reduce((sum, item) => {
-                return sum + (item.custom_price * item.quantity);
+                return sum + (parseFloat(item.custom_price) * parseInt(item.quantity));
             }, 0);
         },
 
@@ -769,6 +768,10 @@ export default {
                 return resp.data;
             }).then(data => {
                 this.productVariations = data;
+                // Auto-select first variation
+                if (data.length > 0) {
+                    this.currentItem.product_variation_id = data[0].id;
+                }
             }).catch(err => {
                 console.error(err.response?.data);
             });
@@ -808,19 +811,12 @@ export default {
                 product_variation_id: this.currentItem.product_variation_id || null,
                 product_name: this.selectedProduct.name,
                 variation_name: variation ? variation.var_name : null,
-                quantity: this.currentItem.quantity,
-                custom_price: parseFloat(this.currentItem.custom_price),
+                quantity: parseInt(this.currentItem.quantity) || 1,
+                custom_price: parseFloat(this.currentItem.custom_price) || 0,
             });
 
-            // Reset current item
-            this.selectedProduct = null;
-            this.productVariations = [];
-            this.currentItem = {
-                product_id: null,
-                product_variation_id: null,
-                quantity: 1,
-                custom_price: 0,
-            };
+            // Reset quantity but keep product and variation selected
+            this.currentItem.quantity = 1;
         },
 
         removeProduct(index) {

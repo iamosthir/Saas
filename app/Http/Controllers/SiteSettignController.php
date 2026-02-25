@@ -37,7 +37,9 @@ class SiteSettignController extends Controller
         $merchantId = auth()->user()->merchant_id;
         $data = SiteSetting::where('merchant_id', $merchantId)->find(1)??[];
         $data["product_stock"] = ProductVariation::where('merchant_id', $merchantId)->sum("quantity");
-        $data["total_price"] = ProductVariation::where('merchant_id', $merchantId)->selectRaw('SUM(price * quantity) as total_price')->first()->total_price;
+        $data["total_price"] = convertCurrency(
+            ProductVariation::where('merchant_id', $merchantId)->selectRaw('SUM(price * quantity) as total_price')->value('total_price') ?? 0
+        );
         return response()->json($data);
     }
 

@@ -3308,7 +3308,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
   computed: {
     subtotal: function subtotal() {
       return this.invoiceItems.reduce(function (sum, item) {
-        return sum + item.custom_price * item.quantity;
+        return sum + parseFloat(item.custom_price) * parseInt(item.quantity);
       }, 0);
     },
     discountValue: function discountValue() {
@@ -3584,6 +3584,10 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
                 return resp.data;
               }).then(function (data) {
                 _this7.productVariations = data;
+                // Auto-select first variation
+                if (data.length > 0) {
+                  _this7.currentItem.product_variation_id = data[0].id;
+                }
               })["catch"](function (err) {
                 var _err$response4;
                 console.error((_err$response4 = err.response) === null || _err$response4 === void 0 ? void 0 : _err$response4.data);
@@ -3642,19 +3646,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         product_variation_id: this.currentItem.product_variation_id || null,
         product_name: this.selectedProduct.name,
         variation_name: variation ? variation.var_name : null,
-        quantity: this.currentItem.quantity,
-        custom_price: parseFloat(this.currentItem.custom_price)
+        quantity: parseInt(this.currentItem.quantity) || 1,
+        custom_price: parseFloat(this.currentItem.custom_price) || 0
       });
 
-      // Reset current item
-      this.selectedProduct = null;
-      this.productVariations = [];
-      this.currentItem = {
-        product_id: null,
-        product_variation_id: null,
-        quantity: 1,
-        custom_price: 0
-      };
+      // Reset quantity but keep product and variation selected
+      this.currentItem.quantity = 1;
     },
     removeProduct: function removeProduct(index) {
       this.invoiceItems.splice(index, 1);
@@ -4976,6 +4973,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
   data: function data() {
     return {
       role: role,
+      currencyName: window.currencyName || 'USD',
       permissions: {
         can_access_pos: false,
         can_access_contracts: false,
@@ -6133,6 +6131,76 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         }
       }, _callee8);
     }))();
+  }
+});
+
+/***/ }),
+
+/***/ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/lib/index.js??vue-loader-options!./resources/js/components/pages/ExchangeRates.vue?vue&type=script&lang=js&":
+/*!**************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/lib/index.js??vue-loader-options!./resources/js/components/pages/ExchangeRates.vue?vue&type=script&lang=js& ***!
+  \**************************************************************************************************************************************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
+  name: "ExchangeRates",
+  data: function data() {
+    return {
+      rate: 0,
+      loading: true,
+      saving: false,
+      successMessage: "",
+      errorMessage: ""
+    };
+  },
+  mounted: function mounted() {
+    this.fetchRates();
+  },
+  methods: {
+    fetchRates: function fetchRates() {
+      var _this = this;
+      this.loading = true;
+      axios.get("/dashboard/api/exchange-rates").then(function (response) {
+        var rates = response.data;
+        var usdToIqd = rates.find(function (r) {
+          return r.base_currency === "USD" && r.target_currency === "IQD";
+        });
+        if (usdToIqd) {
+          _this.rate = usdToIqd.rate;
+        }
+      })["catch"](function () {
+        _this.errorMessage = "فشل في تحميل أسعار الصرف";
+      })["finally"](function () {
+        _this.loading = false;
+      });
+    },
+    saveRate: function saveRate() {
+      var _this2 = this;
+      if (!this.rate || this.rate <= 0) {
+        this.errorMessage = "يجب أن يكون سعر الصرف أكبر من صفر";
+        return;
+      }
+      this.saving = true;
+      this.successMessage = "";
+      this.errorMessage = "";
+      axios.post("/dashboard/api/exchange-rates", {
+        base_currency: "USD",
+        target_currency: "IQD",
+        rate: this.rate
+      }).then(function () {
+        _this2.successMessage = "تم تحديث سعر الصرف بنجاح";
+      })["catch"](function (error) {
+        var _error$response, _error$response$data;
+        _this2.errorMessage = ((_error$response = error.response) === null || _error$response === void 0 ? void 0 : (_error$response$data = _error$response.data) === null || _error$response$data === void 0 ? void 0 : _error$response$data.message) || "فشل في تحديث سعر الصرف";
+      })["finally"](function () {
+        _this2.saving = false;
+      });
+    }
   }
 });
 
@@ -14249,7 +14317,7 @@ var render = function render() {
   }, [_vm._v("بحث عن عميل")]), _vm._v(" "), _c("multiselect", {
     attrs: {
       options: _vm.customers,
-      placeholder: "ابحث بالاسم أو رقم الهاتف...",
+      placeholder: "ابحث برقم العميل، الهاتف أو الاسم...",
       label: "name",
       "track-by": "id",
       searchable: true,
@@ -14262,9 +14330,9 @@ var render = function render() {
     scopedSlots: _vm._u([{
       key: "option",
       fn: function fn(props) {
-        return [_c("div", [_c("strong", [_vm._v(_vm._s(props.option.name))]), _vm._v(" - " + _vm._s(props.option.phone) + "\n                                      ")])];
+        return [_c("div", [_c("strong", [_vm._v("#" + _vm._s(props.option.id) + " - " + _vm._s(props.option.name))]), _vm._v(" - " + _vm._s(props.option.phone) + "\n                                      ")])];
       }
-    }], null, false, 3810327476),
+    }], null, false, 3102239548),
     model: {
       value: _vm.selectedCustomer,
       callback: function callback($$v) {
@@ -14736,18 +14804,14 @@ var render = function render() {
         _vm.$set(_vm.currentItem, "product_variation_id", $event.target.multiple ? $$selectedVal : $$selectedVal[0]);
       }
     }
-  }, [_c("option", {
-    attrs: {
-      value: ""
-    }
-  }, [_vm._v("بدون خيار")]), _vm._v(" "), _vm._l(_vm.productVariations, function (variation) {
+  }, _vm._l(_vm.productVariations, function (variation) {
     return _c("option", {
       key: variation.id,
       domProps: {
         value: variation.id
       }
     }, [_vm._v("\n                                      " + _vm._s(variation.var_name) + " - " + _vm._s(_vm.formatNumber(_vm.getPriceForVariation(variation))) + " د.ع (المخزون: " + _vm._s(variation.quantity) + ")\n                                  ")]);
-  })], 2)])]), _vm._v(" "), _c("div", {
+  }), 0)])]), _vm._v(" "), _c("div", {
     staticClass: "col-md-3 mb-4"
   }, [_c("div", {
     staticClass: "modern-form-group"
@@ -17095,7 +17159,7 @@ var render = function render() {
     staticClass: "stat-label"
   }, [_vm._v("السعر الإجمالي للمنتج")]), _vm._v(" "), _c("h3", {
     staticClass: "stat-value"
-  }, [_vm._v(_vm._s(_vm.settingData.total_price) + " "), _c("small", [_vm._v("IQD")])])])])])])])]), _vm._v(" "), !_vm.loading ? _c("div", {
+  }, [_vm._v(_vm._s(_vm.settingData.total_price) + "\n                   "), _c("small", [_vm._v(_vm._s(_vm.currencyName))])])])])])])])]), _vm._v(" "), !_vm.loading ? _c("div", {
     staticClass: "container dashboard-content"
   }, [_vm._m(2), _vm._v(" "), _c("div", {
     staticClass: "row g-4 mb-5"
@@ -19944,6 +20008,139 @@ var staticRenderFns = [function () {
   }, [_c("i", {
     staticClass: "fas fa-plus-circle"
   }), _vm._v(" إضافة متغيرات جديدة")]);
+}];
+render._withStripped = true;
+
+
+/***/ }),
+
+/***/ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/lib/loaders/templateLoader.js??ruleSet[1].rules[2]!./node_modules/vue-loader/lib/index.js??vue-loader-options!./resources/js/components/pages/ExchangeRates.vue?vue&type=template&id=722c678a&":
+/*!*************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/lib/loaders/templateLoader.js??ruleSet[1].rules[2]!./node_modules/vue-loader/lib/index.js??vue-loader-options!./resources/js/components/pages/ExchangeRates.vue?vue&type=template&id=722c678a& ***!
+  \*************************************************************************************************************************************************************************************************************************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "render": () => (/* binding */ render),
+/* harmony export */   "staticRenderFns": () => (/* binding */ staticRenderFns)
+/* harmony export */ });
+var render = function render() {
+  var _vm = this,
+    _c = _vm._self._c;
+  return _c("div", {
+    staticClass: "container-fluid py-4"
+  }, [_c("div", {
+    staticClass: "row justify-content-center"
+  }, [_c("div", {
+    staticClass: "col-md-8 col-lg-6"
+  }, [_c("div", {
+    staticClass: "card shadow-sm"
+  }, [_vm._m(0), _vm._v(" "), _c("div", {
+    staticClass: "card-body"
+  }, [_vm.loading ? _c("div", {
+    staticClass: "text-center py-4"
+  }, [_vm._m(1)]) : _c("div", [_c("div", {
+    staticClass: "mb-4"
+  }, [_c("label", {
+    staticClass: "form-label fw-bold"
+  }, [_vm._v("1 USD = ? IQD")]), _vm._v(" "), _c("div", {
+    staticClass: "input-group input-group-lg"
+  }, [_c("span", {
+    staticClass: "input-group-text"
+  }, [_vm._v("1 USD =")]), _vm._v(" "), _c("input", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.rate,
+      expression: "rate"
+    }],
+    staticClass: "form-control",
+    attrs: {
+      type: "number",
+      min: "0",
+      step: "0.01",
+      placeholder: "أدخل سعر الصرف"
+    },
+    domProps: {
+      value: _vm.rate
+    },
+    on: {
+      input: function input($event) {
+        if ($event.target.composing) return;
+        _vm.rate = $event.target.value;
+      }
+    }
+  }), _vm._v(" "), _c("span", {
+    staticClass: "input-group-text"
+  }, [_vm._v("IQD")])]), _vm._v(" "), _c("div", {
+    staticClass: "form-text"
+  }, [_vm._v("أدخل سعر صرف الدولار مقابل الدينار العراقي")])]), _vm._v(" "), _vm.successMessage ? _c("div", {
+    staticClass: "alert alert-success alert-dismissible fade show",
+    attrs: {
+      role: "alert"
+    }
+  }, [_vm._v("\n                            " + _vm._s(_vm.successMessage) + "\n                            "), _c("button", {
+    staticClass: "btn-close",
+    attrs: {
+      type: "button"
+    },
+    on: {
+      click: function click($event) {
+        _vm.successMessage = "";
+      }
+    }
+  })]) : _vm._e(), _vm._v(" "), _vm.errorMessage ? _c("div", {
+    staticClass: "alert alert-danger alert-dismissible fade show",
+    attrs: {
+      role: "alert"
+    }
+  }, [_vm._v("\n                            " + _vm._s(_vm.errorMessage) + "\n                            "), _c("button", {
+    staticClass: "btn-close",
+    attrs: {
+      type: "button"
+    },
+    on: {
+      click: function click($event) {
+        _vm.errorMessage = "";
+      }
+    }
+  })]) : _vm._e(), _vm._v(" "), _c("button", {
+    staticClass: "btn btn-primary w-100",
+    attrs: {
+      disabled: _vm.saving
+    },
+    on: {
+      click: _vm.saveRate
+    }
+  }, [_vm.saving ? _c("span", [_c("span", {
+    staticClass: "spinner-border spinner-border-sm me-1"
+  }), _vm._v(" جاري الحفظ...\n                            ")]) : _c("span", [_c("i", {
+    staticClass: "fas fa-save me-1"
+  }), _vm._v(" حفظ سعر الصرف\n                            ")])])])])])])])]);
+};
+var staticRenderFns = [function () {
+  var _vm = this,
+    _c = _vm._self._c;
+  return _c("div", {
+    staticClass: "card-header bg-primary text-white"
+  }, [_c("h5", {
+    staticClass: "mb-0"
+  }, [_c("i", {
+    staticClass: "fas fa-exchange-alt me-2"
+  }), _vm._v(" أسعار الصرف")])]);
+}, function () {
+  var _vm = this,
+    _c = _vm._self._c;
+  return _c("div", {
+    staticClass: "spinner-border text-primary",
+    attrs: {
+      role: "status"
+    }
+  }, [_c("span", {
+    staticClass: "visually-hidden"
+  }, [_vm._v("Loading...")])]);
 }];
 render._withStripped = true;
 
@@ -32506,6 +32703,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _components_pages_contracts_ContractCreate_vue__WEBPACK_IMPORTED_MODULE_49__ = __webpack_require__(/*! ../components/pages/contracts/ContractCreate.vue */ "./resources/js/components/pages/contracts/ContractCreate.vue");
 /* harmony import */ var _components_pages_contracts_ContractPrint_vue__WEBPACK_IMPORTED_MODULE_50__ = __webpack_require__(/*! ../components/pages/contracts/ContractPrint.vue */ "./resources/js/components/pages/contracts/ContractPrint.vue");
 /* harmony import */ var _components_pages_contracts_ContractList_vue__WEBPACK_IMPORTED_MODULE_51__ = __webpack_require__(/*! ../components/pages/contracts/ContractList.vue */ "./resources/js/components/pages/contracts/ContractList.vue");
+/* harmony import */ var _components_pages_ExchangeRates_vue__WEBPACK_IMPORTED_MODULE_52__ = __webpack_require__(/*! ../components/pages/ExchangeRates.vue */ "./resources/js/components/pages/ExchangeRates.vue");
 
 
 vue__WEBPACK_IMPORTED_MODULE_0__["default"].use(vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]);
@@ -32615,6 +32813,9 @@ var SalaryList = function SalaryList() {
 var OrderStatusManager = function OrderStatusManager() {
   return __webpack_require__.e(/*! import() */ "resources_js_components_pages_delivery_OrderStatusManager_vue").then(__webpack_require__.bind(__webpack_require__, /*! ../components/pages/delivery/OrderStatusManager.vue */ "./resources/js/components/pages/delivery/OrderStatusManager.vue"));
 };
+
+// Exchange Rates
+
 //
 
 var router = new vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]({
@@ -33278,6 +33479,17 @@ var router = new vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]({
   },
   // Delivery Module Routes
   {
+    path: prefix + "exchange-rates",
+    name: "exchange-rates",
+    component: _components_pages_ExchangeRates_vue__WEBPACK_IMPORTED_MODULE_52__["default"],
+    meta: {
+      title: "Exchange Rates",
+      pageTitle: "أسعار الصرف",
+      pageIcon: "fas fa-exchange-alt",
+      pageSubtitle: "إدارة أسعار صرف العملات",
+      permission: ["super"]
+    }
+  }, {
     path: prefix + "delivery/order-statuses",
     name: "delivery.order-statuses",
     component: OrderStatusManager,
@@ -94069,6 +94281,45 @@ component.options.__file = "resources/js/components/pages/EditProduct.vue"
 
 /***/ }),
 
+/***/ "./resources/js/components/pages/ExchangeRates.vue":
+/*!*********************************************************!*\
+  !*** ./resources/js/components/pages/ExchangeRates.vue ***!
+  \*********************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _ExchangeRates_vue_vue_type_template_id_722c678a___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./ExchangeRates.vue?vue&type=template&id=722c678a& */ "./resources/js/components/pages/ExchangeRates.vue?vue&type=template&id=722c678a&");
+/* harmony import */ var _ExchangeRates_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ExchangeRates.vue?vue&type=script&lang=js& */ "./resources/js/components/pages/ExchangeRates.vue?vue&type=script&lang=js&");
+/* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! !../../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+
+
+
+
+
+/* normalize component */
+;
+var component = (0,_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__["default"])(
+  _ExchangeRates_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
+  _ExchangeRates_vue_vue_type_template_id_722c678a___WEBPACK_IMPORTED_MODULE_0__.render,
+  _ExchangeRates_vue_vue_type_template_id_722c678a___WEBPACK_IMPORTED_MODULE_0__.staticRenderFns,
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* hot reload */
+if (false) { var api; }
+component.options.__file = "resources/js/components/pages/ExchangeRates.vue"
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (component.exports);
+
+/***/ }),
+
 /***/ "./resources/js/components/pages/Expense.vue":
 /*!***************************************************!*\
   !*** ./resources/js/components/pages/Expense.vue ***!
@@ -95786,6 +96037,22 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./resources/js/components/pages/ExchangeRates.vue?vue&type=script&lang=js&":
+/*!**********************************************************************************!*\
+  !*** ./resources/js/components/pages/ExchangeRates.vue?vue&type=script&lang=js& ***!
+  \**********************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_lib_index_js_vue_loader_options_ExchangeRates_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/lib/index.js??vue-loader-options!./ExchangeRates.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/lib/index.js??vue-loader-options!./resources/js/components/pages/ExchangeRates.vue?vue&type=script&lang=js&");
+ /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_lib_index_js_vue_loader_options_ExchangeRates_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
+
+/***/ }),
+
 /***/ "./resources/js/components/pages/Expense.vue?vue&type=script&lang=js&":
 /*!****************************************************************************!*\
   !*** ./resources/js/components/pages/Expense.vue?vue&type=script&lang=js& ***!
@@ -96629,6 +96896,23 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "staticRenderFns": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_lib_loaders_templateLoader_js_ruleSet_1_rules_2_node_modules_vue_loader_lib_index_js_vue_loader_options_EditProduct_vue_vue_type_template_id_7e9785df_scoped_true___WEBPACK_IMPORTED_MODULE_0__.staticRenderFns)
 /* harmony export */ });
 /* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_lib_loaders_templateLoader_js_ruleSet_1_rules_2_node_modules_vue_loader_lib_index_js_vue_loader_options_EditProduct_vue_vue_type_template_id_7e9785df_scoped_true___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/lib/loaders/templateLoader.js??ruleSet[1].rules[2]!../../../../node_modules/vue-loader/lib/index.js??vue-loader-options!./EditProduct.vue?vue&type=template&id=7e9785df&scoped=true& */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/lib/loaders/templateLoader.js??ruleSet[1].rules[2]!./node_modules/vue-loader/lib/index.js??vue-loader-options!./resources/js/components/pages/EditProduct.vue?vue&type=template&id=7e9785df&scoped=true&");
+
+
+/***/ }),
+
+/***/ "./resources/js/components/pages/ExchangeRates.vue?vue&type=template&id=722c678a&":
+/*!****************************************************************************************!*\
+  !*** ./resources/js/components/pages/ExchangeRates.vue?vue&type=template&id=722c678a& ***!
+  \****************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "render": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_lib_loaders_templateLoader_js_ruleSet_1_rules_2_node_modules_vue_loader_lib_index_js_vue_loader_options_ExchangeRates_vue_vue_type_template_id_722c678a___WEBPACK_IMPORTED_MODULE_0__.render),
+/* harmony export */   "staticRenderFns": () => (/* reexport safe */ _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_lib_loaders_templateLoader_js_ruleSet_1_rules_2_node_modules_vue_loader_lib_index_js_vue_loader_options_ExchangeRates_vue_vue_type_template_id_722c678a___WEBPACK_IMPORTED_MODULE_0__.staticRenderFns)
+/* harmony export */ });
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_use_0_node_modules_vue_loader_lib_loaders_templateLoader_js_ruleSet_1_rules_2_node_modules_vue_loader_lib_index_js_vue_loader_options_ExchangeRates_vue_vue_type_template_id_722c678a___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!../../../../node_modules/vue-loader/lib/loaders/templateLoader.js??ruleSet[1].rules[2]!../../../../node_modules/vue-loader/lib/index.js??vue-loader-options!./ExchangeRates.vue?vue&type=template&id=722c678a& */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5.use[0]!./node_modules/vue-loader/lib/loaders/templateLoader.js??ruleSet[1].rules[2]!./node_modules/vue-loader/lib/index.js??vue-loader-options!./resources/js/components/pages/ExchangeRates.vue?vue&type=template&id=722c678a&");
 
 
 /***/ }),

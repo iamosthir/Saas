@@ -292,7 +292,9 @@ class InvoiceController extends Controller
                 $query->where(function ($q) use ($search) {
                     $q->where('customer_name', 'like', "%{$search}%")
                       ->orWhere('phone', 'like', "%{$search}%")
-                      ->orWhere('phone1', 'like', "%{$search}%");
+                      ->orWhere('phone1', 'like', "%{$search}%")
+                      ->orWhere('phone2', 'like', "%{$search}%")
+                      ->orWhere('id', $search);
                 });
             })
             ->limit(20)
