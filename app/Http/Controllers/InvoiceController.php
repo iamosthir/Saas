@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Services\TreasuryService;
+use App\Models\OrderStatus;
 
 class InvoiceController extends Controller
 {
@@ -41,6 +42,7 @@ class InvoiceController extends Controller
             'invoice_template_id' => 'nullable|exists:invoice_templates,id',
             'custom_fields' => 'nullable|array',
             'enable_signature' => 'nullable|boolean',
+            'order_status_id' => 'nullable|exists:order_statuses,id',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.product_variation_id' => 'nullable|exists:product_variations,id',
@@ -48,6 +50,16 @@ class InvoiceController extends Controller
             'items.*.custom_price' => 'nullable|numeric|min:0',
             'items.*.custom_fields' => 'nullable|array',
         ]);
+
+        // Block installment payment if merchant doesn't have permission
+        if ($request->payment_type === 'installment') {
+            $merchant = Auth::user()->merchant;
+            if (!$merchant || !$merchant->canAccessInstallment()) {
+                return response()->json([
+                    'message' => 'ليس لديك صلاحية الوصول إلى نظام التقسيط. يرجى التواصل مع الإدارة.',
+                ], 403);
+            }
+        }
 
         DB::beginTransaction();
         try {
@@ -125,6 +137,7 @@ class InvoiceController extends Controller
                 'notes' => $request->notes,
                 'custom_fields' => $request->custom_fields,
                 'enable_signature' => $request->enable_signature ?? 1,
+                'order_status_id' => $request->order_status_id,
                 'created_by' => $user->id,
             ]);
 
@@ -345,7 +358,8 @@ class InvoiceController extends Controller
             $merchantId = Auth::user()->merchant_id;
 
             $invoices = Invoice::where('merchant_id', $merchantId)
-                ->with(['customer', 'items.product', 'items.productVariation', 'createdBy'])
+                ->with(['customer', 'items.product', 'items.productVariation', 'createdBy', 'orderStatus'])
+                ->when($request->order_status_id, fn($q) => $q->where('order_status_id', $request->order_status_id))
                 ->orderBy('id', 'desc')
                 ->paginate(20);
 
@@ -601,6 +615,38 @@ class InvoiceController extends Controller
         } catch (\Exception $e) {
             abort(404, 'Invoice not found');
         }
+    }
+
+    public function updateOrderStatus(Request $request, $id)
+    {
+        $request->validate([
+            'order_status_id' => 'nullable|exists:order_statuses,id',
+        ]);
+
+        $invoice = Invoice::findOrFail($id);
+
+        if ($invoice->merchant_id !== Auth::user()->merchant_id) {
+            return response()->json(['status' => 'error', 'msg' => 'Unauthorized access'], 403);
+        }
+
+        // Verify the status belongs to this merchant
+        if ($request->order_status_id) {
+            $validStatus = OrderStatus::where('id', $request->order_status_id)
+                ->where('merchant_id', Auth::user()->merchant_id)
+                ->exists();
+
+            if (!$validStatus) {
+                return response()->json(['status' => 'error', 'msg' => 'Invalid order status'], 422);
+            }
+        }
+
+        $invoice->update(['order_status_id' => $request->order_status_id]);
+
+        return response()->json([
+            'status'       => 'ok',
+            'msg'          => 'تم تحديث حالة الطلب بنجاح',
+            'order_status' => $invoice->fresh(['orderStatus'])->orderStatus,
+        ]);
     }
 
     public function getTemplates()

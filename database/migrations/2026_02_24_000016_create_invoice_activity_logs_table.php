@@ -9,13 +9,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('invoice_activity_logs', function (Blueprint $table) {
-            $table->unsignedBigInteger('id');
+            $table->id();
             $table->unsignedBigInteger('invoice_id');
             $table->unsignedBigInteger('installment_schedule_id')->nullable();
             $table->unsignedBigInteger('user_id')->nullable();
             $table->string('action_type', 255);
             $table->text('description');
-            $table->string('amount')  // TODO: raw type decimal(15,2;
+            $table->decimal('amount', 15, 2)->nullable();
+            $table->timestamps();
         });
     }
 

@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('units_of_measure', function (Blueprint $table) {
-            $table->unsignedBigInteger('id');
+            $table->id();
             $table->unsignedBigInteger('merchant_id');
             $table->string('name', 255);
             $table->string('symbol', 10);

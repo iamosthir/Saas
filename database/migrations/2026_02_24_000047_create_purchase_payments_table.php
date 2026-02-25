@@ -9,11 +9,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('purchase_payments', function (Blueprint $table) {
-            $table->unsignedBigInteger('id');
+            $table->id();
             $table->unsignedBigInteger('merchant_id')->nullable();
             $table->unsignedBigInteger('invoice_id');
             $table->decimal('amount', 15, 2);
-            $table->string('remarks')  // TODO: raw type varchar(255;
+            $table->string('remarks', 255)->nullable();
+            $table->timestamps();
         });
     }
 

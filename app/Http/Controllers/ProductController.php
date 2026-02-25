@@ -207,7 +207,7 @@ class ProductController extends Controller
                 "attribute_values" => isset($var["attribute_values"]) ? $var["attribute_values"] : null,
                 "price" => $var["sell_price"],
                 "purchase_price" => $var["purchase_price"],
-                "installment_price" => $var["installment_price"] ?? 0,
+                "installment_price" => (auth()->user()->merchant && auth()->user()->merchant->canAccessInstallment()) ? ($var["installment_price"] ?? 0) : 0,
                 "quantity" => $var["quantity"],
                 "average_price" => $var["purchase_price"] // Initial average price is purchase price
             ]);
@@ -249,7 +249,8 @@ class ProductController extends Controller
         $product->supplier_id = $req->supplier_id;
         $product->purchase_price = $req->purchase_price;
         $product->sell_price = $req->sell_price;
-        $product->installment_price = $req->installment_price;
+        $canInstallment = auth()->user()->merchant && auth()->user()->merchant->canAccessInstallment();
+        $product->installment_price = $canInstallment ? $req->installment_price : 0;
         $product->discount_type = $req->discount_type;
         $product->discount_amount = $req->discount_amount ?? 0;
 
@@ -305,7 +306,7 @@ class ProductController extends Controller
                         "attribute_values" => isset($vars["attribute_values"]) ? $vars["attribute_values"] : null,
                         "price" => $vars["sell_price"],
                         "purchase_price" => $vars["purchase_price"] ?? 0,
-                        "installment_price" => $vars["installment_price"] ?? 0,
+                        "installment_price" => $canInstallment ? ($vars["installment_price"] ?? 0) : 0,
                         "quantity" => $vars["quantity"],
                         "average_price" => $vars["purchase_price"] ?? 0
                     ]);
@@ -353,7 +354,8 @@ class ProductController extends Controller
             $variation->price = $req->price;
         }
         if ($req->has('installment_price')) {
-            $variation->installment_price = $req->installment_price;
+            $canInstallment = auth()->user()->merchant && auth()->user()->merchant->canAccessInstallment();
+            $variation->installment_price = $canInstallment ? $req->installment_price : 0;
         }
 
         $variation->save();

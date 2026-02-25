@@ -124,7 +124,7 @@ Route::group(["prefix" => "dashboard", "middleware" => "auth"],function(){
         Route::get("/invoices/{id}/activity-logs","InvoiceController@getActivityLogs");
         Route::get("/customers","InvoiceController@getCustomers");
         Route::post("/invoices/{id}/mark-paid","InvoiceController@markAsPaid");
-        Route::post("/installments/{id}/pay","InvoiceController@payInstallment");
+        Route::post("/installments/{id}/pay","InvoiceController@payInstallment")->middleware('merchant.permission:installment');
         Route::get("/invoices/templates/list","InvoiceController@getTemplates");
 
         // Invoice Template Management
@@ -443,6 +443,19 @@ Route::group(["prefix" => "dashboard", "middleware" => "auth"],function(){
             Route::post('/batches/{id}/clone', 'ProductionController@clone');
         });
         // End Manufacturing
+
+        // Delivery / Order Status Routes (requires delivery permission)
+        Route::group(['prefix' => 'delivery', 'middleware' => 'merchant.permission:delivery'], function() {
+            Route::get('/order-statuses', 'OrderStatusController@index');
+            Route::get('/order-statuses/active', 'OrderStatusController@activeList');
+            Route::post('/order-statuses', 'OrderStatusController@store');
+            Route::put('/order-statuses/{id}', 'OrderStatusController@update');
+            Route::delete('/order-statuses/{id}', 'OrderStatusController@destroy');
+            Route::post('/order-statuses/{id}/toggle', 'OrderStatusController@toggleActive');
+        });
+        Route::post('/invoices/{id}/order-status', 'InvoiceController@updateOrderStatus')
+            ->middleware('merchant.permission:delivery');
+        // End Delivery
 
         // Employee Management Routes
         Route::get('/employees', 'EmployeeController@index');

@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('attributes', function (Blueprint $table) {
-            $table->unsignedBigInteger('id');
+            $table->id();
             $table->string('name', 255);
             $table->unsignedBigInteger('merchant_id');
             $table->boolean('is_active')->default(1);

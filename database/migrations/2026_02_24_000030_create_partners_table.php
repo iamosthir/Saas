@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('partners', function (Blueprint $table) {
-            $table->unsignedBigInteger('id');
+            $table->id();
             $table->string('name', 255);
             $table->decimal('profit_percent', 5, 2);
             $table->boolean('is_active')->default(1);

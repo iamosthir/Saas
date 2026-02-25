@@ -50,6 +50,18 @@ class CheckMerchantPermission
                 }
                 break;
 
+            case 'delivery':
+                if (!$merchant->canAccessDelivery()) {
+                    return $this->denyAccess($request, $permission);
+                }
+                break;
+
+            case 'installment':
+                if (!$merchant->canAccessInstallment()) {
+                    return $this->denyAccess($request, $permission);
+                }
+                break;
+
             default:
                 return $this->denyAccess($request, $permission);
         }
@@ -66,6 +78,8 @@ class CheckMerchantPermission
             'pos' => 'نظام نقاط البيع',
             'contracts' => 'إدارة العقود',
             'manufacturing' => 'نظام التصنيع',
+            'delivery' => 'نظام التوصيل',
+            'installment' => 'نظام التقسيط',
         ];
         $permissionName = $permissionNames[$permission] ?? $permission;
 

@@ -60,6 +60,40 @@
                             </div>
                         </div>
 
+                        <!-- Order Status (Delivery) -->
+                        <div class="row mb-4" v-if="deliveryEnabled">
+                            <div class="col-md-12">
+                                <div class="card border border-info">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-info">
+                                            <i class="fas fa-truck me-2"></i> حالة الطلب
+                                        </h5>
+                                        <hr>
+                                        <div class="d-flex align-items-center gap-3 flex-wrap">
+                                            <div>
+                                                <strong>الحالة الحالية:</strong>
+                                                <span v-if="invoice.order_status" class="badge ms-2"
+                                                    :style="{ backgroundColor: invoice.order_status.color, color: '#fff' }">
+                                                    {{ invoice.order_status.name }}
+                                                </span>
+                                                <span v-else class="text-muted ms-2">— بدون حالة —</span>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2 ms-auto">
+                                                <select class="form-select form-select-sm" v-model="selectedOrderStatusId" style="min-width:180px;">
+                                                    <option :value="null">— بدون حالة —</option>
+                                                    <option v-for="s in orderStatuses" :key="s.id" :value="s.id">{{ s.name }}</option>
+                                                </select>
+                                                <button class="btn btn-sm btn-info text-white" @click="updateOrderStatus" :disabled="updatingStatus">
+                                                    <span v-if="updatingStatus"><i class="fas fa-spinner fa-spin me-1"></i>جاري...</span>
+                                                    <span v-else><i class="fas fa-save me-1"></i>حفظ</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Custom Invoice Header Fields -->
                         <div v-if="invoice.template && invoice.custom_fields && Object.keys(invoice.custom_fields).length > 0" class="row mb-4">
                             <div class="col-md-12">
@@ -354,10 +388,15 @@ export default {
             selectedInstallment: {},
             paymentAmount: 0,
             activeTab: 'installments',
+            deliveryEnabled: false,
+            orderStatuses: [],
+            selectedOrderStatusId: null,
+            updatingStatus: false,
         }
     },
     mounted() {
         this.getInvoiceDetails();
+        this.loadDeliveryData();
     },
     watch: {
         activeTab(newTab) {
@@ -392,6 +431,7 @@ export default {
                 const response = await axios.get(`/dashboard/api/invoices/${invoiceId}`);
                 this.invoice = response.data.invoice;
                 this.installments = response.data.installments || [];
+                this.selectedOrderStatusId = this.invoice.order_status_id ?? null;
                 this.isLoading = false;
             } catch (error) {
                 this.isLoading = false;
@@ -521,6 +561,37 @@ export default {
                 'shortfall_added': 'إضافة متبقي',
             };
             return labels[actionType] || actionType;
+        },
+
+        async loadDeliveryData() {
+            try {
+                const permResp = await axios.get('/dashboard/api/get-merchant-permissions');
+                this.deliveryEnabled = !!permResp.data.can_access_delivery;
+                if (!this.deliveryEnabled) return;
+
+                const statusResp = await axios.get('/dashboard/api/delivery/order-statuses/active');
+                this.orderStatuses = statusResp.data.statuses || [];
+            } catch (err) {
+                console.error('Failed to load delivery data', err);
+            }
+        },
+
+        async updateOrderStatus() {
+            this.updatingStatus = true;
+            try {
+                const resp = await axios.post(
+                    `/dashboard/api/invoices/${this.invoice.id}/order-status`,
+                    { order_status_id: this.selectedOrderStatusId }
+                );
+                this.invoice.order_status = resp.data.order_status;
+                this.invoice.order_status_id = this.selectedOrderStatusId;
+                toastr.success(resp.data.msg || 'تم تحديث حالة الطلب');
+            } catch (err) {
+                const msg = err.response?.data?.message || err.response?.data?.msg || 'حدث خطأ';
+                swal.fire('خطأ', msg, 'error');
+            } finally {
+                this.updatingStatus = false;
+            }
         },
 
         printInvoice() {

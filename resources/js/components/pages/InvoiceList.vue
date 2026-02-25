@@ -1,6 +1,6 @@
 <template>
     <div class="row">
-      <div class="col-md-12">
+      <div class="col-md-12 mb-4">
           <div class="card">
               <div class="card-header d-flex justify-content-between">
                   <h4> قائمة الطلبات</h4>
@@ -84,6 +84,13 @@
                           <input class="form-control" placeholder="السعر" type="number" v-model="form.price">
                       </div>
 
+                      <div class="col-md-3 mt-2" v-if="deliveryEnabled && orderStatuses.length > 0">
+                          <select class="form-select" v-model="form.order_status_id">
+                              <option value="">كل حالات الطلب</option>
+                              <option v-for="s in orderStatuses" :key="s.id" :value="s.id">{{ s.name }}</option>
+                          </select>
+                      </div>
+
                       <div class="col-12 mt-2">
                           <button type="submit" class="btn btn-success">بحث <i class="fas fa-search"></i></button>
                       </div>
@@ -106,6 +113,7 @@
                             <th>نوع الدفع</th>
                             <th>حالة الدفع</th>
                             <th>الحالة</th>
+                            <th v-if="deliveryEnabled">حالة الطلب</th>
                             <th>الأجراء</th>
                         </tr>
                     </thead>
@@ -162,6 +170,14 @@
                                         <span v-else-if="order.payment_status == 'partial'" class="badge badge-info">مدفوع جزئياً</span>
                                         <span v-else-if="order.payment_status == 'paid'" class="badge badge-success">مدفوع بالكامل</span>
                                     </td>
+                                    <td v-if="deliveryEnabled">
+                                        <span v-if="order.order_status"
+                                            class="badge"
+                                            :style="{ backgroundColor: order.order_status.color, color: '#fff' }">
+                                            {{ order.order_status.name }}
+                                        </span>
+                                        <span v-else class="text-muted">—</span>
+                                    </td>
                                     <td>
                                         <router-link :to="{name: 'invoice.details', params: {id: order.id}}" title="Details" class="btn btn-sm btn-primary me-1">
                                             <i class="fas fa-eye"></i> Details
@@ -174,7 +190,7 @@
                             </template>
                             <template v-else>
                                 <tr>
-                                    <td colspan="10" class="text-danger text-center">لا توجد طلبات</td>
+                                    <td :colspan="deliveryEnabled ? 11 : 10" class="text-danger text-center">لا توجد طلبات</td>
                                 </tr>
                             </template>
                         </template>
@@ -320,7 +336,7 @@
                 page_name: "",
                 state: "",
                 productId: "",
-
+                order_status_id: "",
             },
             moment: moment,
             orderSelect: [],
@@ -339,6 +355,10 @@
             selectedProduct: "",
             selectedOrder: {},
             selectedInvoice: {},
+
+            // Delivery module
+            deliveryEnabled: false,
+            orderStatuses: [],
           }
       },
       methods: {
@@ -446,12 +466,37 @@
             this.selectedOrder = order;
             $('#invoiceDetailsModal').modal('show');
         },
+
+        async loadDeliveryData() {
+            try {
+                const permResp = await axios.get('/dashboard/api/get-merchant-permissions');
+                this.deliveryEnabled = permResp.data.can_access_delivery || false;
+
+                if (this.deliveryEnabled) {
+                    const statusResp = await axios.get('/dashboard/api/delivery/order-statuses/active');
+                    this.orderStatuses = statusResp.data.statuses || [];
+                }
+            } catch (err) {
+                console.error('Failed to load delivery data:', err);
+            }
+        },
+
+        orderStatusName(statusId) {
+            const s = this.orderStatuses.find(x => x.id === statusId);
+            return s ? s.name : null;
+        },
+
+        orderStatusColor(statusId) {
+            const s = this.orderStatuses.find(x => x.id === statusId);
+            return s ? s.color : '#6c757d';
+        },
       },
       mounted() {
 
         this.getOrderList();
         this.getPageList();
         this.getProductList();
+        this.loadDeliveryData();
       },
       watch: {
         'orderSelect' : function(newVal) {

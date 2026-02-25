@@ -31,6 +31,7 @@ class Invoice extends Model
         'notes',
         'custom_fields',
         'enable_signature',
+        'order_status_id',
         'created_by',
     ];
 
@@ -80,6 +81,11 @@ class Invoice extends Model
     public function template()
     {
         return $this->belongsTo(InvoiceTemplate::class, 'invoice_template_id');
+    }
+
+    public function orderStatus()
+    {
+        return $this->belongsTo(OrderStatus::class);
     }
 
     public function hasCustomFields()

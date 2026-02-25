@@ -89,6 +89,9 @@ const ProductionCreate = () => import("../components/pages/manufacturing/Product
 // Employee Management
 const EmployeeList = () => import("../components/pages/employees/EmployeeList.vue");
 const SalaryList = () => import("../components/pages/employees/SalaryList.vue");
+
+// Delivery Module
+const OrderStatusManager = () => import("../components/pages/delivery/OrderStatusManager.vue");
 //
 
 const router = new VueRouter({
@@ -810,6 +813,19 @@ const router = new VueRouter({
                 pageTitle: "إدارة الرواتب",
                 pageIcon: "fas fa-money-bill-wave",
                 pageSubtitle: "جدول رواتب الموظفين",
+                permission: ["super"]
+            }
+        },
+        // Delivery Module Routes
+        {
+            path: prefix + "delivery/order-statuses",
+            name: "delivery.order-statuses",
+            component: OrderStatusManager,
+            meta: {
+                title: "Order Status Management",
+                pageTitle: "حالات الطلب",
+                pageIcon: "fas fa-truck",
+                pageSubtitle: "إدارة حالات طلبات التوصيل",
                 permission: ["super"]
             }
         }

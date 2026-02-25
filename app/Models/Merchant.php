@@ -25,6 +25,8 @@ class Merchant extends Model
         'can_access_pos',
         'can_access_contracts',
         'can_access_manufacturing',
+        'can_access_delivery',
+        'can_access_installment',
         'subscription_plan_id',
         'currency',
     ];
@@ -36,6 +38,8 @@ class Merchant extends Model
         'can_access_pos' => 'boolean',
         'can_access_contracts' => 'boolean',
         'can_access_manufacturing' => 'boolean',
+        'can_access_delivery' => 'boolean',
+        'can_access_installment' => 'boolean',
     ];
 
     public function subscriptionPlan()
@@ -83,5 +87,21 @@ class Merchant extends Model
     public function canAccessManufacturing(): bool
     {
         return $this->can_access_manufacturing ?? false;
+    }
+
+    /**
+     * Check if merchant can access Delivery module.
+     */
+    public function canAccessDelivery(): bool
+    {
+        return $this->can_access_delivery ?? false;
+    }
+
+    /**
+     * Check if merchant can access Installment system.
+     */
+    public function canAccessInstallment(): bool
+    {
+        return $this->can_access_installment ?? false;
     }
 }

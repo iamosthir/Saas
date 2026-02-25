@@ -310,6 +310,40 @@
         </div>
       </div>
 
+      <!-- Delivery Section -->
+      <div class="section-header" v-if="canAccessDelivery">
+        <h2><i class="fas fa-truck"></i> التوصيل</h2>
+      </div>
+      <div class="row g-4 mb-5" v-if="canAccessDelivery">
+        <!-- قائمة الفواتير مع حالة الطلب -->
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <router-link :to="{name: 'invoice-list'}" class="dashboard-card gradient-blue">
+            <div class="card-icon">
+              <i class="fas fa-clipboard-list"></i>
+            </div>
+            <h3 class="card-title">قائمة الطلبات</h3>
+            <p class="card-description">متابعة الطلبات وحالات التوصيل</p>
+            <div class="card-arrow">
+              <i class="fas fa-arrow-left"></i>
+            </div>
+          </router-link>
+        </div>
+
+        <!-- إدارة حالات الطلب -->
+        <div class="col-lg-3 col-md-4 col-sm-6" v-if="role == 'super'">
+          <router-link :to="{name: 'delivery.order-statuses'}" class="dashboard-card gradient-teal">
+            <div class="card-icon">
+              <i class="fas fa-truck"></i>
+            </div>
+            <h3 class="card-title">حالات الطلب</h3>
+            <p class="card-description">إدارة حالات التوصيل المخصصة</p>
+            <div class="card-arrow">
+              <i class="fas fa-arrow-left"></i>
+            </div>
+          </router-link>
+        </div>
+      </div>
+
       <!-- Employees Section -->
       <div class="section-header" v-if="role == 'super'">
         <h2><i class="fas fa-user-tie"></i> الموظفين والرواتب</h2>
@@ -645,7 +679,8 @@ export default {
             permissions: {
                 can_access_pos: false,
                 can_access_contracts: false,
-                can_access_manufacturing: false
+                can_access_manufacturing: false,
+                can_access_delivery: false,
             },
             loading: true,
             settingData: {
@@ -666,6 +701,9 @@ export default {
         },
         canAccessManufacturing() {
             return this.permissions.can_access_manufacturing;
+        },
+        canAccessDelivery() {
+            return this.permissions.can_access_delivery;
         }
     },
     mounted() {

@@ -3,13 +3,14 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
     public function up(): void
     {
         Schema::create('invoices', function (Blueprint $table) {
-            $table->unsignedBigInteger('id');
+            $table->id();
             $table->unsignedBigInteger('merchant_id');
             $table->unsignedBigInteger('invoice_template_id')->nullable();
             $table->unsignedBigInteger('customer_id')->nullable();
@@ -22,7 +23,17 @@ return new class extends Migration
             $table->enum('payment_type', ['full_payment', 'installment'])->default('full_payment');
             $table->boolean('has_deposit')->default(0);
             $table->decimal('deposit_amount', 15, 2)->default(0.00);
-            $table->string('installment_months')  // TODO: raw type int(11;
+            $table->integer('installment_months')->nullable();
+            $table->decimal('paid_amount', 15, 2)->default(0.00);
+            $table->decimal('remaining_amount', 15, 2)->default(0.00);
+            $table->enum('payment_status', ['unpaid', 'partial', 'paid'])->default('unpaid');
+            $table->boolean('is_fully_paid')->default(0);
+            $table->text('notes')->nullable();
+            $table->longText('custom_fields')->nullable()->default(DB::raw("NULL CHECK (json_valid(`custom_fields`))"));
+            $table->unsignedBigInteger('created_by');
+            $table->boolean('enable_signature')->default(0);
+            $table->timestamps();
+            $table->softDeletes();
         });
     }
 

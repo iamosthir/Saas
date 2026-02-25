@@ -196,7 +196,7 @@
                                               دفع كامل
                                           </label>
                                       </div>
-                                      <div class="form-check">
+                                      <div class="form-check" v-if="installmentEnabled">
                                           <input class="form-check-input" type="radio" name="paymentType"
                                               id="installment" value="installment" v-model="form.payment_type">
                                           <label class="form-check-label" for="installment">
@@ -461,6 +461,21 @@
                               </div>
                           </div>
 
+                          <!-- حالة الطلب (وحدة التوصيل) -->
+                          <div class="col-md-6 mb-4" v-if="deliveryEnabled">
+                              <div class="modern-form-group">
+                                  <label class="modern-form-label">
+                                      <i class="fas fa-truck me-1 text-info"></i> حالة الطلب
+                                  </label>
+                                  <select class="modern-select" v-model="form.order_status_id">
+                                      <option :value="null">— بدون حالة —</option>
+                                      <option v-for="s in orderStatuses" :key="s.id" :value="s.id">
+                                          {{ s.name }}
+                                      </option>
+                                  </select>
+                              </div>
+                          </div>
+
                           <!-- زر الإرسال -->
                           <div class="col-md-12 mb-4 text-center">
                               <Button :form="form" class="btn btn-success btn-lg">
@@ -503,6 +518,7 @@ export default {
                 discount_amount: 0,
                 extra_charge: 0,
                 notes: "",
+                order_status_id: null,
                 invoice_template_id: null,
                 custom_fields: {},
                 items: [],
@@ -533,6 +549,11 @@ export default {
             },
 
             invoiceItems: [],
+
+            // Permissions
+            installmentEnabled: false,
+            deliveryEnabled: false,
+            orderStatuses: [],
         }
     },
 
@@ -864,12 +885,34 @@ export default {
             const num = parseFloat(value);
             if (isNaN(num)) return '0';
             return num % 1 === 0 ? num.toString() : num.toFixed(2).replace(/\.00$/, '');
-        }
+        },
+
+        async loadDeliveryData() {
+            try {
+                const permResp = await axios.get('/dashboard/api/get-merchant-permissions');
+                this.installmentEnabled = !!permResp.data.can_access_installment;
+                this.deliveryEnabled = permResp.data.can_access_delivery || false;
+
+                if (this.deliveryEnabled) {
+                    const statusResp = await axios.get('/dashboard/api/delivery/order-statuses/active');
+                    this.orderStatuses = statusResp.data.statuses || [];
+
+                    // Pre-select default status
+                    const defaultStatus = this.orderStatuses.find(s => s.is_default);
+                    if (defaultStatus) {
+                        this.form.order_status_id = defaultStatus.id;
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to load delivery data:', err);
+            }
+        },
     },
 
     async mounted() {
         this.loadProductList();
         this.loadTemplates();
+        this.loadDeliveryData();
 
         // Restore signature preference from localStorage
         const savedSignature = localStorage.getItem('invoice_enable_signature');

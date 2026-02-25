@@ -9,10 +9,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('site_settings', function (Blueprint $table) {
-            $table->unsignedBigInteger('id');
+            $table->id();
             $table->unsignedBigInteger('merchant_id')->nullable();
             $table->integer('product_stock');
-            $table->string('phone')  // TODO: raw type varchar(255;
+            $table->string('phone', 255)->nullable();
+            $table->string('token', 2000)->nullable();
+            $table->timestamps();
         });
     }
 

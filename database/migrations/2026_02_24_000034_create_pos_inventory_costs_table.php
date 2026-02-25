@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pos_inventory_costs', function (Blueprint $table) {
-            $table->unsignedBigInteger('id');
+            $table->id();
             $table->unsignedBigInteger('merchant_id');
             $table->unsignedBigInteger('product_id');
             $table->unsignedBigInteger('product_variation_id')->nullable();
@@ -17,7 +17,9 @@ return new class extends Migration
             $table->integer('quantity');
             $table->integer('original_quantity');
             $table->date('received_date');
-            $table->string('reference_type')  // TODO: raw type varchar(255;
+            $table->string('reference_type', 255)->nullable();
+            $table->unsignedBigInteger('reference_id')->nullable();
+            $table->timestamps();
         });
     }
 

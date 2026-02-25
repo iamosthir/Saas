@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('installment_schedules', function (Blueprint $table) {
-            $table->unsignedBigInteger('id');
+            $table->id();
             $table->unsignedBigInteger('invoice_id');
             $table->integer('installment_number');
             $table->date('due_date');

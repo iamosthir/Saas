@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('product_recipes', function (Blueprint $table) {
-            $table->unsignedBigInteger('id');
+            $table->id();
             $table->unsignedBigInteger('merchant_id');
             $table->unsignedBigInteger('product_id');
             $table->unsignedBigInteger('product_variation_id')->nullable();
@@ -18,7 +18,9 @@ return new class extends Migration
             $table->decimal('labor_cost', 15, 2)->default(0.00);
             $table->decimal('overhead_cost', 15, 2)->default(0.00);
             $table->text('instructions')->nullable();
-            $table->string('prep_time_minutes')  // TODO: raw type int(11;
+            $table->integer('prep_time_minutes')->nullable();
+            $table->boolean('is_active')->default(1);
+            $table->timestamps();
         });
     }
 

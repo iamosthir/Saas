@@ -9,9 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('cities', function (Blueprint $table) {
-            $table->unsignedBigInteger('id');
+            $table->id();
             $table->string('name', 255);
-            $table->string('merchant_id')  // TODO: raw type bigint(20;
+            $table->bigInteger('merchant_id')->nullable();
+            $table->timestamps();
         });
     }
 

@@ -2603,7 +2603,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       suppliers: [],
       selectedAttributes: [],
       selectedSupplier: null,
-      totalStock: 0
+      totalStock: 0,
+      installmentEnabled: false
     };
   },
   computed: {
@@ -2852,6 +2853,32 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         }, _callee4, null, [[21, 28]]);
       }))();
     },
+    loadPermissions: function loadPermissions() {
+      var _this6 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+        var resp;
+        return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+          while (1) switch (_context5.prev = _context5.next) {
+            case 0:
+              _context5.prev = 0;
+              _context5.next = 3;
+              return axios.get('/dashboard/api/get-merchant-permissions');
+            case 3:
+              resp = _context5.sent;
+              _this6.installmentEnabled = !!resp.data.can_access_installment;
+              _context5.next = 10;
+              break;
+            case 7:
+              _context5.prev = 7;
+              _context5.t0 = _context5["catch"](0);
+              console.error('Failed to load permissions:', _context5.t0);
+            case 10:
+            case "end":
+              return _context5.stop();
+          }
+        }, _callee5, null, [[0, 7]]);
+      }))();
+    },
     resetForm: function resetForm() {
       this.form.reset();
       this.form.clear();
@@ -2869,6 +2896,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     this.fetchCategories();
     this.fetchAttributes();
     this.loadSuppliers();
+    this.loadPermissions();
   }
 });
 
@@ -3245,6 +3273,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         discount_amount: 0,
         extra_charge: 0,
         notes: "",
+        order_status_id: null,
         invoice_template_id: null,
         custom_fields: {},
         items: [],
@@ -3269,7 +3298,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         custom_price: 0,
         custom_fields: {}
       },
-      invoiceItems: []
+      invoiceItems: [],
+      // Permissions
+      installmentEnabled: false,
+      deliveryEnabled: false,
+      orderStatuses: []
     };
   },
   computed: {
@@ -3678,65 +3711,111 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var num = parseFloat(value);
       if (isNaN(num)) return '0';
       return num % 1 === 0 ? num.toString() : num.toFixed(2).replace(/\.00$/, '');
+    },
+    loadDeliveryData: function loadDeliveryData() {
+      var _this10 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
+        var permResp, statusResp, defaultStatus;
+        return _regeneratorRuntime().wrap(function _callee7$(_context7) {
+          while (1) switch (_context7.prev = _context7.next) {
+            case 0:
+              _context7.prev = 0;
+              _context7.next = 3;
+              return axios.get('/dashboard/api/get-merchant-permissions');
+            case 3:
+              permResp = _context7.sent;
+              _this10.installmentEnabled = !!permResp.data.can_access_installment;
+              _this10.deliveryEnabled = permResp.data.can_access_delivery || false;
+              if (!_this10.deliveryEnabled) {
+                _context7.next = 13;
+                break;
+              }
+              _context7.next = 9;
+              return axios.get('/dashboard/api/delivery/order-statuses/active');
+            case 9:
+              statusResp = _context7.sent;
+              _this10.orderStatuses = statusResp.data.statuses || [];
+
+              // Pre-select default status
+              defaultStatus = _this10.orderStatuses.find(function (s) {
+                return s.is_default;
+              });
+              if (defaultStatus) {
+                _this10.form.order_status_id = defaultStatus.id;
+              }
+            case 13:
+              _context7.next = 18;
+              break;
+            case 15:
+              _context7.prev = 15;
+              _context7.t0 = _context7["catch"](0);
+              console.error('Failed to load delivery data:', _context7.t0);
+            case 18:
+            case "end":
+              return _context7.stop();
+          }
+        }, _callee7, null, [[0, 15]]);
+      }))();
     }
   },
   mounted: function mounted() {
-    var _this10 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
+    var _this11 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
       var savedSignature, customerId, response, customer;
-      return _regeneratorRuntime().wrap(function _callee7$(_context7) {
-        while (1) switch (_context7.prev = _context7.next) {
+      return _regeneratorRuntime().wrap(function _callee8$(_context8) {
+        while (1) switch (_context8.prev = _context8.next) {
           case 0:
-            _this10.loadProductList();
-            _this10.loadTemplates();
+            _this11.loadProductList();
+            _this11.loadTemplates();
+            _this11.loadDeliveryData();
 
             // Restore signature preference from localStorage
             savedSignature = localStorage.getItem('invoice_enable_signature');
             if (savedSignature !== null) {
-              _this10.form.enable_signature = parseInt(savedSignature);
+              _this11.form.enable_signature = parseInt(savedSignature);
             }
 
             // Check if customer ID is passed from Quick Invoice
-            customerId = _this10.$route.query.customerId;
+            customerId = _this11.$route.query.customerId;
             if (!customerId) {
-              _context7.next = 17;
+              _context8.next = 18;
               break;
             }
-            _context7.prev = 6;
-            _context7.next = 9;
+            _context8.prev = 7;
+            _context8.next = 10;
             return axios.get('/dashboard/api/customers', {
               params: {
                 search: ''
               }
             });
-          case 9:
-            response = _context7.sent;
+          case 10:
+            response = _context8.sent;
             customer = response.data.find(function (c) {
               return c.id == customerId;
             });
             if (customer) {
-              _this10.selectedCustomer = customer;
-              _this10.useExistingCustomer = true;
-              _this10.showCustomerForm = true;
+              _this11.selectedCustomer = customer;
+              _this11.useExistingCustomer = true;
+              _this11.showCustomerForm = true;
 
               // Pre-fill customer form
-              _this10.form.customer_name = customer.name;
-              _this10.form.customer_phone1 = customer.phone1 || customer.phone;
-              _this10.form.customer_phone2 = customer.phone2;
-              _this10.form.customer_state = customer.state;
-              _this10.form.customer_city = customer.city;
+              _this11.form.customer_name = customer.name;
+              _this11.form.customer_phone1 = customer.phone1 || customer.phone;
+              _this11.form.customer_phone2 = customer.phone2;
+              _this11.form.customer_state = customer.state;
+              _this11.form.customer_city = customer.city;
             }
-            _context7.next = 17;
+            _context8.next = 18;
             break;
-          case 14:
-            _context7.prev = 14;
-            _context7.t0 = _context7["catch"](6);
-            console.error('Error loading pre-selected customer:', _context7.t0);
-          case 17:
+          case 15:
+            _context8.prev = 15;
+            _context8.t0 = _context8["catch"](7);
+            console.error('Error loading pre-selected customer:', _context8.t0);
+          case 18:
           case "end":
-            return _context7.stop();
+            return _context8.stop();
         }
-      }, _callee7, null, [[6, 14]]);
+      }, _callee8, null, [[7, 15]]);
     }))();
   }
 });
@@ -4900,7 +4979,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       permissions: {
         can_access_pos: false,
         can_access_contracts: false,
-        can_access_manufacturing: false
+        can_access_manufacturing: false,
+        can_access_delivery: false
       },
       loading: true,
       settingData: {
@@ -4921,6 +5001,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
     canAccessManufacturing: function canAccessManufacturing() {
       return this.permissions.can_access_manufacturing;
+    },
+    canAccessDelivery: function canAccessDelivery() {
+      return this.permissions.can_access_delivery;
     }
   },
   mounted: function mounted() {
@@ -6242,11 +6325,16 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       moment: moment,
       selectedInstallment: {},
       paymentAmount: 0,
-      activeTab: 'installments'
+      activeTab: 'installments',
+      deliveryEnabled: false,
+      orderStatuses: [],
+      selectedOrderStatusId: null,
+      updatingStatus: false
     };
   },
   mounted: function mounted() {
     this.getInvoiceDetails();
+    this.loadDeliveryData();
   },
   watch: {
     activeTab: function activeTab(newTab) {
@@ -6274,7 +6362,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     getInvoiceDetails: function getInvoiceDetails() {
       var _this = this;
       return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
-        var invoiceId, response;
+        var invoiceId, _this$invoice$order_s, response;
         return _regeneratorRuntime().wrap(function _callee$(_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
@@ -6287,20 +6375,21 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               response = _context.sent;
               _this.invoice = response.data.invoice;
               _this.installments = response.data.installments || [];
+              _this.selectedOrderStatusId = (_this$invoice$order_s = _this.invoice.order_status_id) !== null && _this$invoice$order_s !== void 0 ? _this$invoice$order_s : null;
               _this.isLoading = false;
-              _context.next = 16;
+              _context.next = 17;
               break;
-            case 11:
-              _context.prev = 11;
+            case 12:
+              _context.prev = 12;
               _context.t0 = _context["catch"](2);
               _this.isLoading = false;
               console.error(_context.t0);
               swal.fire("خطأ", "فشل في تحميل بيانات الفاتورة", "error");
-            case 16:
+            case 17:
             case "end":
               return _context.stop();
           }
-        }, _callee, null, [[2, 11]]);
+        }, _callee, null, [[2, 12]]);
       }))();
     },
     getInstallmentClass: function getInstallmentClass(installment) {
@@ -6456,6 +6545,79 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       };
       return labels[actionType] || actionType;
     },
+    loadDeliveryData: function loadDeliveryData() {
+      var _this4 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+        var permResp, statusResp;
+        return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+          while (1) switch (_context4.prev = _context4.next) {
+            case 0:
+              _context4.prev = 0;
+              _context4.next = 3;
+              return axios__WEBPACK_IMPORTED_MODULE_0___default().get('/dashboard/api/get-merchant-permissions');
+            case 3:
+              permResp = _context4.sent;
+              _this4.deliveryEnabled = !!permResp.data.can_access_delivery;
+              if (_this4.deliveryEnabled) {
+                _context4.next = 7;
+                break;
+              }
+              return _context4.abrupt("return");
+            case 7:
+              _context4.next = 9;
+              return axios__WEBPACK_IMPORTED_MODULE_0___default().get('/dashboard/api/delivery/order-statuses/active');
+            case 9:
+              statusResp = _context4.sent;
+              _this4.orderStatuses = statusResp.data.statuses || [];
+              _context4.next = 16;
+              break;
+            case 13:
+              _context4.prev = 13;
+              _context4.t0 = _context4["catch"](0);
+              console.error('Failed to load delivery data', _context4.t0);
+            case 16:
+            case "end":
+              return _context4.stop();
+          }
+        }, _callee4, null, [[0, 13]]);
+      }))();
+    },
+    updateOrderStatus: function updateOrderStatus() {
+      var _this5 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+        var resp, _err$response, _err$response$data, _err$response2, _err$response2$data, msg;
+        return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+          while (1) switch (_context5.prev = _context5.next) {
+            case 0:
+              _this5.updatingStatus = true;
+              _context5.prev = 1;
+              _context5.next = 4;
+              return axios__WEBPACK_IMPORTED_MODULE_0___default().post("/dashboard/api/invoices/".concat(_this5.invoice.id, "/order-status"), {
+                order_status_id: _this5.selectedOrderStatusId
+              });
+            case 4:
+              resp = _context5.sent;
+              _this5.invoice.order_status = resp.data.order_status;
+              _this5.invoice.order_status_id = _this5.selectedOrderStatusId;
+              toastr.success(resp.data.msg || 'تم تحديث حالة الطلب');
+              _context5.next = 14;
+              break;
+            case 10:
+              _context5.prev = 10;
+              _context5.t0 = _context5["catch"](1);
+              msg = ((_err$response = _context5.t0.response) === null || _err$response === void 0 ? void 0 : (_err$response$data = _err$response.data) === null || _err$response$data === void 0 ? void 0 : _err$response$data.message) || ((_err$response2 = _context5.t0.response) === null || _err$response2 === void 0 ? void 0 : (_err$response2$data = _err$response2.data) === null || _err$response2$data === void 0 ? void 0 : _err$response2$data.msg) || 'حدث خطأ';
+              swal.fire('خطأ', msg, 'error');
+            case 14:
+              _context5.prev = 14;
+              _this5.updatingStatus = false;
+              return _context5.finish(14);
+            case 17:
+            case "end":
+              return _context5.stop();
+          }
+        }, _callee5, null, [[1, 10, 14, 17]]);
+      }))();
+    },
     printInvoice: function printInvoice() {
       window.open("/dashboard/print-new-invoice/".concat(this.invoice.id), '_blank');
     }
@@ -6504,7 +6666,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         price: "",
         page_name: "",
         state: "",
-        productId: ""
+        productId: "",
+        order_status_id: ""
       },
       moment: moment,
       orderSelect: [],
@@ -6520,7 +6683,10 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       products: [],
       selectedProduct: "",
       selectedOrder: {},
-      selectedInvoice: {}
+      selectedInvoice: {},
+      // Delivery module
+      deliveryEnabled: false,
+      orderStatuses: []
     };
   },
   methods: {
@@ -6667,12 +6833,61 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     viewDetails: function viewDetails(order) {
       this.selectedOrder = order;
       $('#invoiceDetailsModal').modal('show');
+    },
+    loadDeliveryData: function loadDeliveryData() {
+      var _this5 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+        var permResp, statusResp;
+        return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+          while (1) switch (_context4.prev = _context4.next) {
+            case 0:
+              _context4.prev = 0;
+              _context4.next = 3;
+              return axios__WEBPACK_IMPORTED_MODULE_0___default().get('/dashboard/api/get-merchant-permissions');
+            case 3:
+              permResp = _context4.sent;
+              _this5.deliveryEnabled = permResp.data.can_access_delivery || false;
+              if (!_this5.deliveryEnabled) {
+                _context4.next = 10;
+                break;
+              }
+              _context4.next = 8;
+              return axios__WEBPACK_IMPORTED_MODULE_0___default().get('/dashboard/api/delivery/order-statuses/active');
+            case 8:
+              statusResp = _context4.sent;
+              _this5.orderStatuses = statusResp.data.statuses || [];
+            case 10:
+              _context4.next = 15;
+              break;
+            case 12:
+              _context4.prev = 12;
+              _context4.t0 = _context4["catch"](0);
+              console.error('Failed to load delivery data:', _context4.t0);
+            case 15:
+            case "end":
+              return _context4.stop();
+          }
+        }, _callee4, null, [[0, 12]]);
+      }))();
+    },
+    orderStatusName: function orderStatusName(statusId) {
+      var s = this.orderStatuses.find(function (x) {
+        return x.id === statusId;
+      });
+      return s ? s.name : null;
+    },
+    orderStatusColor: function orderStatusColor(statusId) {
+      var s = this.orderStatuses.find(function (x) {
+        return x.id === statusId;
+      });
+      return s ? s.color : '#6c757d';
     }
   },
   mounted: function mounted() {
     this.getOrderList();
     this.getPageList();
     this.getProductList();
+    this.loadDeliveryData();
   },
   watch: {
     'orderSelect': function orderSelect(newVal) {
@@ -6689,16 +6904,16 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       this.form.page_name = newPage.name;
     },
     'selectedProduct': function () {
-      var _selectedProduct = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4(newVal) {
-        return _regeneratorRuntime().wrap(function _callee4$(_context4) {
-          while (1) switch (_context4.prev = _context4.next) {
+      var _selectedProduct = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5(newVal) {
+        return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+          while (1) switch (_context5.prev = _context5.next) {
             case 0:
               this.form.productId = newVal.id;
             case 1:
             case "end":
-              return _context4.stop();
+              return _context5.stop();
           }
-        }, _callee4, this);
+        }, _callee5, this);
       }));
       function selectedProduct(_x) {
         return _selectedProduct.apply(this, arguments);
@@ -12974,9 +13189,11 @@ var render = function render() {
     }
   }), _vm._v(" "), _c("small", {
     staticClass: "text-muted"
-  }, [_vm._v("سعر البيع للعملاء")])], 1), _vm._v(" "), _c("div", {
+  }, [_vm._v("سعر البيع للعملاء")])], 1), _vm._v(" "), _vm.installmentEnabled ? _c("div", {
     staticClass: "col-md-4 mb-3"
-  }, [_vm._m(6), _vm._v(" "), _c("input", {
+  }, [_c("label", {
+    staticClass: "form-label"
+  }, [_vm._v("سعر التقسيط")]), _vm._v(" "), _c("input", {
     directives: [{
       name: "model",
       rawName: "v-model",
@@ -12991,8 +13208,7 @@ var render = function render() {
       type: "number",
       placeholder: "0.00",
       step: "0.01",
-      min: "0",
-      required: ""
+      min: "0"
     },
     domProps: {
       value: _vm.form.installment_price
@@ -13010,7 +13226,7 @@ var render = function render() {
     }
   }), _vm._v(" "), _c("small", {
     staticClass: "text-muted"
-  }, [_vm._v("عادة أعلى من سعر الكاش")])], 1), _vm._v(" "), _c("div", {
+  }, [_vm._v("عادة أعلى من سعر الكاش")])], 1) : _vm._e(), _vm._v(" "), _c("div", {
     staticClass: "col-md-4 mb-3"
   }, [_c("label", {
     staticClass: "form-label"
@@ -13107,7 +13323,7 @@ var render = function render() {
     staticClass: "text-muted"
   }, [_vm._v("للمنتجات بدون متغيرات")])])])]), _vm._v(" "), _c("div", {
     staticClass: "section-container mb-4"
-  }, [_vm._m(7), _vm._v(" "), _c("div", {
+  }, [_vm._m(6), _vm._v(" "), _c("div", {
     staticClass: "mb-3"
   }, [_c("label", {
     staticClass: "form-label"
@@ -13181,11 +13397,11 @@ var render = function render() {
     staticStyle: {
       "min-width": "120px"
     }
-  }, [_vm._v("سعر البيع")]), _vm._v(" "), _c("th", {
+  }, [_vm._v("سعر البيع")]), _vm._v(" "), _vm.installmentEnabled ? _c("th", {
     staticStyle: {
       "min-width": "120px"
     }
-  }, [_vm._v("سعر التقسيط")]), _vm._v(" "), _c("th", {
+  }, [_vm._v("سعر التقسيط")]) : _vm._e(), _vm._v(" "), _c("th", {
     staticStyle: {
       "min-width": "100px"
     }
@@ -13273,7 +13489,7 @@ var render = function render() {
           _vm.$set(variation, "sell_price", $event.target.value);
         }
       }
-    })]), _vm._v(" "), _c("td", [_c("input", {
+    })]), _vm._v(" "), _vm.installmentEnabled ? _c("td", [_c("input", {
       directives: [{
         name: "model",
         rawName: "v-model",
@@ -13296,7 +13512,7 @@ var render = function render() {
           _vm.$set(variation, "installment_price", $event.target.value);
         }
       }
-    })]), _vm._v(" "), _c("td", [_c("input", {
+    })]) : _vm._e(), _vm._v(" "), _c("td", [_c("input", {
       directives: [{
         name: "model",
         rawName: "v-model",
@@ -13361,7 +13577,7 @@ var render = function render() {
   }, [_c("tr", [_c("td", {
     staticClass: "text-end fw-bold",
     attrs: {
-      colspan: _vm.selectedAttributes.length + 3
+      colspan: _vm.selectedAttributes.length + (_vm.installmentEnabled ? 3 : 2)
     }
   }, [_vm._v("إجمالي المخزون:")]), _vm._v(" "), _c("td", {
     staticClass: "fw-bold text-primary"
@@ -13440,14 +13656,6 @@ var staticRenderFns = [function () {
   return _c("label", {
     staticClass: "form-label"
   }, [_vm._v("سعر البيع "), _c("span", {
-    staticClass: "text-danger"
-  }, [_vm._v("*")])]);
-}, function () {
-  var _vm = this,
-    _c = _vm._self._c;
-  return _c("label", {
-    staticClass: "form-label"
-  }, [_vm._v("سعر التقسيط "), _c("span", {
     staticClass: "text-danger"
   }, [_vm._v("*")])]);
 }, function () {
@@ -14439,7 +14647,7 @@ var render = function render() {
     attrs: {
       "for": "fullPayment"
     }
-  }, [_vm._v("\n                                          دفع كامل\n                                      ")])]), _vm._v(" "), _c("div", {
+  }, [_vm._v("\n                                          دفع كامل\n                                      ")])]), _vm._v(" "), _vm.installmentEnabled ? _c("div", {
     staticClass: "form-check"
   }, [_c("input", {
     directives: [{
@@ -14468,7 +14676,7 @@ var render = function render() {
     attrs: {
       "for": "installment"
     }
-  }, [_vm._v("\n                                          أقساط\n                                      ")])])])])]), _vm._v(" "), _c("div", {
+  }, [_vm._v("\n                                          أقساط\n                                      ")])]) : _vm._e()])])]), _vm._v(" "), _c("div", {
     staticClass: "col-md-4 mb-4"
   }, [_c("div", {
     staticClass: "modern-form-group"
@@ -14996,7 +15204,41 @@ var render = function render() {
         _vm.$set(_vm.form, "notes", $event.target.value);
       }
     }
-  })])]), _vm._v(" "), _c("div", {
+  })])]), _vm._v(" "), _vm.deliveryEnabled ? _c("div", {
+    staticClass: "col-md-6 mb-4"
+  }, [_c("div", {
+    staticClass: "modern-form-group"
+  }, [_vm._m(8), _vm._v(" "), _c("select", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.form.order_status_id,
+      expression: "form.order_status_id"
+    }],
+    staticClass: "modern-select",
+    on: {
+      change: function change($event) {
+        var $$selectedVal = Array.prototype.filter.call($event.target.options, function (o) {
+          return o.selected;
+        }).map(function (o) {
+          var val = "_value" in o ? o._value : o.value;
+          return val;
+        });
+        _vm.$set(_vm.form, "order_status_id", $event.target.multiple ? $$selectedVal : $$selectedVal[0]);
+      }
+    }
+  }, [_c("option", {
+    domProps: {
+      value: null
+    }
+  }, [_vm._v("— بدون حالة —")]), _vm._v(" "), _vm._l(_vm.orderStatuses, function (s) {
+    return _c("option", {
+      key: s.id,
+      domProps: {
+        value: s.id
+      }
+    }, [_vm._v("\n                                      " + _vm._s(s.name) + "\n                                  ")]);
+  })], 2)])]) : _vm._e(), _vm._v(" "), _c("div", {
     staticClass: "col-md-12 mb-4 text-center"
   }, [_c("Button", {
     staticClass: "btn btn-success btn-lg",
@@ -15081,6 +15323,14 @@ var staticRenderFns = [function () {
       color: "#2d3748"
     }
   }, [_vm._v("التسعير والدفع")])]);
+}, function () {
+  var _vm = this,
+    _c = _vm._self._c;
+  return _c("label", {
+    staticClass: "modern-form-label"
+  }, [_c("i", {
+    staticClass: "fas fa-truck me-1 text-info"
+  }), _vm._v(" حالة الطلب\n                              ")]);
 }];
 render._withStripped = true;
 
@@ -17245,9 +17495,55 @@ var render = function render() {
     staticClass: "card-arrow"
   }, [_c("i", {
     staticClass: "fas fa-arrow-left"
-  })])])], 1)]) : _vm._e(), _vm._v(" "), _vm.role == "super" ? _c("div", {
+  })])])], 1)]) : _vm._e(), _vm._v(" "), _vm.canAccessDelivery ? _c("div", {
     staticClass: "section-header"
-  }, [_vm._m(6)]) : _vm._e(), _vm._v(" "), _vm.role == "super" ? _c("div", {
+  }, [_vm._m(6)]) : _vm._e(), _vm._v(" "), _vm.canAccessDelivery ? _c("div", {
+    staticClass: "row g-4 mb-5"
+  }, [_c("div", {
+    staticClass: "col-lg-3 col-md-4 col-sm-6"
+  }, [_c("router-link", {
+    staticClass: "dashboard-card gradient-blue",
+    attrs: {
+      to: {
+        name: "invoice-list"
+      }
+    }
+  }, [_c("div", {
+    staticClass: "card-icon"
+  }, [_c("i", {
+    staticClass: "fas fa-clipboard-list"
+  })]), _vm._v(" "), _c("h3", {
+    staticClass: "card-title"
+  }, [_vm._v("قائمة الطلبات")]), _vm._v(" "), _c("p", {
+    staticClass: "card-description"
+  }, [_vm._v("متابعة الطلبات وحالات التوصيل")]), _vm._v(" "), _c("div", {
+    staticClass: "card-arrow"
+  }, [_c("i", {
+    staticClass: "fas fa-arrow-left"
+  })])])], 1), _vm._v(" "), _vm.role == "super" ? _c("div", {
+    staticClass: "col-lg-3 col-md-4 col-sm-6"
+  }, [_c("router-link", {
+    staticClass: "dashboard-card gradient-teal",
+    attrs: {
+      to: {
+        name: "delivery.order-statuses"
+      }
+    }
+  }, [_c("div", {
+    staticClass: "card-icon"
+  }, [_c("i", {
+    staticClass: "fas fa-truck"
+  })]), _vm._v(" "), _c("h3", {
+    staticClass: "card-title"
+  }, [_vm._v("حالات الطلب")]), _vm._v(" "), _c("p", {
+    staticClass: "card-description"
+  }, [_vm._v("إدارة حالات التوصيل المخصصة")]), _vm._v(" "), _c("div", {
+    staticClass: "card-arrow"
+  }, [_c("i", {
+    staticClass: "fas fa-arrow-left"
+  })])])], 1) : _vm._e()]) : _vm._e(), _vm._v(" "), _vm.role == "super" ? _c("div", {
+    staticClass: "section-header"
+  }, [_vm._m(7)]) : _vm._e(), _vm._v(" "), _vm.role == "super" ? _c("div", {
     staticClass: "row g-4 mb-5"
   }, [_c("div", {
     staticClass: "col-lg-3 col-md-4 col-sm-6"
@@ -17291,7 +17587,7 @@ var render = function render() {
     staticClass: "card-arrow"
   }, [_c("i", {
     staticClass: "fas fa-arrow-left"
-  })])])], 1)]) : _vm._e(), _vm._v(" "), _vm._m(7), _vm._v(" "), _c("div", {
+  })])])], 1)]) : _vm._e(), _vm._v(" "), _vm._m(8), _vm._v(" "), _c("div", {
     staticClass: "row g-4 mb-5"
   }, [_c("div", {
     staticClass: "col-lg-3 col-md-4 col-sm-6"
@@ -17377,7 +17673,7 @@ var render = function render() {
     staticClass: "card-arrow"
   }, [_c("i", {
     staticClass: "fas fa-arrow-left"
-  })])])], 1) : _vm._e()]), _vm._v(" "), _vm._m(8), _vm._v(" "), _c("div", {
+  })])])], 1) : _vm._e()]), _vm._v(" "), _vm._m(9), _vm._v(" "), _c("div", {
     staticClass: "row g-4 mb-5"
   }, [_c("div", {
     staticClass: "col-lg-3 col-md-4 col-sm-6"
@@ -17547,7 +17843,7 @@ var render = function render() {
     staticClass: "card-arrow"
   }, [_c("i", {
     staticClass: "fas fa-arrow-left"
-  })])])], 1)]), _vm._v(" "), _vm._m(9), _vm._v(" "), _c("div", {
+  })])])], 1)]), _vm._v(" "), _vm._m(10), _vm._v(" "), _c("div", {
     staticClass: "row g-4 mb-5"
   }, [_c("div", {
     staticClass: "col-lg-3 col-md-6"
@@ -17635,7 +17931,7 @@ var render = function render() {
     staticClass: "fas fa-arrow-left"
   })])])], 1)]), _vm._v(" "), _vm.role == "super" ? _c("div", {
     staticClass: "section-header"
-  }, [_vm._m(10)]) : _vm._e(), _vm._v(" "), _vm.role == "super" ? _c("div", {
+  }, [_vm._m(11)]) : _vm._e(), _vm._v(" "), _vm.role == "super" ? _c("div", {
     staticClass: "row g-4 mb-5"
   }, [_c("div", {
     staticClass: "col-lg-3 col-md-6"
@@ -17748,6 +18044,12 @@ var staticRenderFns = [function () {
   return _c("h2", [_c("i", {
     staticClass: "fas fa-industry"
   }), _vm._v(" التصنيع والإنتاج")]);
+}, function () {
+  var _vm = this,
+    _c = _vm._self._c;
+  return _c("h2", [_c("i", {
+    staticClass: "fas fa-truck"
+  }), _vm._v(" التوصيل")]);
 }, function () {
   var _vm = this,
     _c = _vm._self._c;
@@ -20169,7 +20471,72 @@ var render = function render() {
     staticClass: "badge badge-warning"
   }, [_vm._v("مدفوع جزئياً")]) : _c("span", {
     staticClass: "badge badge-danger"
-  }, [_vm._v("غير مدفوع")])]), _vm._v(" "), _vm.invoice.notes ? _c("p", [_c("strong", [_vm._v("ملاحظات:")]), _vm._v(" " + _vm._s(_vm.invoice.notes))]) : _vm._e()])])])]), _vm._v(" "), _vm.invoice.template && _vm.invoice.custom_fields && Object.keys(_vm.invoice.custom_fields).length > 0 ? _c("div", {
+  }, [_vm._v("غير مدفوع")])]), _vm._v(" "), _vm.invoice.notes ? _c("p", [_c("strong", [_vm._v("ملاحظات:")]), _vm._v(" " + _vm._s(_vm.invoice.notes))]) : _vm._e()])])])]), _vm._v(" "), _vm.deliveryEnabled ? _c("div", {
+    staticClass: "row mb-4"
+  }, [_c("div", {
+    staticClass: "col-md-12"
+  }, [_c("div", {
+    staticClass: "card border border-info"
+  }, [_c("div", {
+    staticClass: "card-body"
+  }, [_vm._m(1), _vm._v(" "), _c("hr"), _vm._v(" "), _c("div", {
+    staticClass: "d-flex align-items-center gap-3 flex-wrap"
+  }, [_c("div", [_c("strong", [_vm._v("الحالة الحالية:")]), _vm._v(" "), _vm.invoice.order_status ? _c("span", {
+    staticClass: "badge ms-2",
+    style: {
+      backgroundColor: _vm.invoice.order_status.color,
+      color: "#fff"
+    }
+  }, [_vm._v("\n                                                " + _vm._s(_vm.invoice.order_status.name) + "\n                                            ")]) : _c("span", {
+    staticClass: "text-muted ms-2"
+  }, [_vm._v("— بدون حالة —")])]), _vm._v(" "), _c("div", {
+    staticClass: "d-flex align-items-center gap-2 ms-auto"
+  }, [_c("select", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.selectedOrderStatusId,
+      expression: "selectedOrderStatusId"
+    }],
+    staticClass: "form-select form-select-sm",
+    staticStyle: {
+      "min-width": "180px"
+    },
+    on: {
+      change: function change($event) {
+        var $$selectedVal = Array.prototype.filter.call($event.target.options, function (o) {
+          return o.selected;
+        }).map(function (o) {
+          var val = "_value" in o ? o._value : o.value;
+          return val;
+        });
+        _vm.selectedOrderStatusId = $event.target.multiple ? $$selectedVal : $$selectedVal[0];
+      }
+    }
+  }, [_c("option", {
+    domProps: {
+      value: null
+    }
+  }, [_vm._v("— بدون حالة —")]), _vm._v(" "), _vm._l(_vm.orderStatuses, function (s) {
+    return _c("option", {
+      key: s.id,
+      domProps: {
+        value: s.id
+      }
+    }, [_vm._v(_vm._s(s.name))]);
+  })], 2), _vm._v(" "), _c("button", {
+    staticClass: "btn btn-sm btn-info text-white",
+    attrs: {
+      disabled: _vm.updatingStatus
+    },
+    on: {
+      click: _vm.updateOrderStatus
+    }
+  }, [_vm.updatingStatus ? _c("span", [_c("i", {
+    staticClass: "fas fa-spinner fa-spin me-1"
+  }), _vm._v("جاري...")]) : _c("span", [_c("i", {
+    staticClass: "fas fa-save me-1"
+  }), _vm._v("حفظ")])])])])])])])]) : _vm._e(), _vm._v(" "), _vm.invoice.template && _vm.invoice.custom_fields && Object.keys(_vm.invoice.custom_fields).length > 0 ? _c("div", {
     staticClass: "row mb-4"
   }, [_c("div", {
     staticClass: "col-md-12"
@@ -20372,11 +20739,11 @@ var render = function render() {
     }]
   }, [_vm.loadingLogs ? _c("div", {
     staticClass: "text-center py-5"
-  }, [_vm._m(1)]) : _vm.activityLogs.length > 0 ? _c("div", {
+  }, [_vm._m(2)]) : _vm.activityLogs.length > 0 ? _c("div", {
     staticClass: "table-responsive"
   }, [_c("table", {
     staticClass: "table table-bordered table-hover"
-  }, [_vm._m(2), _vm._v(" "), _c("tbody", _vm._l(_vm.activityLogs, function (log, index) {
+  }, [_vm._m(3), _vm._v(" "), _c("tbody", _vm._l(_vm.activityLogs, function (log, index) {
     return _c("tr", {
       key: log.id
     }, [_c("td", [_vm._v(_vm._s(index + 1))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm.moment(log.created_at).format("DD MMM YYYY, h:mm a")))]), _vm._v(" "), _c("td", [_c("span", {
@@ -20500,6 +20867,14 @@ var staticRenderFns = [function () {
 }, function () {
   var _vm = this,
     _c = _vm._self._c;
+  return _c("h5", {
+    staticClass: "card-title text-info"
+  }, [_c("i", {
+    staticClass: "fas fa-truck me-2"
+  }), _vm._v(" حالة الطلب\n                                    ")]);
+}, function () {
+  var _vm = this,
+    _c = _vm._self._c;
   return _c("div", {
     staticClass: "spinner-border text-primary",
     attrs: {
@@ -20538,7 +20913,7 @@ var render = function render() {
   return _c("div", {
     staticClass: "row"
   }, [_c("div", {
-    staticClass: "col-md-12"
+    staticClass: "col-md-12 mb-4"
   }, [_c("div", {
     staticClass: "card"
   }, [_c("div", {
@@ -20836,7 +21211,39 @@ var render = function render() {
         _vm.$set(_vm.form, "price", $event.target.value);
       }
     }
-  })]), _vm._v(" "), _vm._m(0)]), _vm._v(" "), _c("div", {
+  })]), _vm._v(" "), _vm.deliveryEnabled && _vm.orderStatuses.length > 0 ? _c("div", {
+    staticClass: "col-md-3 mt-2"
+  }, [_c("select", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.form.order_status_id,
+      expression: "form.order_status_id"
+    }],
+    staticClass: "form-select",
+    on: {
+      change: function change($event) {
+        var $$selectedVal = Array.prototype.filter.call($event.target.options, function (o) {
+          return o.selected;
+        }).map(function (o) {
+          var val = "_value" in o ? o._value : o.value;
+          return val;
+        });
+        _vm.$set(_vm.form, "order_status_id", $event.target.multiple ? $$selectedVal : $$selectedVal[0]);
+      }
+    }
+  }, [_c("option", {
+    attrs: {
+      value: ""
+    }
+  }, [_vm._v("كل حالات الطلب")]), _vm._v(" "), _vm._l(_vm.orderStatuses, function (s) {
+    return _c("option", {
+      key: s.id,
+      domProps: {
+        value: s.id
+      }
+    }, [_vm._v(_vm._s(s.name))]);
+  })], 2)]) : _vm._e(), _vm._v(" "), _vm._m(0)]), _vm._v(" "), _c("div", {
     staticClass: "table-responsive"
   }, [_c("table", {
     staticClass: "table table-hover table-striped",
@@ -20889,7 +21296,7 @@ var render = function render() {
     attrs: {
       "for": "selectAll"
     }
-  }, [_vm._v("#")])])]), _vm._v(" "), _c("th", [_vm._v("رقم الوصل")]), _vm._v(" "), _c("th", [_vm._v("تاريخ")]), _vm._v(" "), _c("th", [_vm._v("اسم زبون")]), _vm._v(" "), _c("th", [_vm._v("المنتجات")]), _vm._v(" "), _c("th", [_vm._v("السعر الكلي")]), _vm._v(" "), _c("th", [_vm._v("نوع الدفع")]), _vm._v(" "), _c("th", [_vm._v("حالة الدفع")]), _vm._v(" "), _c("th", [_vm._v("الحالة")]), _vm._v(" "), _c("th", [_vm._v("الأجراء")])])]), _vm._v(" "), _c("tbody", [_vm.isLoading ? _vm._l(10, function (n) {
+  }, [_vm._v("#")])])]), _vm._v(" "), _c("th", [_vm._v("رقم الوصل")]), _vm._v(" "), _c("th", [_vm._v("تاريخ")]), _vm._v(" "), _c("th", [_vm._v("اسم زبون")]), _vm._v(" "), _c("th", [_vm._v("المنتجات")]), _vm._v(" "), _c("th", [_vm._v("السعر الكلي")]), _vm._v(" "), _c("th", [_vm._v("نوع الدفع")]), _vm._v(" "), _c("th", [_vm._v("حالة الدفع")]), _vm._v(" "), _c("th", [_vm._v("الحالة")]), _vm._v(" "), _vm.deliveryEnabled ? _c("th", [_vm._v("حالة الطلب")]) : _vm._e(), _vm._v(" "), _c("th", [_vm._v("الأجراء")])])]), _vm._v(" "), _c("tbody", [_vm.isLoading ? _vm._l(10, function (n) {
     return _c("tr", {
       key: n
     }, [_c("td", {
@@ -21035,7 +21442,15 @@ var render = function render() {
       staticClass: "badge badge-info"
     }, [_vm._v("مدفوع جزئياً")]) : order.payment_status == "paid" ? _c("span", {
       staticClass: "badge badge-success"
-    }, [_vm._v("مدفوع بالكامل")]) : _vm._e()]), _vm._v(" "), _c("td", [_c("router-link", {
+    }, [_vm._v("مدفوع بالكامل")]) : _vm._e()]), _vm._v(" "), _vm.deliveryEnabled ? _c("td", [order.order_status ? _c("span", {
+      staticClass: "badge",
+      style: {
+        backgroundColor: order.order_status.color,
+        color: "#fff"
+      }
+    }, [_vm._v("\n                                        " + _vm._s(order.order_status.name) + "\n                                    ")]) : _c("span", {
+      staticClass: "text-muted"
+    }, [_vm._v("—")])]) : _vm._e(), _vm._v(" "), _c("td", [_c("router-link", {
       staticClass: "btn btn-sm btn-primary me-1",
       attrs: {
         to: {
@@ -21061,7 +21476,12 @@ var render = function render() {
     }, [_c("i", {
       staticClass: "fas fa-print"
     }), _vm._v(" Print\n                                    ")])], 1)]);
-  }) : [_vm._m(1)]]], 2)])]), _vm._v(" "), _c("div", {
+  }) : [_c("tr", [_c("td", {
+    staticClass: "text-danger text-center",
+    attrs: {
+      colspan: _vm.deliveryEnabled ? 11 : 10
+    }
+  }, [_vm._v("لا توجد طلبات")])])]]], 2)])]), _vm._v(" "), _c("div", {
     staticClass: "d-flex justify-content-center"
   }, [_c("pagination", {
     attrs: {
@@ -21117,17 +21537,17 @@ var render = function render() {
     staticClass: "table-responsive"
   }, [_c("table", {
     staticClass: "table table-bordered"
-  }, [_vm._m(2), _vm._v(" "), _c("tbody", _vm._l(_vm.selectedOrder.items, function (item, idx) {
+  }, [_vm._m(1), _vm._v(" "), _c("tbody", _vm._l(_vm.selectedOrder.items, function (item, idx) {
     return _c("tr", {
       key: idx
     }, [_c("td", [_vm._v(_vm._s(idx + 1))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(item.product_name))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(item.variation_name || "N/A"))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(item.quantity))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm.formatAmount(item.custom_price)) + " IQD")]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm.formatAmount(item.line_total)) + " IQD")])]);
   }), 0), _vm._v(" "), _c("tfoot", {
     staticClass: "bg-light"
-  }, [_c("tr", [_vm._m(3), _vm._v(" "), _c("td", [_c("strong", [_vm._v(_vm._s(_vm.formatAmount(_vm.selectedOrder.subtotal)) + " IQD")])])]), _vm._v(" "), _vm.selectedOrder.discount_amount > 0 ? _c("tr", [_vm._m(4), _vm._v(" "), _c("td", [_c("strong", {
+  }, [_c("tr", [_vm._m(2), _vm._v(" "), _c("td", [_c("strong", [_vm._v(_vm._s(_vm.formatAmount(_vm.selectedOrder.subtotal)) + " IQD")])])]), _vm._v(" "), _vm.selectedOrder.discount_amount > 0 ? _c("tr", [_vm._m(3), _vm._v(" "), _c("td", [_c("strong", {
     staticClass: "text-danger"
-  }, [_vm._v("-" + _vm._s(_vm.formatAmount(_vm.selectedOrder.discount_amount)) + " IQD")])])]) : _vm._e(), _vm._v(" "), _vm.selectedOrder.extra_charge > 0 ? _c("tr", [_vm._m(5), _vm._v(" "), _c("td", [_c("strong", [_vm._v(_vm._s(_vm.formatAmount(_vm.selectedOrder.extra_charge)) + " IQD")])])]) : _vm._e(), _vm._v(" "), _c("tr", {
+  }, [_vm._v("-" + _vm._s(_vm.formatAmount(_vm.selectedOrder.discount_amount)) + " IQD")])])]) : _vm._e(), _vm._v(" "), _vm.selectedOrder.extra_charge > 0 ? _c("tr", [_vm._m(4), _vm._v(" "), _c("td", [_c("strong", [_vm._v(_vm._s(_vm.formatAmount(_vm.selectedOrder.extra_charge)) + " IQD")])])]) : _vm._e(), _vm._v(" "), _c("tr", {
     staticClass: "table-primary"
-  }, [_vm._m(6), _vm._v(" "), _c("td", [_c("strong", [_vm._v(_vm._s(_vm.formatAmount(_vm.selectedOrder.total_amount)) + " IQD")])])])])])])]), _vm._v(" "), _c("div", {
+  }, [_vm._m(5), _vm._v(" "), _c("td", [_c("strong", [_vm._v(_vm._s(_vm.formatAmount(_vm.selectedOrder.total_amount)) + " IQD")])])])])])])]), _vm._v(" "), _c("div", {
     staticClass: "row"
   }, [_c("div", {
     staticClass: "col-md-6"
@@ -21178,15 +21598,6 @@ var staticRenderFns = [function () {
   }, [_vm._v("بحث "), _c("i", {
     staticClass: "fas fa-search"
   })])]);
-}, function () {
-  var _vm = this,
-    _c = _vm._self._c;
-  return _c("tr", [_c("td", {
-    staticClass: "text-danger text-center",
-    attrs: {
-      colspan: "10"
-    }
-  }, [_vm._v("لا توجد طلبات")])]);
 }, function () {
   var _vm = this,
     _c = _vm._self._c;
@@ -32199,6 +32610,11 @@ var EmployeeList = function EmployeeList() {
 var SalaryList = function SalaryList() {
   return __webpack_require__.e(/*! import() */ "resources_js_components_pages_employees_SalaryList_vue").then(__webpack_require__.bind(__webpack_require__, /*! ../components/pages/employees/SalaryList.vue */ "./resources/js/components/pages/employees/SalaryList.vue"));
 };
+
+// Delivery Module
+var OrderStatusManager = function OrderStatusManager() {
+  return __webpack_require__.e(/*! import() */ "resources_js_components_pages_delivery_OrderStatusManager_vue").then(__webpack_require__.bind(__webpack_require__, /*! ../components/pages/delivery/OrderStatusManager.vue */ "./resources/js/components/pages/delivery/OrderStatusManager.vue"));
+};
 //
 
 var router = new vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]({
@@ -32857,6 +33273,19 @@ var router = new vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]({
       pageTitle: "إدارة الرواتب",
       pageIcon: "fas fa-money-bill-wave",
       pageSubtitle: "جدول رواتب الموظفين",
+      permission: ["super"]
+    }
+  },
+  // Delivery Module Routes
+  {
+    path: prefix + "delivery/order-statuses",
+    name: "delivery.order-statuses",
+    component: OrderStatusManager,
+    meta: {
+      title: "Order Status Management",
+      pageTitle: "حالات الطلب",
+      pageIcon: "fas fa-truck",
+      pageSubtitle: "إدارة حالات طلبات التوصيل",
       permission: ["super"]
     }
   }]
@@ -117021,7 +117450,7 @@ Vue.compile = compileToFunctions;
 /******/ 		// This function allow to reference async chunks
 /******/ 		__webpack_require__.u = (chunkId) => {
 /******/ 			// return url for filenames not based on template
-/******/ 			if ({"resources_js_components_pages_pos_PosMain_vue":1,"resources_js_components_pages_pos_PosSettings_vue":1,"resources_js_components_pages_pos_PosSalesHistory_vue":1,"resources_js_components_pages_manufacturing_ManufacturingDashboard_vue":1,"resources_js_components_pages_manufacturing_RawMaterialList_vue":1,"resources_js_components_pages_manufacturing_RawMaterialForm_vue":1,"resources_js_components_pages_manufacturing_RecipeList_vue":1,"resources_js_components_pages_manufacturing_RecipeForm_vue":1,"resources_js_components_pages_manufacturing_ProductionList_vue":1,"resources_js_components_pages_manufacturing_ProductionCreate_vue":1,"resources_js_components_pages_employees_EmployeeList_vue":1,"resources_js_components_pages_employees_SalaryList_vue":1}[chunkId]) return "js/" + chunkId + ".js";
+/******/ 			if ({"resources_js_components_pages_pos_PosMain_vue":1,"resources_js_components_pages_pos_PosSettings_vue":1,"resources_js_components_pages_pos_PosSalesHistory_vue":1,"resources_js_components_pages_manufacturing_ManufacturingDashboard_vue":1,"resources_js_components_pages_manufacturing_RawMaterialList_vue":1,"resources_js_components_pages_manufacturing_RawMaterialForm_vue":1,"resources_js_components_pages_manufacturing_RecipeList_vue":1,"resources_js_components_pages_manufacturing_RecipeForm_vue":1,"resources_js_components_pages_manufacturing_ProductionList_vue":1,"resources_js_components_pages_manufacturing_ProductionCreate_vue":1,"resources_js_components_pages_employees_EmployeeList_vue":1,"resources_js_components_pages_employees_SalaryList_vue":1,"resources_js_components_pages_delivery_OrderStatusManager_vue":1}[chunkId]) return "js/" + chunkId + ".js";
 /******/ 			// return url for filenames based on template
 /******/ 			return undefined;
 /******/ 		};

@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('partner_monthly_settlements', function (Blueprint $table) {
-            $table->unsignedBigInteger('id');
+            $table->id();
             $table->unsignedBigInteger('partner_id');
             $table->smallInteger('period_year');
             $table->tinyInteger('period_month');

@@ -113,6 +113,30 @@
                     <small class="text-muted">السماح للتاجر بالوصول إلى نظام التصنيع والإنتاج</small>
                 </div>
 
+                <div class="col-md-6 mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="can_access_delivery" value="1" id="canAccessDelivery"
+                               {{ old('can_access_delivery', $merchant->can_access_delivery) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="canAccessDelivery">
+                            <i class="fas fa-truck me-1 text-info"></i>
+                            <strong>نظام التوصيل</strong>
+                        </label>
+                    </div>
+                    <small class="text-muted">السماح للتاجر بالوصول إلى نظام إدارة التوصيل</small>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="can_access_installment" value="1" id="canAccessInstallment"
+                               {{ old('can_access_installment', $merchant->can_access_installment) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="canAccessInstallment">
+                            <i class="fas fa-calendar-alt me-1" style="color:#7c3aed;"></i>
+                            <strong>نظام التقسيط</strong>
+                        </label>
+                    </div>
+                    <small class="text-muted">السماح للتاجر بالوصول إلى نظام الدفع بالتقسيط</small>
+                </div>
+
                 <div class="col-12 mt-3">
                     <button type="submit" class="btn btn-gradient btn-lg">
                         <i class="fas fa-save me-2"></i> حفظ التغييرات

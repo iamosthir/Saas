@@ -140,8 +140,8 @@
                   <HasError :form="form" field="sell_price" />
                   <small class="text-muted">سعر البيع للعملاء</small>
                 </div>
-                <div class="col-md-4 mb-3">
-                  <label class="form-label">سعر التقسيط <span class="text-danger">*</span></label>
+                <div class="col-md-4 mb-3" v-if="installmentEnabled">
+                  <label class="form-label">سعر التقسيط</label>
                   <input
                     type="number"
                     class="form-control"
@@ -150,7 +150,6 @@
                     placeholder="0.00"
                     step="0.01"
                     min="0"
-                    required
                   >
                   <HasError :form="form" field="installment_price" />
                   <small class="text-muted">عادة أعلى من سعر الكاش</small>
@@ -235,7 +234,7 @@
                         </th>
                         <th style="min-width: 120px">سعر الشراء</th>
                         <th style="min-width: 120px">سعر البيع</th>
-                        <th style="min-width: 120px">سعر التقسيط</th>
+                        <th v-if="installmentEnabled" style="min-width: 120px">سعر التقسيط</th>
                         <th style="min-width: 100px">الكمية</th>
                         <th style="min-width: 150px">اسم المتغير</th>
                         <th style="width: 80px">حذف</th>
@@ -272,7 +271,7 @@
                             min="0"
                           >
                         </td>
-                        <td>
+                        <td v-if="installmentEnabled">
                           <input
                             type="number"
                             class="form-control form-control-sm"
@@ -315,7 +314,7 @@
                     </tbody>
                     <tfoot class="table-light">
                       <tr>
-                        <td :colspan="selectedAttributes.length + 3" class="text-end fw-bold">إجمالي المخزون:</td>
+                        <td :colspan="selectedAttributes.length + (installmentEnabled ? 3 : 2)" class="text-end fw-bold">إجمالي المخزون:</td>
                         <td class="fw-bold text-primary">{{ totalStock }}</td>
                         <td colspan="2"></td>
                       </tr>
@@ -375,6 +374,7 @@ export default {
       selectedAttributes: [],
       selectedSupplier: null,
       totalStock: 0,
+      installmentEnabled: false,
     }
   },
   computed: {
@@ -534,6 +534,14 @@ export default {
         swal.fire("خطأ", "حدث خطأ أثناء إضافة المنتج", "error");
       }
     },
+    async loadPermissions() {
+      try {
+        const resp = await axios.get('/dashboard/api/get-merchant-permissions');
+        this.installmentEnabled = !!resp.data.can_access_installment;
+      } catch (err) {
+        console.error('Failed to load permissions:', err);
+      }
+    },
     resetForm() {
       this.form.reset();
       this.form.clear();
@@ -551,6 +559,7 @@ export default {
     this.fetchCategories();
     this.fetchAttributes();
     this.loadSuppliers();
+    this.loadPermissions();
   }
 }
 </script>
