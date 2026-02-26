@@ -323,9 +323,11 @@ class PosReceiptService
         $data  = $this->generateReceiptData($sale);
         $width = ($data['receipt_size'] ?? '80mm') === '58mm' ? '58mm' : '80mm';
     
-        $nf0 = function ($n) {
+        $currency = strtoupper($sale->currency ?? 'IQD');
+        $nf0 = function ($n) use ($currency) {
             $n = (float) $n;
-            return number_format($n, 0, '.', ',');
+            $decimals = (round($n, 2) != round($n, 0)) ? 2 : 0;
+            return number_format($n, $decimals, '.', ',') . ' ' . $currency;
         };
     
         // ✅ استدعاء الشعار من $merchant->logo فقط

@@ -27,7 +27,7 @@ class PosPaymentService
             throw new \Exception("Payment method '{$paymentData['payment_method']}' is not enabled");
         }
 
-        // Calculate change for cash payments
+        // Amounts are already in the sale's currency (user's selected currency)
         $amount = $paymentData['amount'];
         $tenderedAmount = $paymentData['tendered_amount'] ?? null;
         $changeGiven = 0;

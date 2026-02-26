@@ -27,6 +27,7 @@ class PosSale extends Model
         'total_amount',
         'paid_amount',
         'change_amount',
+        'currency',
         'park_name',
         'notes',
         'offline_id',

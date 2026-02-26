@@ -409,7 +409,26 @@ class ProductController extends Controller
             $products->where('category_id', $req->category_id);
         }
 
+        /** @var \Illuminate\Pagination\LengthAwarePaginator $products */
         $products = $products->paginate(12);
+
+        $products->through(function ($product) {
+            $product->default_price     = convertCurrency($product->default_price);
+            $product->purchase_price    = convertCurrency($product->purchase_price);
+            $product->sell_price        = convertCurrency($product->sell_price);
+            $product->installment_price = convertCurrency($product->installment_price);
+            $product->discount_amount   = convertCurrency($product->discount_amount);
+
+            $product->variation->transform(function ($variation) {
+                $variation->price            = convertCurrency($variation->price);
+                $variation->installment_price = convertCurrency($variation->installment_price);
+                $variation->purchase_price   = convertCurrency($variation->purchase_price);
+                $variation->average_price    = convertCurrency($variation->average_price);
+                return $variation;
+            });
+
+            return $product;
+        });
 
         return response()->json($products);
     }

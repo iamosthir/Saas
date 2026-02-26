@@ -156,33 +156,37 @@
                         :class="{ selected: selectedItemIndex === index }"
                         @click="selectItem(index)"
                     >
-                        <div class="item-info">
+                        <!-- Row 1: name + unit price -->
+                        <div class="item-header">
                             <div class="item-name">
                                 {{ item.product_name }}
                                 <span v-if="item.variation_name" class="variation">({{ item.variation_name }})</span>
                             </div>
                             <div class="item-price">{{ formatCurrency(item.unit_price) }}</div>
                         </div>
-                        <div class="item-controls">
-                            <button class="qty-btn" @click.stop="decreaseQty(index)">-</button>
-                            <input
-                                type="number"
-                                :value="item.quantity"
-                                @change="updateQty(index, $event.target.value)"
-                                @click.stop
-                                class="qty-input"
-                                min="1"
-                            />
-                            <button class="qty-btn" @click.stop="increaseQty(index)">+</button>
-                        </div>
-                        <div class="item-total">{{ formatCurrency(item.line_total) }}</div>
-                        <div class="item-actions">
-                            <button class="btn-discount" @click.stop="openItemDiscount(index)" title="خصم">
-                                <i class="fas fa-percent"></i>
-                            </button>
-                            <button class="btn-remove" @click.stop="removeItem(index)" title="حذف">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                        <!-- Row 2: qty controls | line total | actions -->
+                        <div class="item-footer">
+                            <div class="item-controls">
+                                <button class="qty-btn" @click.stop="decreaseQty(index)">-</button>
+                                <input
+                                    type="number"
+                                    :value="item.quantity"
+                                    @change="updateQty(index, $event.target.value)"
+                                    @click.stop
+                                    class="qty-input"
+                                    min="1"
+                                />
+                                <button class="qty-btn" @click.stop="increaseQty(index)">+</button>
+                            </div>
+                            <div class="item-total">{{ formatCurrency(item.line_total) }}</div>
+                            <div class="item-actions">
+                                <button class="btn-discount" @click.stop="openItemDiscount(index)" title="خصم">
+                                    <i class="fas fa-percent"></i>
+                                </button>
+                                <button class="btn-remove" @click.stop="removeItem(index)" title="حذف">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -683,8 +687,7 @@ export default {
             }).format(value);
 
             // Get currency from window.currency (set globally in master.blade.php)
-            const currency = window.currency || 'IQD';
-
+            const currency = window.currencyName || 'IQD';
             return `${formattedNumber} ${currency}`;
         },
 
@@ -1786,14 +1789,13 @@ export default {
 }
 
 .cart-item {
-    display: grid;
-    grid-template-columns: 1fr auto auto auto;
-    gap: 10px;
-    align-items: center;
-    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
     background: #f9f9f9;
     border-radius: 8px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -1803,9 +1805,40 @@ export default {
     border: 1px solid #2196f3;
 }
 
+.item-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.item-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.item-footer .item-total {
+    flex: 1;
+    text-align: center;
+    font-weight: 600;
+    font-size: 13px;
+    color: #333;
+}
+
+.item-footer .item-actions {
+    display: flex;
+    gap: 4px;
+    margin-right: auto;
+}
+
 .item-name {
-    font-weight: 500;
-    font-size: 14px;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 1.3;
+    flex: 1;
+    min-width: 0;
+    word-break: break-word;
 }
 
 .item-name .variation {
@@ -1816,7 +1849,8 @@ export default {
 
 .item-price {
     font-size: 12px;
-    color: #666;
+    color: #888;
+    white-space: nowrap;
 }
 
 .item-controls {
@@ -2450,30 +2484,12 @@ export default {
     }
 
     .cart-item {
-        grid-template-columns: 1fr auto;
-        grid-template-rows: auto auto;
-        gap: 8px;
+        gap: 5px;
         padding: 10px;
     }
 
-    .item-info {
-        grid-column: 1 / 2;
-        grid-row: 1 / 2;
-    }
-
-    .item-controls {
-        grid-column: 1 / 2;
-        grid-row: 2 / 3;
-    }
-
-    .item-total {
-        grid-column: 2 / 3;
-        grid-row: 1 / 2;
-    }
-
     .item-actions {
-        grid-column: 2 / 3;
-        grid-row: 2 / 3;
+        /* keep actions inline on medium screens */
         justify-content: flex-end;
     }
 

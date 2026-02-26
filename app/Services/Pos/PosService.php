@@ -36,6 +36,7 @@ class PosService
                 'customer_id' => $customerId,
                 'sale_number' => PosSale::generateSaleNumber($merchantId),
                 'status' => 'draft',
+                'currency' => auth()->check() ? (auth()->user()->currency ?? 'IQD') : 'IQD',
             ]);
         });
     }
@@ -52,15 +53,15 @@ class PosService
 
         $settings = PosSetting::getForMerchant($sale->merchant_id);
 
-        // Get the price and cost
-        $unitPrice = $variation ? $variation->price : $product->sell_price;
-        $unitCost = $this->inventoryService->getUnitCost(
+        // Get the price and cost, converted to the sale's currency
+        $unitPrice = convertCurrency((float) ($variation ? $variation->price : $product->sell_price));
+        $unitCost = convertCurrency((float) $this->inventoryService->getUnitCost(
             $sale->merchant_id,
             $product->id,
             $variation?->id,
             $itemData['quantity'] ?? 1,
             $settings->costing_method
-        );
+        ));
 
         // Check if item already exists in sale
         $existingItem = $sale->items()
@@ -211,7 +212,7 @@ class PosService
                 $change += $payment->change_given;
             }
 
-            // Verify payment covers total
+            // Verify payment covers total (both sides are in the sale's currency)
             if ($totalPaid < $sale->total_amount) {
                 throw new \Exception('Insufficient payment amount');
             }
