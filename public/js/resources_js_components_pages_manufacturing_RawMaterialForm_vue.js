@@ -21,6 +21,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     return {
       isEdit: false,
       saving: false,
+      savingSupplier: false,
+      selectedSupplier: null,
       form: {
         name: '',
         unit_id: '',
@@ -33,10 +35,20 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         description: '',
         is_active: true
       },
+      supplierForm: {
+        name: '',
+        phone: '',
+        address: ''
+      },
       units: [],
       categories: [],
       suppliers: []
     };
+  },
+  watch: {
+    selectedSupplier: function selectedSupplier(val) {
+      this.form.supplier_id = val ? val.id : '';
+    }
   },
   methods: {
     fetchData: function fetchData() {
@@ -104,74 +116,142 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
                 description: material.description || '',
                 is_active: material.is_active
               };
-              _context2.next = 12;
+              if (material.supplier_id) {
+                _this2.selectedSupplier = _this2.suppliers.find(function (s) {
+                  return s.id === material.supplier_id;
+                }) || null;
+              }
+              _context2.next = 13;
               break;
-            case 8:
-              _context2.prev = 8;
+            case 9:
+              _context2.prev = 9;
               _context2.t0 = _context2["catch"](0);
               toastr.error('فشل تحميل المادة الخام');
               _this2.$router.push({
                 name: 'manufacturing.raw-materials'
               });
-            case 12:
+            case 13:
             case "end":
               return _context2.stop();
           }
-        }, _callee2, null, [[0, 8]]);
+        }, _callee2, null, [[0, 9]]);
       }))();
     },
-    submitForm: function submitForm() {
+    openSupplierModal: function openSupplierModal() {
+      this.supplierForm = {
+        name: '',
+        phone: '',
+        address: ''
+      };
+      $('#supplierModal').modal('show');
+    },
+    saveSupplier: function saveSupplier() {
       var _this3 = this;
       return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
-        var _error$response, _error$response$data;
+        var res, newSupplier, _error$response, _error$response$data;
         return _regeneratorRuntime().wrap(function _callee3$(_context3) {
           while (1) switch (_context3.prev = _context3.next) {
             case 0:
-              _this3.saving = true;
+              _this3.savingSupplier = true;
               _context3.prev = 1;
-              if (!_this3.isEdit) {
-                _context3.next = 8;
-                break;
-              }
-              _context3.next = 5;
-              return axios.put("/dashboard/api/manufacturing/raw-materials/".concat(_this3.$route.params.id), _this3.form);
-            case 5:
-              toastr.success('تم تحديث المادة الخام بنجاح');
-              _context3.next = 11;
+              _context3.next = 4;
+              return axios.post('/dashboard/api/suppliers/store', _this3.supplierForm);
+            case 4:
+              res = _context3.sent;
+              newSupplier = res.data.data;
+              _this3.suppliers.push(newSupplier);
+              _this3.selectedSupplier = newSupplier;
+              $('#supplierModal').modal('hide');
+              toastr.success('تم إضافة المورد بنجاح');
+              _context3.next = 15;
               break;
-            case 8:
-              _context3.next = 10;
-              return axios.post('/dashboard/api/manufacturing/raw-materials', _this3.form);
-            case 10:
-              toastr.success('تم إنشاء المادة الخام بنجاح');
-            case 11:
-              _this3.$router.push({
-                name: 'manufacturing.raw-materials'
-              });
-              _context3.next = 17;
-              break;
-            case 14:
-              _context3.prev = 14;
+            case 12:
+              _context3.prev = 12;
               _context3.t0 = _context3["catch"](1);
-              toastr.error(((_error$response = _context3.t0.response) === null || _error$response === void 0 ? void 0 : (_error$response$data = _error$response.data) === null || _error$response$data === void 0 ? void 0 : _error$response$data.message) || 'فشل حفظ المادة الخام');
-            case 17:
-              _context3.prev = 17;
-              _this3.saving = false;
-              return _context3.finish(17);
-            case 20:
+              toastr.error(((_error$response = _context3.t0.response) === null || _error$response === void 0 ? void 0 : (_error$response$data = _error$response.data) === null || _error$response$data === void 0 ? void 0 : _error$response$data.message) || 'فشل إضافة المورد');
+            case 15:
+              _context3.prev = 15;
+              _this3.savingSupplier = false;
+              return _context3.finish(15);
+            case 18:
             case "end":
               return _context3.stop();
           }
-        }, _callee3, null, [[1, 14, 17, 20]]);
+        }, _callee3, null, [[1, 12, 15, 18]]);
+      }))();
+    },
+    submitForm: function submitForm() {
+      var _this4 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
+        var _error$response2, _error$response2$data;
+        return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+          while (1) switch (_context4.prev = _context4.next) {
+            case 0:
+              if (_this4.form.supplier_id) {
+                _context4.next = 3;
+                break;
+              }
+              toastr.error('يجب اختيار مورد');
+              return _context4.abrupt("return");
+            case 3:
+              _this4.saving = true;
+              _context4.prev = 4;
+              if (!_this4.isEdit) {
+                _context4.next = 11;
+                break;
+              }
+              _context4.next = 8;
+              return axios.put("/dashboard/api/manufacturing/raw-materials/".concat(_this4.$route.params.id), _this4.form);
+            case 8:
+              toastr.success('تم تحديث المادة الخام بنجاح');
+              _context4.next = 14;
+              break;
+            case 11:
+              _context4.next = 13;
+              return axios.post('/dashboard/api/manufacturing/raw-materials', _this4.form);
+            case 13:
+              toastr.success('تم إنشاء المادة الخام بنجاح');
+            case 14:
+              _this4.$router.push({
+                name: 'manufacturing.raw-materials'
+              });
+              _context4.next = 20;
+              break;
+            case 17:
+              _context4.prev = 17;
+              _context4.t0 = _context4["catch"](4);
+              toastr.error(((_error$response2 = _context4.t0.response) === null || _error$response2 === void 0 ? void 0 : (_error$response2$data = _error$response2.data) === null || _error$response2$data === void 0 ? void 0 : _error$response2$data.message) || 'فشل حفظ المادة الخام');
+            case 20:
+              _context4.prev = 20;
+              _this4.saving = false;
+              return _context4.finish(20);
+            case 23:
+            case "end":
+              return _context4.stop();
+          }
+        }, _callee4, null, [[4, 17, 20, 23]]);
       }))();
     }
   },
   mounted: function mounted() {
-    this.fetchData();
-    if (this.$route.params.id) {
-      this.isEdit = true;
-      this.fetchMaterial(this.$route.params.id);
-    }
+    var _this5 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+      return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+        while (1) switch (_context5.prev = _context5.next) {
+          case 0:
+            _context5.next = 2;
+            return _this5.fetchData();
+          case 2:
+            if (_this5.$route.params.id) {
+              _this5.isEdit = true;
+              _this5.fetchMaterial(_this5.$route.params.id);
+            }
+          case 3:
+          case "end":
+            return _context5.stop();
+        }
+      }, _callee5);
+    }))();
   }
 });
 
@@ -325,39 +405,51 @@ var render = function render() {
     staticClass: "col-md-4"
   }, [_c("div", {
     staticClass: "mb-3"
-  }, [_c("label", {
-    staticClass: "form-label"
-  }, [_vm._v("المورد")]), _vm._v(" "), _c("select", {
-    directives: [{
-      name: "model",
-      rawName: "v-model",
-      value: _vm.form.supplier_id,
-      expression: "form.supplier_id"
-    }],
-    staticClass: "form-select",
-    on: {
-      change: function change($event) {
-        var $$selectedVal = Array.prototype.filter.call($event.target.options, function (o) {
-          return o.selected;
-        }).map(function (o) {
-          var val = "_value" in o ? o._value : o.value;
-          return val;
-        });
-        _vm.$set(_vm.form, "supplier_id", $event.target.multiple ? $$selectedVal : $$selectedVal[0]);
-      }
-    }
-  }, [_c("option", {
+  }, [_vm._m(2), _vm._v(" "), _c("div", {
+    staticClass: "d-flex align-items-start gap-2"
+  }, [_c("div", {
+    staticClass: "flex-grow-1"
+  }, [_c("multiselect", {
     attrs: {
-      value: ""
-    }
-  }, [_vm._v("بدون مورد")]), _vm._v(" "), _vm._l(_vm.suppliers, function (sup) {
-    return _c("option", {
-      key: sup.id,
-      domProps: {
-        value: sup.id
+      options: _vm.suppliers,
+      placeholder: "ابحث عن مورد...",
+      label: "name",
+      "track-by": "id",
+      searchable: true,
+      "allow-empty": false,
+      "select-label": "",
+      "selected-label": "",
+      "deselect-label": ""
+    },
+    scopedSlots: _vm._u([{
+      key: "option",
+      fn: function fn(props) {
+        return [_c("div", [_c("strong", [_vm._v(_vm._s(props.option.name))]), _vm._v(" "), props.option.phone ? _c("span", {
+          staticClass: "text-muted ms-2"
+        }, [_vm._v(_vm._s(props.option.phone))]) : _vm._e()])];
       }
-    }, [_vm._v(_vm._s(sup.name))]);
-  })], 2)])]), _vm._v(" "), _c("div", {
+    }]),
+    model: {
+      value: _vm.selectedSupplier,
+      callback: function callback($$v) {
+        _vm.selectedSupplier = $$v;
+      },
+      expression: "selectedSupplier"
+    }
+  }, [_vm._v(" "), _c("template", {
+    slot: "noResult"
+  }, [_vm._v("لا توجد نتائج")])], 2)], 1), _vm._v(" "), _c("button", {
+    staticClass: "btn btn-outline-primary btn-sm mt-1",
+    attrs: {
+      type: "button",
+      title: "إضافة مورد جديد"
+    },
+    on: {
+      click: _vm.openSupplierModal
+    }
+  }, [_c("i", {
+    staticClass: "fas fa-plus"
+  })])])])]), _vm._v(" "), _c("div", {
     staticClass: "col-md-4"
   }, [_c("div", {
     staticClass: "mb-3"
@@ -553,7 +645,112 @@ var render = function render() {
     }
   }, [_vm.saving ? _c("span", {
     staticClass: "spinner-border spinner-border-sm me-1"
-  }) : _vm._e(), _vm._v("\n            " + _vm._s(_vm.isEdit ? "تحديث" : "إنشاء") + " مادة خام\n          ")])], 1)])])])]);
+  }) : _vm._e(), _vm._v("\n            " + _vm._s(_vm.isEdit ? "تحديث" : "إنشاء") + " مادة خام\n          ")])], 1)])])]), _vm._v(" "), _c("div", {
+    staticClass: "modal fade",
+    attrs: {
+      id: "supplierModal",
+      tabindex: "-1",
+      "aria-hidden": "true"
+    }
+  }, [_c("div", {
+    staticClass: "modal-dialog"
+  }, [_c("div", {
+    staticClass: "modal-content"
+  }, [_vm._m(3), _vm._v(" "), _c("div", {
+    staticClass: "modal-body"
+  }, [_c("div", {
+    staticClass: "mb-3"
+  }, [_vm._m(4), _vm._v(" "), _c("input", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.supplierForm.name,
+      expression: "supplierForm.name"
+    }],
+    staticClass: "form-control",
+    attrs: {
+      type: "text",
+      required: ""
+    },
+    domProps: {
+      value: _vm.supplierForm.name
+    },
+    on: {
+      input: function input($event) {
+        if ($event.target.composing) return;
+        _vm.$set(_vm.supplierForm, "name", $event.target.value);
+      }
+    }
+  })]), _vm._v(" "), _c("div", {
+    staticClass: "mb-3"
+  }, [_c("label", {
+    staticClass: "form-label"
+  }, [_vm._v("الهاتف")]), _vm._v(" "), _c("input", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.supplierForm.phone,
+      expression: "supplierForm.phone"
+    }],
+    staticClass: "form-control",
+    attrs: {
+      type: "text",
+      placeholder: "اختياري"
+    },
+    domProps: {
+      value: _vm.supplierForm.phone
+    },
+    on: {
+      input: function input($event) {
+        if ($event.target.composing) return;
+        _vm.$set(_vm.supplierForm, "phone", $event.target.value);
+      }
+    }
+  })]), _vm._v(" "), _c("div", {
+    staticClass: "mb-3"
+  }, [_c("label", {
+    staticClass: "form-label"
+  }, [_vm._v("العنوان / ملاحظات")]), _vm._v(" "), _c("textarea", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.supplierForm.address,
+      expression: "supplierForm.address"
+    }],
+    staticClass: "form-control",
+    attrs: {
+      rows: "2",
+      placeholder: "اختياري"
+    },
+    domProps: {
+      value: _vm.supplierForm.address
+    },
+    on: {
+      input: function input($event) {
+        if ($event.target.composing) return;
+        _vm.$set(_vm.supplierForm, "address", $event.target.value);
+      }
+    }
+  })])]), _vm._v(" "), _c("div", {
+    staticClass: "modal-footer"
+  }, [_c("button", {
+    staticClass: "btn btn-secondary",
+    attrs: {
+      type: "button",
+      "data-bs-dismiss": "modal"
+    }
+  }, [_vm._v("إلغاء")]), _vm._v(" "), _c("button", {
+    staticClass: "btn btn-primary",
+    attrs: {
+      type: "button",
+      disabled: _vm.savingSupplier || !_vm.supplierForm.name.trim()
+    },
+    on: {
+      click: _vm.saveSupplier
+    }
+  }, [_vm.savingSupplier ? _c("span", {
+    staticClass: "spinner-border spinner-border-sm me-1"
+  }) : _vm._e(), _vm._v("\n            حفظ المورد\n          ")])])])])])]);
 };
 var staticRenderFns = [function () {
   var _vm = this,
@@ -569,6 +766,36 @@ var staticRenderFns = [function () {
   return _c("label", {
     staticClass: "form-label"
   }, [_vm._v("وحدة القياس "), _c("span", {
+    staticClass: "text-danger"
+  }, [_vm._v("*")])]);
+}, function () {
+  var _vm = this,
+    _c = _vm._self._c;
+  return _c("label", {
+    staticClass: "form-label"
+  }, [_vm._v("المورد "), _c("span", {
+    staticClass: "text-danger"
+  }, [_vm._v("*")])]);
+}, function () {
+  var _vm = this,
+    _c = _vm._self._c;
+  return _c("div", {
+    staticClass: "modal-header"
+  }, [_c("h5", {
+    staticClass: "modal-title"
+  }, [_vm._v("إضافة مورد جديد")]), _vm._v(" "), _c("button", {
+    staticClass: "btn-close",
+    attrs: {
+      type: "button",
+      "data-bs-dismiss": "modal"
+    }
+  })]);
+}, function () {
+  var _vm = this,
+    _c = _vm._self._c;
+  return _c("label", {
+    staticClass: "form-label"
+  }, [_vm._v("اسم المورد "), _c("span", {
     staticClass: "text-danger"
   }, [_vm._v("*")])]);
 }];

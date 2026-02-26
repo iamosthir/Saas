@@ -627,19 +627,6 @@
         <h2><i class="fas fa-shield-alt"></i> النظام</h2>
       </div>
       <div class="row g-4 mb-5" v-if="role == 'super'">
-        <!-- الموظفين -->
-        <div class="col-lg-3 col-md-6">
-          <router-link :to="{name: 'user.list'}" class="dashboard-card">
-            <div class="card-icon">
-              <i class="fas fa-users"></i>
-            </div>
-            <h3 class="card-title">الموظفين</h3>
-            <p class="card-description">إدارة المستخدمين والصلاحيات</p>
-            <div class="card-arrow">
-              <i class="fas fa-arrow-left"></i>
-            </div>
-          </router-link>
-        </div>
 
         <!-- باركود -->
         <div class="col-lg-3 col-md-6">

@@ -475,6 +475,36 @@
                               </div>
                           </div>
 
+                          <!-- شركة الشحن -->
+                          <div class="col-md-6 mb-4" v-if="shippingCompanies.length > 0">
+                              <div class="modern-form-group">
+                                  <label class="modern-form-label">
+                                      <i class="fas fa-shipping-fast me-1 text-warning"></i> شركة الشحن (اختياري)
+                                  </label>
+                                  <select class="modern-select" v-model="form.shipping_company_id">
+                                      <option :value="null">— بدون شحن —</option>
+                                      <option v-for="s in shippingCompanies" :key="s.id" :value="s.id">
+                                          {{ s.name }}
+                                      </option>
+                                  </select>
+                              </div>
+                          </div>
+
+                          <!-- الصفحة -->
+                          <div class="col-md-6 mb-4" v-if="pages.length > 0">
+                              <div class="modern-form-group">
+                                  <label class="modern-form-label">
+                                      <i class="fas fa-file-alt me-1 text-secondary"></i> الصفحة (اختياري)
+                                  </label>
+                                  <select class="modern-select" v-model="form.page_id">
+                                      <option :value="null">— بدون صفحة —</option>
+                                      <option v-for="p in pages" :key="p.id" :value="p.id">
+                                          {{ p.name }}
+                                      </option>
+                                  </select>
+                              </div>
+                          </div>
+
                           <!-- زر الإرسال -->
                           <div class="col-md-12 mb-4 text-center">
                               <Button :form="form" class="btn btn-success btn-lg">
@@ -519,6 +549,8 @@ export default {
                 extra_charge: 0,
                 notes: "",
                 order_status_id: null,
+                shipping_company_id: null,
+                page_id: null,
                 invoice_template_id: null,
                 custom_fields: {},
                 items: [],
@@ -554,6 +586,8 @@ export default {
             installmentEnabled: false,
             deliveryEnabled: false,
             orderStatuses: [],
+            shippingCompanies: [],
+            pages: [],
         }
     },
 
@@ -904,12 +938,32 @@ export default {
                 console.error('Failed to load delivery data:', err);
             }
         },
+
+        async loadShippingCompanies() {
+            try {
+                const response = await axios.get('/dashboard/api/get-shipping-list');
+                this.shippingCompanies = response.data || [];
+            } catch (err) {
+                console.error('Failed to load shipping companies:', err);
+            }
+        },
+
+        async loadPages() {
+            try {
+                const response = await axios.get('/dashboard/api/get-page-list');
+                this.pages = response.data || [];
+            } catch (err) {
+                console.error('Failed to load pages:', err);
+            }
+        },
     },
 
     async mounted() {
         this.loadProductList();
         this.loadTemplates();
         this.loadDeliveryData();
+        this.loadShippingCompanies();
+        this.loadPages();
 
         // Restore signature preference from localStorage
         const savedSignature = localStorage.getItem('invoice_enable_signature');

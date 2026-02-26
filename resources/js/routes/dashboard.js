@@ -269,16 +269,6 @@ const router = new VueRouter({
         },
 
         {
-            path: prefix + "user-and-staff-list",
-            name: "user.list",
-            component: ListUser,
-            meta: {
-                title: "User List",
-                permission: ["super"]
-            }
-        },
-
-        {
             path: prefix + "edit-user/:userid",
             name: "user.edit",
             component: EditUser,

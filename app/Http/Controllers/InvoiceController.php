@@ -43,6 +43,8 @@ class InvoiceController extends Controller
             'custom_fields' => 'nullable|array',
             'enable_signature' => 'nullable|boolean',
             'order_status_id' => 'nullable|exists:order_statuses,id',
+            'shipping_company_id' => 'nullable|exists:shippings,id',
+            'page_id' => 'nullable|exists:pages,id',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.product_variation_id' => 'nullable|exists:product_variations,id',
@@ -138,6 +140,8 @@ class InvoiceController extends Controller
                 'custom_fields' => $request->custom_fields,
                 'enable_signature' => $request->enable_signature ?? 1,
                 'order_status_id' => $request->order_status_id,
+                'shipping_company_id' => $request->shipping_company_id,
+                'page_id' => $request->page_id,
                 'currency' => $user->currency ?? 'IQD',
                 'created_by' => $user->id,
             ]);
@@ -187,7 +191,8 @@ class InvoiceController extends Controller
                         'invoice_payment',
                         $paidAmount,
                         "Full payment for Invoice #{$invoice->invoice_number}",
-                        $invoice
+                        $invoice,
+                        $invoice->currency ?? 'IQD'
                     );
                 }
             } else {
@@ -227,7 +232,8 @@ class InvoiceController extends Controller
                         'deposit',
                         $depositAmount,
                         "Deposit for Invoice #{$invoice->invoice_number}",
-                        $invoice
+                        $invoice,
+                        $invoice->currency ?? 'IQD'
                     );
                 }
 
@@ -336,7 +342,8 @@ class InvoiceController extends Controller
                     $invoice->payment_type === 'installment' ? 'installment' : 'invoice_payment',
                     $amountToRecord,
                     "Mark as paid for Invoice #{$invoice->invoice_number}",
-                    $invoice
+                    $invoice,
+                    $invoice->currency ?? 'IQD'
                 );
             }
 
@@ -538,7 +545,8 @@ class InvoiceController extends Controller
                 'installment',
                 $paymentAmount,
                 "Installment payment for Invoice #{$invoice->invoice_number}",
-                $invoice
+                $invoice,
+                $invoice->currency ?? 'IQD'
             );
 
             DB::commit();

@@ -1,6 +1,6 @@
 <template>
   <div class="row justify-content-center">
-    <div class="col-md-9 col-lg-7">
+    <div class="col-md-12 col-lg-12">
       <div class="card">
         <div class="card-body">
           <h5 class="card-title text-center">

@@ -32,6 +32,8 @@ class Invoice extends Model
         'custom_fields',
         'enable_signature',
         'order_status_id',
+        'shipping_company_id',
+        'page_id',
         'currency',
         'created_by',
     ];
@@ -87,6 +89,16 @@ class Invoice extends Model
     public function orderStatus()
     {
         return $this->belongsTo(OrderStatus::class);
+    }
+
+    public function shippingCompany()
+    {
+        return $this->belongsTo(Shipping::class, 'shipping_company_id');
+    }
+
+    public function page()
+    {
+        return $this->belongsTo(Page::class);
     }
 
     public function hasCustomFields()

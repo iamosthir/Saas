@@ -143,10 +143,12 @@
                                     <td class="text-start">
                                         <template v-if="order.items && order.items.length > 0">
                                             <div v-for="(item, idx) in order.items" :key="idx" class="mb-1">
-                                                <span class="badge bg-light text-dark">
-                                                    {{ item.product_name }}
-                                                    <span v-if="item.variation_name"> - {{ item.variation_name }}</span>
-                                                    <strong class="text-primary"> x{{ item.quantity }}</strong>
+                                                <span
+                                                    class="badge bg-light text-dark"
+                                                    :title="item.product_name + (item.variation_name ? ' - ' + item.variation_name : '')"
+                                                    style="cursor:default;"
+                                                >
+                                                    {{ item.product_name.length > 10 ? item.product_name.substring(0, 10) + '…' : item.product_name }}<span v-if="item.variation_name"> - {{ item.variation_name.length > 6 ? item.variation_name.substring(0, 6) + '…' : item.variation_name }}</span><strong class="text-primary"> x{{ item.quantity }}</strong>
                                                 </span>
                                             </div>
                                         </template>
@@ -154,7 +156,7 @@
                                             <span class="text-muted">لا توجد منتجات</span>
                                         </template>
                                     </td>
-                                    <td><strong class="text-success">{{ formatAmount(order.total_amount) }} IQD</strong></td>
+                                    <td><strong class="text-success">{{ formatAmount(order.total_amount) }} {{ order.currency }}</strong></td>
                                     <td>
                                         <span v-if="order.payment_type == 'full_payment'" class="badge badge-info">دفع كامل</span>
                                         <span v-else-if="order.payment_type == 'installment'" class="badge badge-warning">تقسيط</span>

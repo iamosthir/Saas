@@ -14,6 +14,7 @@ class TreasuryTransaction extends Model
         'type',
         'category',
         'amount',
+        'currency',
         'description',
         'transactionable_id',
         'transactionable_type',

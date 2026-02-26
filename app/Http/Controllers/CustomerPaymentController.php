@@ -75,7 +75,8 @@ class CustomerPaymentController extends Controller
                     'installment',
                     $totalPaidAmount,
                     "Bulk payment for Customer ID #{$request->customer_id}",
-                    null
+                    null,
+                    auth()->user()->currency ?? 'IQD'
                 );
             }
 

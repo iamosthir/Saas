@@ -18,7 +18,13 @@
         </div>
         <div class="stat-content">
           <h6>الإيرادات (الشهر الحالي)</h6>
-          <h3>{{ formatCurrency(stats.current_month_income) }}</h3>
+          <div v-if="hasStat(stats.current_month_income)">
+            <div v-for="(amount, cur) in stats.current_month_income" :key="cur" class="currency-line">
+              <span class="currency-tag">{{ cur }}</span>
+              <strong>{{ formatAmount(amount) }}</strong>
+            </div>
+          </div>
+          <h3 v-else>0</h3>
           <small class="text-muted">{{ currentMonthName }}</small>
         </div>
       </div>
@@ -31,7 +37,13 @@
         </div>
         <div class="stat-content">
           <h6>المصروفات (الشهر الحالي)</h6>
-          <h3>{{ formatCurrency(stats.current_month_expense) }}</h3>
+          <div v-if="hasStat(stats.current_month_expense)">
+            <div v-for="(amount, cur) in stats.current_month_expense" :key="cur" class="currency-line">
+              <span class="currency-tag">{{ cur }}</span>
+              <strong>{{ formatAmount(amount) }}</strong>
+            </div>
+          </div>
+          <h3 v-else>0</h3>
           <small class="text-muted">{{ currentMonthName }}</small>
         </div>
       </div>
@@ -44,9 +56,15 @@
         </div>
         <div class="stat-content">
           <h6>الرصيد الحالي</h6>
-          <h3>{{ formatCurrency(stats.current_balance) }}</h3>
-          <small :class="stats.current_balance >= 0 ? 'text-success' : 'text-danger'">
-            {{ stats.current_balance >= 0 ? 'موجب' : 'سالب' }}
+          <div v-if="hasStat(stats.current_balance)">
+            <div v-for="(amount, cur) in stats.current_balance" :key="cur" class="currency-line">
+              <span class="currency-tag">{{ cur }}</span>
+              <strong :class="amount >= 0 ? 'positive' : 'negative'">{{ formatAmount(amount) }}</strong>
+            </div>
+          </div>
+          <h3 v-else>0</h3>
+          <small :class="overallBalancePositive ? 'text-muted' : 'negative-text'">
+            {{ overallBalancePositive ? 'موجب' : 'سالب' }}
           </small>
         </div>
       </div>
@@ -59,7 +77,13 @@
         </div>
         <div class="stat-content">
           <h6>صافي الربح (السنة)</h6>
-          <h3>{{ formatCurrency(stats.ytd_net) }}</h3>
+          <div v-if="hasStat(stats.ytd_net)">
+            <div v-for="(amount, cur) in stats.ytd_net" :key="cur" class="currency-line">
+              <span class="currency-tag">{{ cur }}</span>
+              <strong :class="amount >= 0 ? '' : 'negative'">{{ formatAmount(amount) }}</strong>
+            </div>
+          </div>
+          <h3 v-else>0</h3>
           <small class="text-muted">من بداية السنة</small>
         </div>
       </div>
@@ -150,8 +174,11 @@
                   <td>{{ transaction.description }}</td>
                   <td class="text-end">
                     <strong :class="transaction.type === 'income' ? 'text-success' : 'text-danger'">
-                      {{ transaction.type === 'income' ? '+' : '-' }}{{ formatCurrency(transaction.amount) }}
+                      {{ transaction.type === 'income' ? '+' : '-' }}{{ formatAmount(transaction.amount) }}
                     </strong>
+                    <span class="ms-1 badge bg-light text-secondary" style="font-size:10px;">
+                      {{ transaction.currency || 'IQD' }}
+                    </span>
                   </td>
                 </tr>
               </tbody>
@@ -159,7 +186,14 @@
                 <tr>
                   <td colspan="5" class="text-end fw-bold">الإجمالي:</td>
                   <td class="text-end">
-                    <strong class="text-primary">{{ formatCurrency(totalAmount) }}</strong>
+                    <div v-if="Object.keys(totalByCurrency).length > 0">
+                      <div v-for="(amount, cur) in totalByCurrency" :key="cur">
+                        <strong :class="amount >= 0 ? 'text-success' : 'text-danger'">
+                          {{ amount >= 0 ? '+' : '' }}{{ formatAmount(amount) }} {{ cur }}
+                        </strong>
+                      </div>
+                    </div>
+                    <strong v-else class="text-primary">0 IQD</strong>
                   </td>
                 </tr>
               </tfoot>
@@ -176,12 +210,10 @@ export default {
   data() {
     return {
       stats: {
-        current_month_income: 0,
-        current_month_expense: 0,
-        ytd_income: 0,
-        ytd_expense: 0,
-        current_balance: 0,
-        ytd_net: 0,
+        current_month_income: {},
+        current_month_expense: {},
+        ytd_net: {},
+        current_balance: {},
       },
       transactions: [],
       loading: false,
@@ -201,27 +233,40 @@ export default {
       ];
       return months[new Date().getMonth()];
     },
-    totalAmount() {
-      if (!Array.isArray(this.transactions)) {
-        return 0;
-      }
-      return this.transactions.reduce((sum, t) => {
-        return sum + (t.type === 'income' ? parseFloat(t.amount) : -parseFloat(t.amount));
-      }, 0);
-    }
+    overallBalancePositive() {
+      const bal = this.stats.current_balance || {};
+      return Object.values(bal).every(v => v >= 0);
+    },
+    totalByCurrency() {
+      if (!Array.isArray(this.transactions)) return {};
+      return this.transactions.reduce((acc, t) => {
+        const cur = (t.currency || 'IQD').toUpperCase();
+        const val = t.type === 'income' ? parseFloat(t.amount) : -parseFloat(t.amount);
+        acc[cur] = (acc[cur] || 0) + val;
+        return acc;
+      }, {});
+    },
   },
   methods: {
+    hasStat(map) {
+      return map && typeof map === 'object' && Object.keys(map).length > 0;
+    },
+    formatAmount(amount) {
+      const num = parseFloat(amount) || 0;
+      const hasDecimals = Math.round(num * 100) !== Math.round(num) * 100;
+      return new Intl.NumberFormat('en', {
+        minimumFractionDigits: hasDecimals ? 2 : 0,
+        maximumFractionDigits: hasDecimals ? 2 : 0,
+      }).format(num);
+    },
     async loadStats() {
       try {
         const response = await axios.get('/dashboard/api/treasury');
-        // The backend returns { status: 'ok', stats: {...} }
         this.stats = response.data.stats || {
-          current_month_income: 0,
-          current_month_expense: 0,
-          ytd_income: 0,
-          ytd_expense: 0,
-          current_balance: 0,
-          ytd_net: 0,
+          current_month_income: {},
+          current_month_expense: {},
+          ytd_net: {},
+          current_balance: {},
         };
       } catch (error) {
         console.error('Error loading treasury stats:', error);
@@ -238,9 +283,7 @@ export default {
         if (this.filters.category) params.append('category', this.filters.category);
 
         const response = await axios.get(`/dashboard/api/treasury/transactions?${params.toString()}`);
-        // The backend returns { status: 'ok', transactions: { data: [...], current_page: ..., ... } }
         if (response.data.status === 'ok' && response.data.transactions) {
-          // Check if it's paginated data
           if (response.data.transactions.data) {
             this.transactions = response.data.transactions.data;
           } else {
@@ -291,12 +334,6 @@ export default {
       };
       return labels[category] || category;
     },
-    formatCurrency(amount) {
-      return new Intl.NumberFormat('en-IQ', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      }).format(amount) + ' IQD';
-    },
     formatDate(date) {
       return new Date(date).toLocaleDateString('ar-IQ', {
         year: 'numeric',
@@ -306,7 +343,6 @@ export default {
     }
   },
   mounted() {
-    // Set default date range (current month)
     const now = new Date();
     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
     const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -330,14 +366,14 @@ export default {
 .stat-card {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 15px;
-  padding: 1.5rem;
+  padding: 1.25rem;
   color: white;
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
   transition: transform 0.3s ease;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 1rem;
-  height: 120px;
+  min-height: 120px;
 }
 
 .stat-card:hover {
@@ -363,11 +399,17 @@ export default {
 .stat-icon {
   font-size: 2.5rem;
   opacity: 0.8;
+  padding-top: 0.25rem;
+}
+
+.stat-content {
+  flex: 1;
+  min-width: 0;
 }
 
 .stat-content h6 {
   font-size: 0.85rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
   opacity: 0.9;
   font-weight: 500;
 }
@@ -375,12 +417,43 @@ export default {
 .stat-content h3 {
   font-size: 1.5rem;
   font-weight: 700;
-  margin: 0;
+  margin: 0 0 0.25rem;
 }
 
 .stat-content small {
   font-size: 0.75rem;
   opacity: 0.8;
+}
+
+.currency-line {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.2rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.currency-tag {
+  font-size: 0.65rem;
+  font-weight: 600;
+  background: rgba(255,255,255,0.25);
+  border-radius: 4px;
+  padding: 1px 5px;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.positive {
+  color: #d4ffd4;
+}
+
+.negative {
+  color: #ffd4d4;
+}
+
+.negative-text {
+  color: #ffd4d4 !important;
 }
 
 .modern-card {

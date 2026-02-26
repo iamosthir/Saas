@@ -45,11 +45,33 @@
             </div>
             <div class="col-md-4">
               <div class="mb-3">
-                <label class="form-label">المورد</label>
-                <select class="form-select" v-model="form.supplier_id">
-                  <option value="">بدون مورد</option>
-                  <option v-for="sup in suppliers" :key="sup.id" :value="sup.id">{{ sup.name }}</option>
-                </select>
+                <label class="form-label">المورد <span class="text-danger">*</span></label>
+                <div class="d-flex align-items-start gap-2">
+                  <div class="flex-grow-1">
+                    <multiselect
+                      v-model="selectedSupplier"
+                      :options="suppliers"
+                      placeholder="ابحث عن مورد..."
+                      label="name"
+                      track-by="id"
+                      :searchable="true"
+                      :allow-empty="false"
+                      select-label=""
+                      selected-label=""
+                      deselect-label="">
+                      <template slot="option" slot-scope="props">
+                        <div>
+                          <strong>{{ props.option.name }}</strong>
+                          <span v-if="props.option.phone" class="text-muted ms-2">{{ props.option.phone }}</span>
+                        </div>
+                      </template>
+                      <template slot="noResult">لا توجد نتائج</template>
+                    </multiselect>
+                  </div>
+                  <button type="button" class="btn btn-outline-primary btn-sm mt-1" @click="openSupplierModal" title="إضافة مورد جديد">
+                    <i class="fas fa-plus"></i>
+                  </button>
+                </div>
               </div>
             </div>
             <div class="col-md-4">
@@ -103,6 +125,38 @@
         </form>
       </div>
     </div>
+    <!-- Quick-Create Supplier Modal -->
+    <div class="modal fade" id="supplierModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">إضافة مورد جديد</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">اسم المورد <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" v-model="supplierForm.name" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">الهاتف</label>
+              <input type="text" class="form-control" v-model="supplierForm.phone" placeholder="اختياري">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">العنوان / ملاحظات</label>
+              <textarea class="form-control" v-model="supplierForm.address" rows="2" placeholder="اختياري"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+            <button type="button" class="btn btn-primary" @click="saveSupplier" :disabled="savingSupplier || !supplierForm.name.trim()">
+              <span v-if="savingSupplier" class="spinner-border spinner-border-sm me-1"></span>
+              حفظ المورد
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -113,6 +167,8 @@ export default {
     return {
       isEdit: false,
       saving: false,
+      savingSupplier: false,
+      selectedSupplier: null,
       form: {
         name: '',
         unit_id: '',
@@ -125,10 +181,20 @@ export default {
         description: '',
         is_active: true,
       },
+      supplierForm: {
+        name: '',
+        phone: '',
+        address: '',
+      },
       units: [],
       categories: [],
       suppliers: [],
     };
+  },
+  watch: {
+    selectedSupplier(val) {
+      this.form.supplier_id = val ? val.id : '';
+    },
   },
   methods: {
     async fetchData() {
@@ -165,13 +231,41 @@ export default {
           description: material.description || '',
           is_active: material.is_active,
         };
+        if (material.supplier_id) {
+          this.selectedSupplier = this.suppliers.find(s => s.id === material.supplier_id) || null;
+        }
       } catch (error) {
         toastr.error('فشل تحميل المادة الخام');
         this.$router.push({ name: 'manufacturing.raw-materials' });
       }
     },
 
+    openSupplierModal() {
+      this.supplierForm = { name: '', phone: '', address: '' };
+      $('#supplierModal').modal('show');
+    },
+
+    async saveSupplier() {
+      this.savingSupplier = true;
+      try {
+        const res = await axios.post('/dashboard/api/suppliers/store', this.supplierForm);
+        const newSupplier = res.data.data;
+        this.suppliers.push(newSupplier);
+        this.selectedSupplier = newSupplier;
+        $('#supplierModal').modal('hide');
+        toastr.success('تم إضافة المورد بنجاح');
+      } catch (error) {
+        toastr.error(error.response?.data?.message || 'فشل إضافة المورد');
+      } finally {
+        this.savingSupplier = false;
+      }
+    },
+
     async submitForm() {
+      if (!this.form.supplier_id) {
+        toastr.error('يجب اختيار مورد');
+        return;
+      }
       this.saving = true;
       try {
         if (this.isEdit) {
@@ -189,8 +283,8 @@ export default {
       }
     },
   },
-  mounted() {
-    this.fetchData();
+  async mounted() {
+    await this.fetchData();
     if (this.$route.params.id) {
       this.isEdit = true;
       this.fetchMaterial(this.$route.params.id);

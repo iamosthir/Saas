@@ -37,9 +37,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       },
       summary: {
         total_sales: 0,
-        total_revenue: 0,
-        total_items: 0,
-        average_sale: 0
+        revenue_by_currency: {},
+        average_by_currency: {},
+        total_items: 0
       },
       showDetailModal: false,
       selectedSale: null,
@@ -113,18 +113,26 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var completedSales = this.sales.filter(function (s) {
         return s.status === 'completed';
       });
+      var revenueMap = {};
+      var countMap = {};
+      completedSales.forEach(function (s) {
+        var cur = (s.currency || 'IQD').toUpperCase();
+        var amount = parseFloat(s.total_amount || 0);
+        revenueMap[cur] = (revenueMap[cur] || 0) + amount;
+        countMap[cur] = (countMap[cur] || 0) + 1;
+      });
+      var averageMap = {};
+      for (var cur in revenueMap) {
+        averageMap[cur] = revenueMap[cur] / countMap[cur];
+      }
       this.summary = {
         total_sales: completedSales.length,
-        total_revenue: completedSales.reduce(function (sum, s) {
-          return sum + parseFloat(s.total_amount || 0);
-        }, 0),
+        revenue_by_currency: revenueMap,
+        average_by_currency: averageMap,
         total_items: completedSales.reduce(function (sum, s) {
           var _s$items;
           return sum + (((_s$items = s.items) === null || _s$items === void 0 ? void 0 : _s$items.length) || 0);
-        }, 0),
-        average_sale: completedSales.length > 0 ? completedSales.reduce(function (sum, s) {
-          return sum + parseFloat(s.total_amount || 0);
-        }, 0) / completedSales.length : 0
+        }, 0)
       };
     },
     goToPage: function goToPage(page) {
@@ -206,7 +214,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       }).format(value);
 
       // Get currency from window.currency (set globally in master.blade.php)
-      var currency = window.currency || 'IQD';
+      var currency = window.currencyName || 'IQD';
       return "".concat(formattedNumber, " ").concat(currency);
     },
     formatDate: function formatDate(dateString) {
@@ -382,10 +390,20 @@ var render = function render() {
   }, [_vm._m(2), _vm._v(" "), _c("div", {
     staticClass: "summary-info"
   }, [_c("div", {
-    staticClass: "summary-value"
-  }, [_vm._v(_vm._s(_vm.formatCurrency(_vm.summary.total_revenue)))]), _vm._v(" "), _c("div", {
     staticClass: "summary-label"
-  }, [_vm._v("إجمالي الإيرادات")])])]), _vm._v(" "), _c("div", {
+  }, [_vm._v("إجمالي الإيرادات")]), _vm._v(" "), Object.keys(_vm.summary.revenue_by_currency).length ? _vm._l(_vm.summary.revenue_by_currency, function (amount, currency) {
+    return _c("div", {
+      key: currency,
+      staticClass: "summary-value summary-currency-row"
+    }, [_vm._v("\n                        " + _vm._s(amount.toLocaleString("en-US", {
+      minimumFractionDigits: amount % 1 ? 2 : 0,
+      maximumFractionDigits: 2
+    })) + "\n                        "), _c("span", {
+      staticClass: "currency-tag"
+    }, [_vm._v(_vm._s(currency))])]);
+  }) : _c("div", {
+    staticClass: "summary-value"
+  }, [_vm._v("0")])], 2)]), _vm._v(" "), _c("div", {
     staticClass: "summary-card"
   }, [_vm._m(3), _vm._v(" "), _c("div", {
     staticClass: "summary-info"
@@ -398,10 +416,20 @@ var render = function render() {
   }, [_vm._m(4), _vm._v(" "), _c("div", {
     staticClass: "summary-info"
   }, [_c("div", {
-    staticClass: "summary-value"
-  }, [_vm._v(_vm._s(_vm.formatCurrency(_vm.summary.average_sale)))]), _vm._v(" "), _c("div", {
     staticClass: "summary-label"
-  }, [_vm._v("متوسط البيع")])])])]) : _vm._e(), _vm._v(" "), _c("div", {
+  }, [_vm._v("متوسط البيع")]), _vm._v(" "), Object.keys(_vm.summary.average_by_currency).length ? _vm._l(_vm.summary.average_by_currency, function (amount, currency) {
+    return _c("div", {
+      key: currency,
+      staticClass: "summary-value summary-currency-row"
+    }, [_vm._v("\n                        " + _vm._s(amount.toLocaleString("en-US", {
+      minimumFractionDigits: amount % 1 ? 2 : 0,
+      maximumFractionDigits: 2
+    })) + "\n                        "), _c("span", {
+      staticClass: "currency-tag"
+    }, [_vm._v(_vm._s(currency))])]);
+  }) : _c("div", {
+    staticClass: "summary-value"
+  }, [_vm._v("0")])], 2)])]) : _vm._e(), _vm._v(" "), _c("div", {
     staticClass: "sales-table-card"
   }, [_vm.loading ? _c("div", {
     staticClass: "loading-state"
@@ -724,7 +752,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_laravel_mix_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n.pos-history-page[data-v-a8766a0a] {\n    padding: 20px;\n    max-width: 100%;\n    overflow-x: hidden;\n}\n.page-header[data-v-a8766a0a] {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    margin-bottom: 20px;\n    max-width: 100%;\n    overflow: hidden;\n}\n.page-header h2[data-v-a8766a0a] {\n    margin: 0;\n    word-break: break-word;\n}\n\n/* Filters */\n.filters-card[data-v-a8766a0a] {\n    background: white;\n    padding: 20px;\n    border-radius: 12px;\n    margin-bottom: 20px;\n    box-shadow: 0 2px 8px rgba(0,0,0,0.05);\n    max-width: 100%;\n    overflow: hidden;\n}\n.filters-row[data-v-a8766a0a] {\n    display: flex;\n    gap: 20px;\n    flex-wrap: wrap;\n}\n.filter-group[data-v-a8766a0a] {\n    flex: 1;\n    min-width: 150px;\n}\n.filter-group label[data-v-a8766a0a] {\n    display: block;\n    margin-bottom: 5px;\n    font-weight: 500;\n    font-size: 14px;\n}\n.form-control[data-v-a8766a0a] {\n    width: 100%;\n    padding: 10px 12px;\n    border: 1px solid #ddd;\n    border-radius: 8px;\n    font-size: 14px;\n}\n\n/* Summary Cards */\n.summary-cards[data-v-a8766a0a] {\n    display: grid;\n    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));\n    gap: 20px;\n    margin-bottom: 20px;\n    max-width: 100%;\n}\n.summary-card[data-v-a8766a0a] {\n    background: white;\n    padding: 20px;\n    border-radius: 12px;\n    display: flex;\n    align-items: center;\n    gap: 15px;\n    box-shadow: 0 2px 8px rgba(0,0,0,0.05);\n}\n.summary-icon[data-v-a8766a0a] {\n    width: 50px;\n    height: 50px;\n    border-radius: 12px;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    background: #e3f2fd;\n    color: #2196f3;\n    font-size: 20px;\n}\n.summary-icon.revenue[data-v-a8766a0a] {\n    background: #e8f5e9;\n    color: #4caf50;\n}\n.summary-icon.items[data-v-a8766a0a] {\n    background: #fff3e0;\n    color: #ff9800;\n}\n.summary-icon.avg[data-v-a8766a0a] {\n    background: #f3e5f5;\n    color: #9c27b0;\n}\n.summary-value[data-v-a8766a0a] {\n    font-size: 24px;\n    font-weight: 700;\n}\n.summary-label[data-v-a8766a0a] {\n    font-size: 14px;\n    color: #666;\n}\n\n/* Sales Table */\n.sales-table-card[data-v-a8766a0a] {\n    background: white;\n    border-radius: 12px;\n    overflow: hidden;\n    box-shadow: 0 2px 8px rgba(0,0,0,0.05);\n    max-width: 100%;\n}\n.loading-state[data-v-a8766a0a], .empty-state[data-v-a8766a0a] {\n    text-align: center;\n    padding: 60px;\n    color: #888;\n}\n.empty-state i[data-v-a8766a0a] {\n    font-size: 48px;\n    margin-bottom: 10px;\n    opacity: 0.5;\n}\n.sales-table[data-v-a8766a0a] {\n    width: 100%;\n    border-collapse: collapse;\n}\n.sales-table th[data-v-a8766a0a],\n.sales-table td[data-v-a8766a0a] {\n    padding: 15px;\n    text-align: left;\n    border-bottom: 1px solid #e0e0e0;\n}\n.sales-table th[data-v-a8766a0a] {\n    background: #f5f5f5;\n    font-weight: 600;\n    font-size: 14px;\n}\n.sales-table tbody tr[data-v-a8766a0a] {\n    cursor: pointer;\n    transition: background 0.2s;\n}\n.sales-table tbody tr[data-v-a8766a0a]:hover {\n    background: #f9f9f9;\n}\n.sale-number[data-v-a8766a0a] {\n    font-weight: 600;\n    color: #2196f3;\n}\n.sale-total[data-v-a8766a0a] {\n    font-weight: 600;\n}\n.status-badge[data-v-a8766a0a] {\n    display: inline-block;\n    padding: 4px 12px;\n    border-radius: 20px;\n    font-size: 12px;\n    font-weight: 500;\n    text-transform: capitalize;\n}\n.status-badge.completed[data-v-a8766a0a] {\n    background: #e8f5e9;\n    color: #4caf50;\n}\n.status-badge.voided[data-v-a8766a0a] {\n    background: #ffebee;\n    color: #f44336;\n}\n.status-badge.parked[data-v-a8766a0a] {\n    background: #fff3e0;\n    color: #ff9800;\n}\n.status-badge.draft[data-v-a8766a0a] {\n    background: #e0e0e0;\n    color: #666;\n}\n.actions[data-v-a8766a0a] {\n    display: flex;\n    gap: 5px;\n}\n.btn-action[data-v-a8766a0a] {\n    width: 32px;\n    height: 32px;\n    border: none;\n    border-radius: 6px;\n    background: #f0f0f0;\n    cursor: pointer;\n    transition: all 0.2s;\n}\n.btn-action[data-v-a8766a0a]:hover {\n    background: #e0e0e0;\n}\n\n/* Pagination */\n.pagination[data-v-a8766a0a] {\n    display: flex;\n    justify-content: center;\n    align-items: center;\n    gap: 15px;\n    padding: 20px;\n    border-top: 1px solid #e0e0e0;\n}\n.page-btn[data-v-a8766a0a] {\n    width: 36px;\n    height: 36px;\n    border: 1px solid #ddd;\n    border-radius: 8px;\n    background: white;\n    cursor: pointer;\n    transition: all 0.2s;\n}\n.page-btn[data-v-a8766a0a]:hover:not(:disabled) {\n    background: #f5f5f5;\n}\n.page-btn[data-v-a8766a0a]:disabled {\n    opacity: 0.5;\n    cursor: not-allowed;\n}\n.page-info[data-v-a8766a0a] {\n    color: #666;\n}\n\n/* Modal */\n.modal-overlay[data-v-a8766a0a] {\n    position: fixed;\n    top: 0;\n    left: 0;\n    right: 0;\n    bottom: 0;\n    background: rgba(0,0,0,0.5);\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    z-index: 1000;\n}\n.modal-content[data-v-a8766a0a] {\n    background: white;\n    border-radius: 12px;\n    width: 90%;\n    max-width: 600px;\n    max-height: 90vh;\n    overflow: hidden;\n    display: flex;\n    flex-direction: column;\n}\n.modal-header[data-v-a8766a0a] {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    padding: 15px 20px;\n    border-bottom: 1px solid #e0e0e0;\n}\n.modal-header h5[data-v-a8766a0a] {\n    margin: 0;\n}\n.close-btn[data-v-a8766a0a] {\n    background: none;\n    border: none;\n    font-size: 20px;\n    cursor: pointer;\n    color: #888;\n}\n.modal-body[data-v-a8766a0a] {\n    padding: 20px;\n    overflow-y: auto;\n}\n.modal-footer[data-v-a8766a0a] {\n    display: flex;\n    justify-content: flex-end;\n    gap: 10px;\n    padding: 15px 20px;\n    border-top: 1px solid #e0e0e0;\n}\n\n/* Detail Sections */\n.detail-section[data-v-a8766a0a] {\n    margin-bottom: 20px;\n}\n.detail-row[data-v-a8766a0a] {\n    display: flex;\n    justify-content: space-between;\n    padding: 8px 0;\n    border-bottom: 1px solid #f0f0f0;\n}\n.items-section[data-v-a8766a0a], .payments-section[data-v-a8766a0a] {\n    margin-bottom: 20px;\n}\n.items-section h6[data-v-a8766a0a], .payments-section h6[data-v-a8766a0a] {\n    margin-bottom: 10px;\n    color: #666;\n}\n.items-table[data-v-a8766a0a] {\n    width: 100%;\n    border-collapse: collapse;\n    font-size: 14px;\n}\n.items-table th[data-v-a8766a0a], .items-table td[data-v-a8766a0a] {\n    padding: 10px;\n    text-align: left;\n    border-bottom: 1px solid #e0e0e0;\n}\n.items-table th[data-v-a8766a0a] {\n    background: #f5f5f5;\n}\n.variation[data-v-a8766a0a] {\n    font-size: 12px;\n    color: #888;\n}\n.totals-section[data-v-a8766a0a] {\n    background: #f9f9f9;\n    padding: 15px;\n    border-radius: 8px;\n    margin-bottom: 20px;\n}\n.total-row[data-v-a8766a0a] {\n    display: flex;\n    justify-content: space-between;\n    padding: 5px 0;\n}\n.total-row.grand-total[data-v-a8766a0a] {\n    font-size: 18px;\n    font-weight: 700;\n    border-top: 1px solid #e0e0e0;\n    margin-top: 10px;\n    padding-top: 10px;\n}\n.payment-row[data-v-a8766a0a] {\n    display: flex;\n    justify-content: space-between;\n    padding: 8px;\n    background: #f5f5f5;\n    border-radius: 6px;\n    margin-bottom: 5px;\n}\n.text-success[data-v-a8766a0a] {\n    color: #4caf50;\n}\n\n/* ============================================\n   MOBILE RESPONSIVE STYLES\n============================================ */\n\n/* Tablet and below */\n@media (max-width: 768px) {\n.pos-history-page[data-v-a8766a0a] {\n        padding: 15px;\n}\n.page-header[data-v-a8766a0a] {\n        flex-direction: column;\n        gap: 15px;\n        align-items: flex-start;\n}\n.page-header h2[data-v-a8766a0a] {\n        font-size: 20px;\n}\n.page-header .btn[data-v-a8766a0a] {\n        width: 100%;\n        justify-content: center;\n}\n\n    /* Filters */\n.filters-card[data-v-a8766a0a] {\n        padding: 15px;\n}\n.filters-row[data-v-a8766a0a] {\n        flex-direction: column;\n        gap: 15px;\n}\n.filter-group[data-v-a8766a0a] {\n        min-width: 100%;\n}\n.filter-group button[data-v-a8766a0a] {\n        width: 100%;\n        padding: 12px;\n        font-size: 14px;\n}\n\n    /* Better touch targets */\n.btn[data-v-a8766a0a] {\n        min-height: 44px;\n        padding: 12px 20px;\n}\n\n    /* Summary cards */\n.summary-cards[data-v-a8766a0a] {\n        grid-template-columns: repeat(2, 1fr);\n        gap: 15px;\n}\n.summary-card[data-v-a8766a0a] {\n        padding: 15px;\n}\n.summary-icon[data-v-a8766a0a] {\n        width: 45px;\n        height: 45px;\n        font-size: 18px;\n}\n.summary-value[data-v-a8766a0a] {\n        font-size: 20px;\n}\n.summary-label[data-v-a8766a0a] {\n        font-size: 12px;\n}\n\n    /* Table - Make it scrollable on tablet */\n.sales-table-card[data-v-a8766a0a] {\n        overflow-x: auto;\n        -webkit-overflow-scrolling: touch;\n}\n.sales-table[data-v-a8766a0a] {\n        min-width: 700px;\n}\n.sales-table th[data-v-a8766a0a],\n    .sales-table td[data-v-a8766a0a] {\n        padding: 12px 10px;\n        font-size: 13px;\n        white-space: nowrap;\n}\n\n    /* Modal adjustments */\n.modal-content[data-v-a8766a0a] {\n        width: 95%;\n        max-height: 95vh;\n}\n.modal-body[data-v-a8766a0a] {\n        padding: 15px;\n}\n.modal-footer[data-v-a8766a0a] {\n        flex-direction: column-reverse;\n        gap: 8px;\n}\n.modal-footer .btn[data-v-a8766a0a] {\n        width: 100%;\n}\n.items-table[data-v-a8766a0a] {\n        font-size: 12px;\n}\n.items-table th[data-v-a8766a0a],\n    .items-table td[data-v-a8766a0a] {\n        padding: 8px 5px;\n}\n.detail-row[data-v-a8766a0a] {\n        font-size: 14px;\n}\n.total-row.grand-total[data-v-a8766a0a] {\n        font-size: 16px;\n}\n}\n\n/* Mobile phones */\n@media (max-width: 480px) {\n.pos-history-page[data-v-a8766a0a] {\n        padding: 10px;\n}\n.pos-history-page *[data-v-a8766a0a] {\n        max-width: 100%;\n}\n.page-header h2[data-v-a8766a0a] {\n        font-size: 18px;\n}\n.page-header h2 i[data-v-a8766a0a] {\n        font-size: 16px;\n}\n.filters-card[data-v-a8766a0a] {\n        padding: 12px;\n}\n.form-control[data-v-a8766a0a] {\n        padding: 8px 10px;\n        font-size: 13px;\n}\n\n    /* Summary cards - stack in single column */\n.summary-cards[data-v-a8766a0a] {\n        grid-template-columns: 1fr;\n        gap: 12px;\n}\n.summary-card[data-v-a8766a0a] {\n        padding: 12px;\n        gap: 12px;\n}\n.summary-icon[data-v-a8766a0a] {\n        width: 40px;\n        height: 40px;\n        font-size: 16px;\n}\n.summary-value[data-v-a8766a0a] {\n        font-size: 18px;\n}\n.summary-label[data-v-a8766a0a] {\n        font-size: 11px;\n}\n\n    /* Sales table card - remove card styling on mobile */\n.sales-table-card[data-v-a8766a0a] {\n        background: transparent;\n        box-shadow: none;\n        padding: 0;\n        border-radius: 0;\n}\n\n    /* Loading and empty states */\n.loading-state[data-v-a8766a0a],\n    .empty-state[data-v-a8766a0a] {\n        background: white;\n        border-radius: 8px;\n        padding: 40px 20px;\n}\n\n    /* Mobile Card View Styles */\n.sales-cards-mobile[data-v-a8766a0a] {\n        display: flex;\n        flex-direction: column;\n        gap: 12px;\n}\n.sale-card-mobile[data-v-a8766a0a] {\n        background: white;\n        border-radius: 8px;\n        padding: 12px;\n        box-shadow: 0 2px 4px rgba(0,0,0,0.05);\n        cursor: pointer;\n        transition: all 0.2s;\n}\n.sale-card-mobile[data-v-a8766a0a]:hover {\n        background: #f9f9f9;\n        box-shadow: 0 4px 8px rgba(0,0,0,0.1);\n}\n.sale-card-header[data-v-a8766a0a] {\n        display: flex;\n        justify-content: space-between;\n        align-items: center;\n        padding-bottom: 10px;\n        margin-bottom: 10px;\n        border-bottom: 1px solid #f0f0f0;\n}\n.sale-number-mobile[data-v-a8766a0a] {\n        font-size: 16px;\n        font-weight: 700;\n        color: #2196f3;\n}\n.sale-card-body[data-v-a8766a0a] {\n        margin-bottom: 10px;\n}\n.sale-card-row[data-v-a8766a0a] {\n        display: flex;\n        justify-content: space-between;\n        padding: 5px 0;\n        font-size: 13px;\n}\n.sale-card-row .label[data-v-a8766a0a] {\n        color: #666;\n        font-weight: 500;\n}\n.sale-card-row.total-row-mobile[data-v-a8766a0a] {\n        margin-top: 8px;\n        padding-top: 8px;\n        border-top: 1px solid #f0f0f0;\n}\n.sale-total-mobile[data-v-a8766a0a] {\n        font-size: 16px;\n        font-weight: 700;\n        color: #2196f3;\n}\n.sale-card-actions[data-v-a8766a0a] {\n        display: flex;\n        gap: 8px;\n        padding-top: 10px;\n        border-top: 1px solid #f0f0f0;\n}\n.btn-action-mobile[data-v-a8766a0a] {\n        flex: 1;\n        padding: 10px;\n        border: 1px solid #ddd;\n        border-radius: 6px;\n        background: white;\n        cursor: pointer;\n        font-size: 13px;\n        font-weight: 500;\n        transition: all 0.2s;\n        display: flex;\n        align-items: center;\n        justify-content: center;\n        gap: 6px;\n}\n.btn-action-mobile[data-v-a8766a0a]:hover {\n        background: #f5f5f5;\n        border-color: #2196f3;\n        color: #2196f3;\n}\n\n    /* Pagination */\n.pagination[data-v-a8766a0a] {\n        padding: 15px 0;\n        background: transparent;\n}\n.page-btn[data-v-a8766a0a] {\n        width: 44px;\n        height: 44px;\n        font-size: 16px;\n}\n.page-info[data-v-a8766a0a] {\n        font-size: 13px;\n        font-weight: 500;\n}\n\n    /* Full screen modals on mobile */\n.modal-content[data-v-a8766a0a] {\n        width: 100%;\n        max-width: 100%;\n        height: 100vh;\n        max-height: 100vh;\n        border-radius: 0;\n}\n.modal-header[data-v-a8766a0a] {\n        padding: 12px 15px;\n}\n.modal-header h5[data-v-a8766a0a] {\n        font-size: 16px;\n}\n.modal-body[data-v-a8766a0a] {\n        padding: 12px;\n}\n.modal-footer[data-v-a8766a0a] {\n        padding: 12px 15px;\n}\n\n    /* Detail sections */\n.detail-row[data-v-a8766a0a] {\n        font-size: 13px;\n        flex-direction: column;\n        gap: 4px;\n        align-items: flex-start;\n}\n.items-section h6[data-v-a8766a0a],\n    .payments-section h6[data-v-a8766a0a] {\n        font-size: 14px;\n}\n\n    /* Mobile Items Card View */\n.items-cards-mobile[data-v-a8766a0a] {\n        display: flex;\n        flex-direction: column;\n        gap: 10px;\n}\n.item-card-mobile[data-v-a8766a0a] {\n        background: #f9f9f9;\n        border-radius: 6px;\n        padding: 10px;\n}\n.item-name-mobile[data-v-a8766a0a] {\n        font-weight: 600;\n        font-size: 13px;\n        margin-bottom: 6px;\n        color: #333;\n}\n.item-details-mobile[data-v-a8766a0a] {\n        display: flex;\n        justify-content: space-between;\n        align-items: center;\n        font-size: 12px;\n        color: #666;\n        gap: 10px;\n}\n.item-total-mobile[data-v-a8766a0a] {\n        font-weight: 600;\n        color: #2196f3;\n        font-size: 13px;\n}\n.variation[data-v-a8766a0a] {\n        font-size: 11px;\n        color: #888;\n}\n.totals-section[data-v-a8766a0a] {\n        padding: 12px;\n}\n.total-row[data-v-a8766a0a] {\n        font-size: 13px;\n}\n.total-row.grand-total[data-v-a8766a0a] {\n        font-size: 15px;\n}\n.payment-row[data-v-a8766a0a] {\n        padding: 6px 10px;\n        font-size: 13px;\n}\n.status-badge[data-v-a8766a0a] {\n        font-size: 11px;\n        padding: 3px 10px;\n}\n}\n\n/* Very small phones */\n@media (max-width: 360px) {\n.page-header h2[data-v-a8766a0a] {\n        font-size: 16px;\n}\n.summary-value[data-v-a8766a0a] {\n        font-size: 16px;\n}\n.summary-label[data-v-a8766a0a] {\n        font-size: 10px;\n}\n.summary-icon[data-v-a8766a0a] {\n        width: 35px;\n        height: 35px;\n        font-size: 14px;\n}\n.sale-number[data-v-a8766a0a] {\n        font-size: 14px;\n}\n.sale-total[data-v-a8766a0a] {\n        font-size: 14px;\n}\n}\n\n/* Landscape mode for tablets */\n@media (max-width: 1024px) and (orientation: landscape) {\n.summary-cards[data-v-a8766a0a] {\n        grid-template-columns: repeat(4, 1fr);\n}\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n.summary-currency-row[data-v-a8766a0a] {\n    display: flex;\n    align-items: baseline;\n    gap: 4px;\n    line-height: 1.4;\n}\n.currency-tag[data-v-a8766a0a] {\n    font-size: 11px;\n    font-weight: 600;\n    opacity: 0.7;\n    letter-spacing: 0.5px;\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

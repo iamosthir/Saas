@@ -3275,6 +3275,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         extra_charge: 0,
         notes: "",
         order_status_id: null,
+        shipping_company_id: null,
+        page_id: null,
         invoice_template_id: null,
         custom_fields: {},
         items: [],
@@ -3303,7 +3305,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       // Permissions
       installmentEnabled: false,
       deliveryEnabled: false,
-      orderStatuses: []
+      orderStatuses: [],
+      shippingCompanies: [],
+      pages: []
     };
   },
   computed: {
@@ -3754,66 +3758,120 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           }
         }, _callee7, null, [[0, 15]]);
       }))();
+    },
+    loadShippingCompanies: function loadShippingCompanies() {
+      var _this11 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
+        var response;
+        return _regeneratorRuntime().wrap(function _callee8$(_context8) {
+          while (1) switch (_context8.prev = _context8.next) {
+            case 0:
+              _context8.prev = 0;
+              _context8.next = 3;
+              return axios.get('/dashboard/api/get-shipping-list');
+            case 3:
+              response = _context8.sent;
+              _this11.shippingCompanies = response.data || [];
+              _context8.next = 10;
+              break;
+            case 7:
+              _context8.prev = 7;
+              _context8.t0 = _context8["catch"](0);
+              console.error('Failed to load shipping companies:', _context8.t0);
+            case 10:
+            case "end":
+              return _context8.stop();
+          }
+        }, _callee8, null, [[0, 7]]);
+      }))();
+    },
+    loadPages: function loadPages() {
+      var _this12 = this;
+      return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9() {
+        var response;
+        return _regeneratorRuntime().wrap(function _callee9$(_context9) {
+          while (1) switch (_context9.prev = _context9.next) {
+            case 0:
+              _context9.prev = 0;
+              _context9.next = 3;
+              return axios.get('/dashboard/api/get-page-list');
+            case 3:
+              response = _context9.sent;
+              _this12.pages = response.data || [];
+              _context9.next = 10;
+              break;
+            case 7:
+              _context9.prev = 7;
+              _context9.t0 = _context9["catch"](0);
+              console.error('Failed to load pages:', _context9.t0);
+            case 10:
+            case "end":
+              return _context9.stop();
+          }
+        }, _callee9, null, [[0, 7]]);
+      }))();
     }
   },
   mounted: function mounted() {
-    var _this11 = this;
-    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8() {
+    var _this13 = this;
+    return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee10() {
       var savedSignature, customerId, response, customer;
-      return _regeneratorRuntime().wrap(function _callee8$(_context8) {
-        while (1) switch (_context8.prev = _context8.next) {
+      return _regeneratorRuntime().wrap(function _callee10$(_context10) {
+        while (1) switch (_context10.prev = _context10.next) {
           case 0:
-            _this11.loadProductList();
-            _this11.loadTemplates();
-            _this11.loadDeliveryData();
+            _this13.loadProductList();
+            _this13.loadTemplates();
+            _this13.loadDeliveryData();
+            _this13.loadShippingCompanies();
+            _this13.loadPages();
 
             // Restore signature preference from localStorage
             savedSignature = localStorage.getItem('invoice_enable_signature');
             if (savedSignature !== null) {
-              _this11.form.enable_signature = parseInt(savedSignature);
+              _this13.form.enable_signature = parseInt(savedSignature);
             }
 
             // Check if customer ID is passed from Quick Invoice
-            customerId = _this11.$route.query.customerId;
+            customerId = _this13.$route.query.customerId;
             if (!customerId) {
-              _context8.next = 18;
+              _context10.next = 20;
               break;
             }
-            _context8.prev = 7;
-            _context8.next = 10;
+            _context10.prev = 9;
+            _context10.next = 12;
             return axios.get('/dashboard/api/customers', {
               params: {
                 search: ''
               }
             });
-          case 10:
-            response = _context8.sent;
+          case 12:
+            response = _context10.sent;
             customer = response.data.find(function (c) {
               return c.id == customerId;
             });
             if (customer) {
-              _this11.selectedCustomer = customer;
-              _this11.useExistingCustomer = true;
-              _this11.showCustomerForm = true;
+              _this13.selectedCustomer = customer;
+              _this13.useExistingCustomer = true;
+              _this13.showCustomerForm = true;
 
               // Pre-fill customer form
-              _this11.form.customer_name = customer.name;
-              _this11.form.customer_phone1 = customer.phone1 || customer.phone;
-              _this11.form.customer_phone2 = customer.phone2;
-              _this11.form.customer_state = customer.state;
-              _this11.form.customer_city = customer.city;
+              _this13.form.customer_name = customer.name;
+              _this13.form.customer_phone1 = customer.phone1 || customer.phone;
+              _this13.form.customer_phone2 = customer.phone2;
+              _this13.form.customer_state = customer.state;
+              _this13.form.customer_city = customer.city;
             }
-            _context8.next = 18;
+            _context10.next = 20;
             break;
-          case 15:
-            _context8.prev = 15;
-            _context8.t0 = _context8["catch"](7);
-            console.error('Error loading pre-selected customer:', _context8.t0);
-          case 18:
+          case 17:
+            _context10.prev = 17;
+            _context10.t0 = _context10["catch"](9);
+            console.error('Error loading pre-selected customer:', _context10.t0);
+          case 20:
           case "end":
-            return _context8.stop();
+            return _context10.stop();
         }
-      }, _callee8, null, [[7, 15]]);
+      }, _callee10, null, [[9, 17]]);
     }))();
   }
 });
@@ -10757,20 +10815,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
 function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return exports; }; var exports = {}, Op = Object.prototype, hasOwn = Op.hasOwnProperty, defineProperty = Object.defineProperty || function (obj, key, desc) { obj[key] = desc.value; }, $Symbol = "function" == typeof Symbol ? Symbol : {}, iteratorSymbol = $Symbol.iterator || "@@iterator", asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator", toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag"; function define(obj, key, value) { return Object.defineProperty(obj, key, { value: value, enumerable: !0, configurable: !0, writable: !0 }), obj[key]; } try { define({}, ""); } catch (err) { define = function define(obj, key, value) { return obj[key] = value; }; } function wrap(innerFn, outerFn, self, tryLocsList) { var protoGenerator = outerFn && outerFn.prototype instanceof Generator ? outerFn : Generator, generator = Object.create(protoGenerator.prototype), context = new Context(tryLocsList || []); return defineProperty(generator, "_invoke", { value: makeInvokeMethod(innerFn, self, context) }), generator; } function tryCatch(fn, obj, arg) { try { return { type: "normal", arg: fn.call(obj, arg) }; } catch (err) { return { type: "throw", arg: err }; } } exports.wrap = wrap; var ContinueSentinel = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var IteratorPrototype = {}; define(IteratorPrototype, iteratorSymbol, function () { return this; }); var getProto = Object.getPrototypeOf, NativeIteratorPrototype = getProto && getProto(getProto(values([]))); NativeIteratorPrototype && NativeIteratorPrototype !== Op && hasOwn.call(NativeIteratorPrototype, iteratorSymbol) && (IteratorPrototype = NativeIteratorPrototype); var Gp = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(IteratorPrototype); function defineIteratorMethods(prototype) { ["next", "throw", "return"].forEach(function (method) { define(prototype, method, function (arg) { return this._invoke(method, arg); }); }); } function AsyncIterator(generator, PromiseImpl) { function invoke(method, arg, resolve, reject) { var record = tryCatch(generator[method], generator, arg); if ("throw" !== record.type) { var result = record.arg, value = result.value; return value && "object" == _typeof(value) && hasOwn.call(value, "__await") ? PromiseImpl.resolve(value.__await).then(function (value) { invoke("next", value, resolve, reject); }, function (err) { invoke("throw", err, resolve, reject); }) : PromiseImpl.resolve(value).then(function (unwrapped) { result.value = unwrapped, resolve(result); }, function (error) { return invoke("throw", error, resolve, reject); }); } reject(record.arg); } var previousPromise; defineProperty(this, "_invoke", { value: function value(method, arg) { function callInvokeWithMethodAndArg() { return new PromiseImpl(function (resolve, reject) { invoke(method, arg, resolve, reject); }); } return previousPromise = previousPromise ? previousPromise.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(innerFn, self, context) { var state = "suspendedStart"; return function (method, arg) { if ("executing" === state) throw new Error("Generator is already running"); if ("completed" === state) { if ("throw" === method) throw arg; return doneResult(); } for (context.method = method, context.arg = arg;;) { var delegate = context.delegate; if (delegate) { var delegateResult = maybeInvokeDelegate(delegate, context); if (delegateResult) { if (delegateResult === ContinueSentinel) continue; return delegateResult; } } if ("next" === context.method) context.sent = context._sent = context.arg;else if ("throw" === context.method) { if ("suspendedStart" === state) throw state = "completed", context.arg; context.dispatchException(context.arg); } else "return" === context.method && context.abrupt("return", context.arg); state = "executing"; var record = tryCatch(innerFn, self, context); if ("normal" === record.type) { if (state = context.done ? "completed" : "suspendedYield", record.arg === ContinueSentinel) continue; return { value: record.arg, done: context.done }; } "throw" === record.type && (state = "completed", context.method = "throw", context.arg = record.arg); } }; } function maybeInvokeDelegate(delegate, context) { var methodName = context.method, method = delegate.iterator[methodName]; if (undefined === method) return context.delegate = null, "throw" === methodName && delegate.iterator["return"] && (context.method = "return", context.arg = undefined, maybeInvokeDelegate(delegate, context), "throw" === context.method) || "return" !== methodName && (context.method = "throw", context.arg = new TypeError("The iterator does not provide a '" + methodName + "' method")), ContinueSentinel; var record = tryCatch(method, delegate.iterator, context.arg); if ("throw" === record.type) return context.method = "throw", context.arg = record.arg, context.delegate = null, ContinueSentinel; var info = record.arg; return info ? info.done ? (context[delegate.resultName] = info.value, context.next = delegate.nextLoc, "return" !== context.method && (context.method = "next", context.arg = undefined), context.delegate = null, ContinueSentinel) : info : (context.method = "throw", context.arg = new TypeError("iterator result is not an object"), context.delegate = null, ContinueSentinel); } function pushTryEntry(locs) { var entry = { tryLoc: locs[0] }; 1 in locs && (entry.catchLoc = locs[1]), 2 in locs && (entry.finallyLoc = locs[2], entry.afterLoc = locs[3]), this.tryEntries.push(entry); } function resetTryEntry(entry) { var record = entry.completion || {}; record.type = "normal", delete record.arg, entry.completion = record; } function Context(tryLocsList) { this.tryEntries = [{ tryLoc: "root" }], tryLocsList.forEach(pushTryEntry, this), this.reset(!0); } function values(iterable) { if (iterable) { var iteratorMethod = iterable[iteratorSymbol]; if (iteratorMethod) return iteratorMethod.call(iterable); if ("function" == typeof iterable.next) return iterable; if (!isNaN(iterable.length)) { var i = -1, next = function next() { for (; ++i < iterable.length;) if (hasOwn.call(iterable, i)) return next.value = iterable[i], next.done = !1, next; return next.value = undefined, next.done = !0, next; }; return next.next = next; } } return { next: doneResult }; } function doneResult() { return { value: undefined, done: !0 }; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, defineProperty(Gp, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), defineProperty(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, toStringTagSymbol, "GeneratorFunction"), exports.isGeneratorFunction = function (genFun) { var ctor = "function" == typeof genFun && genFun.constructor; return !!ctor && (ctor === GeneratorFunction || "GeneratorFunction" === (ctor.displayName || ctor.name)); }, exports.mark = function (genFun) { return Object.setPrototypeOf ? Object.setPrototypeOf(genFun, GeneratorFunctionPrototype) : (genFun.__proto__ = GeneratorFunctionPrototype, define(genFun, toStringTagSymbol, "GeneratorFunction")), genFun.prototype = Object.create(Gp), genFun; }, exports.awrap = function (arg) { return { __await: arg }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, asyncIteratorSymbol, function () { return this; }), exports.AsyncIterator = AsyncIterator, exports.async = function (innerFn, outerFn, self, tryLocsList, PromiseImpl) { void 0 === PromiseImpl && (PromiseImpl = Promise); var iter = new AsyncIterator(wrap(innerFn, outerFn, self, tryLocsList), PromiseImpl); return exports.isGeneratorFunction(outerFn) ? iter : iter.next().then(function (result) { return result.done ? result.value : iter.next(); }); }, defineIteratorMethods(Gp), define(Gp, toStringTagSymbol, "Generator"), define(Gp, iteratorSymbol, function () { return this; }), define(Gp, "toString", function () { return "[object Generator]"; }), exports.keys = function (val) { var object = Object(val), keys = []; for (var key in object) keys.push(key); return keys.reverse(), function next() { for (; keys.length;) { var key = keys.pop(); if (key in object) return next.value = key, next.done = !1, next; } return next.done = !0, next; }; }, exports.values = values, Context.prototype = { constructor: Context, reset: function reset(skipTempReset) { if (this.prev = 0, this.next = 0, this.sent = this._sent = undefined, this.done = !1, this.delegate = null, this.method = "next", this.arg = undefined, this.tryEntries.forEach(resetTryEntry), !skipTempReset) for (var name in this) "t" === name.charAt(0) && hasOwn.call(this, name) && !isNaN(+name.slice(1)) && (this[name] = undefined); }, stop: function stop() { this.done = !0; var rootRecord = this.tryEntries[0].completion; if ("throw" === rootRecord.type) throw rootRecord.arg; return this.rval; }, dispatchException: function dispatchException(exception) { if (this.done) throw exception; var context = this; function handle(loc, caught) { return record.type = "throw", record.arg = exception, context.next = loc, caught && (context.method = "next", context.arg = undefined), !!caught; } for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i], record = entry.completion; if ("root" === entry.tryLoc) return handle("end"); if (entry.tryLoc <= this.prev) { var hasCatch = hasOwn.call(entry, "catchLoc"), hasFinally = hasOwn.call(entry, "finallyLoc"); if (hasCatch && hasFinally) { if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0); if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc); } else if (hasCatch) { if (this.prev < entry.catchLoc) return handle(entry.catchLoc, !0); } else { if (!hasFinally) throw new Error("try statement without catch or finally"); if (this.prev < entry.finallyLoc) return handle(entry.finallyLoc); } } } }, abrupt: function abrupt(type, arg) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.tryLoc <= this.prev && hasOwn.call(entry, "finallyLoc") && this.prev < entry.finallyLoc) { var finallyEntry = entry; break; } } finallyEntry && ("break" === type || "continue" === type) && finallyEntry.tryLoc <= arg && arg <= finallyEntry.finallyLoc && (finallyEntry = null); var record = finallyEntry ? finallyEntry.completion : {}; return record.type = type, record.arg = arg, finallyEntry ? (this.method = "next", this.next = finallyEntry.finallyLoc, ContinueSentinel) : this.complete(record); }, complete: function complete(record, afterLoc) { if ("throw" === record.type) throw record.arg; return "break" === record.type || "continue" === record.type ? this.next = record.arg : "return" === record.type ? (this.rval = this.arg = record.arg, this.method = "return", this.next = "end") : "normal" === record.type && afterLoc && (this.next = afterLoc), ContinueSentinel; }, finish: function finish(finallyLoc) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.finallyLoc === finallyLoc) return this.complete(entry.completion, entry.afterLoc), resetTryEntry(entry), ContinueSentinel; } }, "catch": function _catch(tryLoc) { for (var i = this.tryEntries.length - 1; i >= 0; --i) { var entry = this.tryEntries[i]; if (entry.tryLoc === tryLoc) { var record = entry.completion; if ("throw" === record.type) { var thrown = record.arg; resetTryEntry(entry); } return thrown; } } throw new Error("illegal catch attempt"); }, delegateYield: function delegateYield(iterable, resultName, nextLoc) { return this.delegate = { iterator: values(iterable), resultName: resultName, nextLoc: nextLoc }, "next" === this.method && (this.arg = undefined), ContinueSentinel; } }, exports; }
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
   data: function data() {
     return {
       stats: {
-        current_month_income: 0,
-        current_month_expense: 0,
-        ytd_income: 0,
-        ytd_expense: 0,
-        current_balance: 0,
-        ytd_net: 0
+        current_month_income: {},
+        current_month_expense: {},
+        ytd_net: {},
+        current_balance: {}
       },
       transactions: [],
       loading: false,
@@ -10787,16 +10843,34 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var months = ['يناير', 'فبراير', 'مارس', 'إبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
       return months[new Date().getMonth()];
     },
-    totalAmount: function totalAmount() {
-      if (!Array.isArray(this.transactions)) {
-        return 0;
-      }
-      return this.transactions.reduce(function (sum, t) {
-        return sum + (t.type === 'income' ? parseFloat(t.amount) : -parseFloat(t.amount));
-      }, 0);
+    overallBalancePositive: function overallBalancePositive() {
+      var bal = this.stats.current_balance || {};
+      return Object.values(bal).every(function (v) {
+        return v >= 0;
+      });
+    },
+    totalByCurrency: function totalByCurrency() {
+      if (!Array.isArray(this.transactions)) return {};
+      return this.transactions.reduce(function (acc, t) {
+        var cur = (t.currency || 'IQD').toUpperCase();
+        var val = t.type === 'income' ? parseFloat(t.amount) : -parseFloat(t.amount);
+        acc[cur] = (acc[cur] || 0) + val;
+        return acc;
+      }, {});
     }
   },
   methods: {
+    hasStat: function hasStat(map) {
+      return map && _typeof(map) === 'object' && Object.keys(map).length > 0;
+    },
+    formatAmount: function formatAmount(amount) {
+      var num = parseFloat(amount) || 0;
+      var hasDecimals = Math.round(num * 100) !== Math.round(num) * 100;
+      return new Intl.NumberFormat('en', {
+        minimumFractionDigits: hasDecimals ? 2 : 0,
+        maximumFractionDigits: hasDecimals ? 2 : 0
+      }).format(num);
+    },
     loadStats: function loadStats() {
       var _this = this;
       return _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
@@ -10809,14 +10883,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               return axios.get('/dashboard/api/treasury');
             case 3:
               response = _context.sent;
-              // The backend returns { status: 'ok', stats: {...} }
               _this.stats = response.data.stats || {
-                current_month_income: 0,
-                current_month_expense: 0,
-                ytd_income: 0,
-                ytd_expense: 0,
-                current_balance: 0,
-                ytd_net: 0
+                current_month_income: {},
+                current_month_expense: {},
+                ytd_net: {},
+                current_balance: {}
               };
               _context.next = 11;
               break;
@@ -10850,9 +10921,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               return axios.get("/dashboard/api/treasury/transactions?".concat(params.toString()));
             case 9:
               response = _context2.sent;
-              // The backend returns { status: 'ok', transactions: { data: [...], current_page: ..., ... } }
               if (response.data.status === 'ok' && response.data.transactions) {
-                // Check if it's paginated data
                 if (response.data.transactions.data) {
                   _this2.transactions = response.data.transactions.data;
                 } else {
@@ -10925,12 +10994,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       };
       return labels[category] || category;
     },
-    formatCurrency: function formatCurrency(amount) {
-      return new Intl.NumberFormat('en-IQ', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-      }).format(amount) + ' IQD';
-    },
     formatDate: function formatDate(date) {
       return new Date(date).toLocaleDateString('ar-IQ', {
         year: 'numeric',
@@ -10940,7 +11003,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     }
   },
   mounted: function mounted() {
-    // Set default date range (current month)
     var now = new Date();
     var firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
     var lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -15303,6 +15365,74 @@ var render = function render() {
         value: s.id
       }
     }, [_vm._v("\n                                      " + _vm._s(s.name) + "\n                                  ")]);
+  })], 2)])]) : _vm._e(), _vm._v(" "), _vm.shippingCompanies.length > 0 ? _c("div", {
+    staticClass: "col-md-6 mb-4"
+  }, [_c("div", {
+    staticClass: "modern-form-group"
+  }, [_vm._m(9), _vm._v(" "), _c("select", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.form.shipping_company_id,
+      expression: "form.shipping_company_id"
+    }],
+    staticClass: "modern-select",
+    on: {
+      change: function change($event) {
+        var $$selectedVal = Array.prototype.filter.call($event.target.options, function (o) {
+          return o.selected;
+        }).map(function (o) {
+          var val = "_value" in o ? o._value : o.value;
+          return val;
+        });
+        _vm.$set(_vm.form, "shipping_company_id", $event.target.multiple ? $$selectedVal : $$selectedVal[0]);
+      }
+    }
+  }, [_c("option", {
+    domProps: {
+      value: null
+    }
+  }, [_vm._v("— بدون شحن —")]), _vm._v(" "), _vm._l(_vm.shippingCompanies, function (s) {
+    return _c("option", {
+      key: s.id,
+      domProps: {
+        value: s.id
+      }
+    }, [_vm._v("\n                                      " + _vm._s(s.name) + "\n                                  ")]);
+  })], 2)])]) : _vm._e(), _vm._v(" "), _vm.pages.length > 0 ? _c("div", {
+    staticClass: "col-md-6 mb-4"
+  }, [_c("div", {
+    staticClass: "modern-form-group"
+  }, [_vm._m(10), _vm._v(" "), _c("select", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.form.page_id,
+      expression: "form.page_id"
+    }],
+    staticClass: "modern-select",
+    on: {
+      change: function change($event) {
+        var $$selectedVal = Array.prototype.filter.call($event.target.options, function (o) {
+          return o.selected;
+        }).map(function (o) {
+          var val = "_value" in o ? o._value : o.value;
+          return val;
+        });
+        _vm.$set(_vm.form, "page_id", $event.target.multiple ? $$selectedVal : $$selectedVal[0]);
+      }
+    }
+  }, [_c("option", {
+    domProps: {
+      value: null
+    }
+  }, [_vm._v("— بدون صفحة —")]), _vm._v(" "), _vm._l(_vm.pages, function (p) {
+    return _c("option", {
+      key: p.id,
+      domProps: {
+        value: p.id
+      }
+    }, [_vm._v("\n                                      " + _vm._s(p.name) + "\n                                  ")]);
   })], 2)])]) : _vm._e(), _vm._v(" "), _c("div", {
     staticClass: "col-md-12 mb-4 text-center"
   }, [_c("Button", {
@@ -15396,6 +15526,22 @@ var staticRenderFns = [function () {
   }, [_c("i", {
     staticClass: "fas fa-truck me-1 text-info"
   }), _vm._v(" حالة الطلب\n                              ")]);
+}, function () {
+  var _vm = this,
+    _c = _vm._self._c;
+  return _c("label", {
+    staticClass: "modern-form-label"
+  }, [_c("i", {
+    staticClass: "fas fa-shipping-fast me-1 text-warning"
+  }), _vm._v(" شركة الشحن (اختياري)\n                              ")]);
+}, function () {
+  var _vm = this,
+    _c = _vm._self._c;
+  return _c("label", {
+    staticClass: "modern-form-label"
+  }, [_c("i", {
+    staticClass: "fas fa-file-alt me-1 text-secondary"
+  }), _vm._v(" الصفحة (اختياري)\n                              ")]);
 }];
 render._withStripped = true;
 
@@ -17999,27 +18145,6 @@ var render = function render() {
   }, [_vm._m(11)]) : _vm._e(), _vm._v(" "), _vm.role == "super" ? _c("div", {
     staticClass: "row g-4 mb-5"
   }, [_c("div", {
-    staticClass: "col-lg-3 col-md-6"
-  }, [_c("router-link", {
-    staticClass: "dashboard-card",
-    attrs: {
-      to: {
-        name: "user.list"
-      }
-    }
-  }, [_c("div", {
-    staticClass: "card-icon"
-  }, [_c("i", {
-    staticClass: "fas fa-users"
-  })]), _vm._v(" "), _c("h3", {
-    staticClass: "card-title"
-  }, [_vm._v("الموظفين")]), _vm._v(" "), _c("p", {
-    staticClass: "card-description"
-  }, [_vm._v("إدارة المستخدمين والصلاحيات")]), _vm._v(" "), _c("div", {
-    staticClass: "card-arrow"
-  }, [_c("i", {
-    staticClass: "fas fa-arrow-left"
-  })])])], 1), _vm._v(" "), _c("div", {
     staticClass: "col-lg-3 col-md-6"
   }, [_c("router-link", {
     staticClass: "dashboard-card",
@@ -21608,15 +21733,21 @@ var render = function render() {
         key: idx,
         staticClass: "mb-1"
       }, [_c("span", {
-        staticClass: "badge bg-light text-dark"
-      }, [_vm._v("\n                                                " + _vm._s(item.product_name) + "\n                                                "), item.variation_name ? _c("span", [_vm._v(" - " + _vm._s(item.variation_name))]) : _vm._e(), _vm._v(" "), _c("strong", {
+        staticClass: "badge bg-light text-dark",
+        staticStyle: {
+          cursor: "default"
+        },
+        attrs: {
+          title: item.product_name + (item.variation_name ? " - " + item.variation_name : "")
+        }
+      }, [_vm._v("\n                                                " + _vm._s(item.product_name.length > 10 ? item.product_name.substring(0, 10) + "…" : item.product_name)), item.variation_name ? _c("span", [_vm._v(" - " + _vm._s(item.variation_name.length > 6 ? item.variation_name.substring(0, 6) + "…" : item.variation_name))]) : _vm._e(), _c("strong", {
         staticClass: "text-primary"
       }, [_vm._v(" x" + _vm._s(item.quantity))])])]);
     }) : [_c("span", {
       staticClass: "text-muted"
     }, [_vm._v("لا توجد منتجات")])]], 2), _vm._v(" "), _c("td", [_c("strong", {
       staticClass: "text-success"
-    }, [_vm._v(_vm._s(_vm.formatAmount(order.total_amount)) + " IQD")])]), _vm._v(" "), _c("td", [order.payment_type == "full_payment" ? _c("span", {
+    }, [_vm._v(_vm._s(_vm.formatAmount(order.total_amount)) + " " + _vm._s(order.currency))])]), _vm._v(" "), _c("td", [order.payment_type == "full_payment" ? _c("span", {
       staticClass: "badge badge-info"
     }, [_vm._v("دفع كامل")]) : order.payment_type == "installment" ? _c("span", {
       staticClass: "badge badge-warning"
@@ -29023,7 +29154,7 @@ var render = function render() {
   return _c("div", {
     staticClass: "row justify-content-center"
   }, [_c("div", {
-    staticClass: "col-md-9 col-lg-7"
+    staticClass: "col-md-12 col-lg-12"
   }, [_c("div", {
     staticClass: "card"
   }, [_c("div", {
@@ -29366,7 +29497,14 @@ var render = function render() {
     staticClass: "stat-card income-card"
   }, [_vm._m(1), _vm._v(" "), _c("div", {
     staticClass: "stat-content"
-  }, [_c("h6", [_vm._v("الإيرادات (الشهر الحالي)")]), _vm._v(" "), _c("h3", [_vm._v(_vm._s(_vm.formatCurrency(_vm.stats.current_month_income)))]), _vm._v(" "), _c("small", {
+  }, [_c("h6", [_vm._v("الإيرادات (الشهر الحالي)")]), _vm._v(" "), _vm.hasStat(_vm.stats.current_month_income) ? _c("div", _vm._l(_vm.stats.current_month_income, function (amount, cur) {
+    return _c("div", {
+      key: cur,
+      staticClass: "currency-line"
+    }, [_c("span", {
+      staticClass: "currency-tag"
+    }, [_vm._v(_vm._s(cur))]), _vm._v(" "), _c("strong", [_vm._v(_vm._s(_vm.formatAmount(amount)))])]);
+  }), 0) : _c("h3", [_vm._v("0")]), _vm._v(" "), _c("small", {
     staticClass: "text-muted"
   }, [_vm._v(_vm._s(_vm.currentMonthName))])])])]), _vm._v(" "), _c("div", {
     staticClass: "col-md-3 mb-4"
@@ -29374,7 +29512,14 @@ var render = function render() {
     staticClass: "stat-card expense-card"
   }, [_vm._m(2), _vm._v(" "), _c("div", {
     staticClass: "stat-content"
-  }, [_c("h6", [_vm._v("المصروفات (الشهر الحالي)")]), _vm._v(" "), _c("h3", [_vm._v(_vm._s(_vm.formatCurrency(_vm.stats.current_month_expense)))]), _vm._v(" "), _c("small", {
+  }, [_c("h6", [_vm._v("المصروفات (الشهر الحالي)")]), _vm._v(" "), _vm.hasStat(_vm.stats.current_month_expense) ? _c("div", _vm._l(_vm.stats.current_month_expense, function (amount, cur) {
+    return _c("div", {
+      key: cur,
+      staticClass: "currency-line"
+    }, [_c("span", {
+      staticClass: "currency-tag"
+    }, [_vm._v(_vm._s(cur))]), _vm._v(" "), _c("strong", [_vm._v(_vm._s(_vm.formatAmount(amount)))])]);
+  }), 0) : _c("h3", [_vm._v("0")]), _vm._v(" "), _c("small", {
     staticClass: "text-muted"
   }, [_vm._v(_vm._s(_vm.currentMonthName))])])])]), _vm._v(" "), _c("div", {
     staticClass: "col-md-3 mb-4"
@@ -29382,15 +29527,33 @@ var render = function render() {
     staticClass: "stat-card balance-card"
   }, [_vm._m(3), _vm._v(" "), _c("div", {
     staticClass: "stat-content"
-  }, [_c("h6", [_vm._v("الرصيد الحالي")]), _vm._v(" "), _c("h3", [_vm._v(_vm._s(_vm.formatCurrency(_vm.stats.current_balance)))]), _vm._v(" "), _c("small", {
-    "class": _vm.stats.current_balance >= 0 ? "text-success" : "text-danger"
-  }, [_vm._v("\n          " + _vm._s(_vm.stats.current_balance >= 0 ? "موجب" : "سالب") + "\n        ")])])])]), _vm._v(" "), _c("div", {
+  }, [_c("h6", [_vm._v("الرصيد الحالي")]), _vm._v(" "), _vm.hasStat(_vm.stats.current_balance) ? _c("div", _vm._l(_vm.stats.current_balance, function (amount, cur) {
+    return _c("div", {
+      key: cur,
+      staticClass: "currency-line"
+    }, [_c("span", {
+      staticClass: "currency-tag"
+    }, [_vm._v(_vm._s(cur))]), _vm._v(" "), _c("strong", {
+      "class": amount >= 0 ? "positive" : "negative"
+    }, [_vm._v(_vm._s(_vm.formatAmount(amount)))])]);
+  }), 0) : _c("h3", [_vm._v("0")]), _vm._v(" "), _c("small", {
+    "class": _vm.overallBalancePositive ? "text-muted" : "negative-text"
+  }, [_vm._v("\n          " + _vm._s(_vm.overallBalancePositive ? "موجب" : "سالب") + "\n        ")])])])]), _vm._v(" "), _c("div", {
     staticClass: "col-md-3 mb-4"
   }, [_c("div", {
     staticClass: "stat-card ytd-card"
   }, [_vm._m(4), _vm._v(" "), _c("div", {
     staticClass: "stat-content"
-  }, [_c("h6", [_vm._v("صافي الربح (السنة)")]), _vm._v(" "), _c("h3", [_vm._v(_vm._s(_vm.formatCurrency(_vm.stats.ytd_net)))]), _vm._v(" "), _c("small", {
+  }, [_c("h6", [_vm._v("صافي الربح (السنة)")]), _vm._v(" "), _vm.hasStat(_vm.stats.ytd_net) ? _c("div", _vm._l(_vm.stats.ytd_net, function (amount, cur) {
+    return _c("div", {
+      key: cur,
+      staticClass: "currency-line"
+    }, [_c("span", {
+      staticClass: "currency-tag"
+    }, [_vm._v(_vm._s(cur))]), _vm._v(" "), _c("strong", {
+      "class": amount >= 0 ? "" : "negative"
+    }, [_vm._v(_vm._s(_vm.formatAmount(amount)))])]);
+  }), 0) : _c("h3", [_vm._v("0")]), _vm._v(" "), _c("small", {
     staticClass: "text-muted"
   }, [_vm._v("من بداية السنة")])])])]), _vm._v(" "), _c("div", {
     staticClass: "col-md-12 mb-4"
@@ -29570,7 +29733,12 @@ var render = function render() {
       staticClass: "text-end"
     }, [_c("strong", {
       "class": transaction.type === "income" ? "text-success" : "text-danger"
-    }, [_vm._v("\n                    " + _vm._s(transaction.type === "income" ? "+" : "-") + _vm._s(_vm.formatCurrency(transaction.amount)) + "\n                  ")])])]);
+    }, [_vm._v("\n                    " + _vm._s(transaction.type === "income" ? "+" : "-") + _vm._s(_vm.formatAmount(transaction.amount)) + "\n                  ")]), _vm._v(" "), _c("span", {
+      staticClass: "ms-1 badge bg-light text-secondary",
+      staticStyle: {
+        "font-size": "10px"
+      }
+    }, [_vm._v("\n                    " + _vm._s(transaction.currency || "IQD") + "\n                  ")])])]);
   }), 0), _vm._v(" "), _c("tfoot", {
     staticClass: "table-light"
   }, [_c("tr", [_c("td", {
@@ -29580,9 +29748,15 @@ var render = function render() {
     }
   }, [_vm._v("الإجمالي:")]), _vm._v(" "), _c("td", {
     staticClass: "text-end"
-  }, [_c("strong", {
+  }, [Object.keys(_vm.totalByCurrency).length > 0 ? _c("div", _vm._l(_vm.totalByCurrency, function (amount, cur) {
+    return _c("div", {
+      key: cur
+    }, [_c("strong", {
+      "class": amount >= 0 ? "text-success" : "text-danger"
+    }, [_vm._v("\n                        " + _vm._s(amount >= 0 ? "+" : "") + _vm._s(_vm.formatAmount(amount)) + " " + _vm._s(cur) + "\n                      ")])]);
+  }), 0) : _c("strong", {
     staticClass: "text-primary"
-  }, [_vm._v(_vm._s(_vm.formatCurrency(_vm.totalAmount)))])])])])])])])])])]);
+  }, [_vm._v("0 IQD")])])])])])])])])])]);
 };
 var staticRenderFns = [function () {
   var _vm = this,
@@ -29683,7 +29857,7 @@ var render = function render() {
   return _c("div", {
     staticClass: "row justify-content-center"
   }, [_c("div", {
-    staticClass: "col-md-9 col-lg-7"
+    staticClass: "col-md-12 col-lg-12"
   }, [_c("div", {
     staticClass: "card"
   }, [_c("div", {
@@ -32970,14 +33144,6 @@ var router = new vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]({
     component: _components_pages_user_Create_vue__WEBPACK_IMPORTED_MODULE_17__["default"],
     meta: {
       title: "Create new user",
-      permission: ["super"]
-    }
-  }, {
-    path: prefix + "user-and-staff-list",
-    name: "user.list",
-    component: _components_pages_user_List_vue__WEBPACK_IMPORTED_MODULE_18__["default"],
-    meta: {
-      title: "User List",
       permission: ["super"]
     }
   }, {
@@ -47733,7 +47899,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_laravel_mix_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n.page-title[data-v-7a7de64e] {\n  color: #667eea;\n  font-weight: 600;\n  margin: 0;\n}\n.stat-card[data-v-7a7de64e] {\n  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n  border-radius: 15px;\n  padding: 1.5rem;\n  color: white;\n  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);\n  transition: transform 0.3s ease;\n  display: flex;\n  align-items: center;\n  gap: 1rem;\n  height: 120px;\n}\n.stat-card[data-v-7a7de64e]:hover {\n  transform: translateY(-5px);\n}\n.stat-card.income-card[data-v-7a7de64e] {\n  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);\n}\n.stat-card.expense-card[data-v-7a7de64e] {\n  background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);\n}\n.stat-card.balance-card[data-v-7a7de64e] {\n  background: linear-gradient(135deg, #4776e6 0%, #8e54e9 100%);\n}\n.stat-card.ytd-card[data-v-7a7de64e] {\n  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);\n}\n.stat-icon[data-v-7a7de64e] {\n  font-size: 2.5rem;\n  opacity: 0.8;\n}\n.stat-content h6[data-v-7a7de64e] {\n  font-size: 0.85rem;\n  margin-bottom: 0.5rem;\n  opacity: 0.9;\n  font-weight: 500;\n}\n.stat-content h3[data-v-7a7de64e] {\n  font-size: 1.5rem;\n  font-weight: 700;\n  margin: 0;\n}\n.stat-content small[data-v-7a7de64e] {\n  font-size: 0.75rem;\n  opacity: 0.8;\n}\n.modern-card[data-v-7a7de64e] {\n  border-radius: 15px;\n  border: none;\n  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);\n}\n.modern-card-title[data-v-7a7de64e] {\n  color: #667eea;\n  font-weight: 600;\n  margin-bottom: 1.5rem;\n  padding-bottom: 0.75rem;\n  border-bottom: 2px solid #f0f0f0;\n}\n.table[data-v-7a7de64e] {\n  margin-bottom: 0;\n}\n.table thead th[data-v-7a7de64e] {\n  border-bottom: 2px solid #dee2e6;\n  font-weight: 600;\n  color: #495057;\n  font-size: 0.9rem;\n}\n.table tbody tr[data-v-7a7de64e] {\n  transition: background-color 0.2s ease;\n}\n.table tbody tr[data-v-7a7de64e]:hover {\n  background-color: #f8f9fa;\n}\n.badge[data-v-7a7de64e] {\n  padding: 0.4rem 0.8rem;\n  font-weight: 500;\n  font-size: 0.75rem;\n}\n.form-label[data-v-7a7de64e] {\n  font-weight: 500;\n  color: #495057;\n  margin-bottom: 0.5rem;\n  font-size: 0.9rem;\n}\n.btn[data-v-7a7de64e] {\n  border-radius: 8px;\n  padding: 0.5rem 1.5rem;\n  font-weight: 500;\n  transition: all 0.3s ease;\n}\n.btn[data-v-7a7de64e]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);\n}\n.text-success[data-v-7a7de64e] {\n  color: #38ef7d !important;\n}\n.text-danger[data-v-7a7de64e] {\n  color: #eb3349 !important;\n}\n.text-primary[data-v-7a7de64e] {\n  color: #667eea !important;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n.page-title[data-v-7a7de64e] {\n  color: #667eea;\n  font-weight: 600;\n  margin: 0;\n}\n.stat-card[data-v-7a7de64e] {\n  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n  border-radius: 15px;\n  padding: 1.25rem;\n  color: white;\n  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);\n  transition: transform 0.3s ease;\n  display: flex;\n  align-items: flex-start;\n  gap: 1rem;\n  min-height: 120px;\n}\n.stat-card[data-v-7a7de64e]:hover {\n  transform: translateY(-5px);\n}\n.stat-card.income-card[data-v-7a7de64e] {\n  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);\n}\n.stat-card.expense-card[data-v-7a7de64e] {\n  background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);\n}\n.stat-card.balance-card[data-v-7a7de64e] {\n  background: linear-gradient(135deg, #4776e6 0%, #8e54e9 100%);\n}\n.stat-card.ytd-card[data-v-7a7de64e] {\n  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);\n}\n.stat-icon[data-v-7a7de64e] {\n  font-size: 2.5rem;\n  opacity: 0.8;\n  padding-top: 0.25rem;\n}\n.stat-content[data-v-7a7de64e] {\n  flex: 1;\n  min-width: 0;\n}\n.stat-content h6[data-v-7a7de64e] {\n  font-size: 0.85rem;\n  margin-bottom: 0.4rem;\n  opacity: 0.9;\n  font-weight: 500;\n}\n.stat-content h3[data-v-7a7de64e] {\n  font-size: 1.5rem;\n  font-weight: 700;\n  margin: 0 0 0.25rem;\n}\n.stat-content small[data-v-7a7de64e] {\n  font-size: 0.75rem;\n  opacity: 0.8;\n}\n.currency-line[data-v-7a7de64e] {\n  display: flex;\n  align-items: center;\n  gap: 0.4rem;\n  margin-bottom: 0.2rem;\n  font-size: 1rem;\n  font-weight: 700;\n}\n.currency-tag[data-v-7a7de64e] {\n  font-size: 0.65rem;\n  font-weight: 600;\n  background: rgba(255,255,255,0.25);\n  border-radius: 4px;\n  padding: 1px 5px;\n  letter-spacing: 0.5px;\n  flex-shrink: 0;\n}\n.positive[data-v-7a7de64e] {\n  color: #d4ffd4;\n}\n.negative[data-v-7a7de64e] {\n  color: #ffd4d4;\n}\n.negative-text[data-v-7a7de64e] {\n  color: #ffd4d4 !important;\n}\n.modern-card[data-v-7a7de64e] {\n  border-radius: 15px;\n  border: none;\n  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);\n}\n.modern-card-title[data-v-7a7de64e] {\n  color: #667eea;\n  font-weight: 600;\n  margin-bottom: 1.5rem;\n  padding-bottom: 0.75rem;\n  border-bottom: 2px solid #f0f0f0;\n}\n.table[data-v-7a7de64e] {\n  margin-bottom: 0;\n}\n.table thead th[data-v-7a7de64e] {\n  border-bottom: 2px solid #dee2e6;\n  font-weight: 600;\n  color: #495057;\n  font-size: 0.9rem;\n}\n.table tbody tr[data-v-7a7de64e] {\n  transition: background-color 0.2s ease;\n}\n.table tbody tr[data-v-7a7de64e]:hover {\n  background-color: #f8f9fa;\n}\n.badge[data-v-7a7de64e] {\n  padding: 0.4rem 0.8rem;\n  font-weight: 500;\n  font-size: 0.75rem;\n}\n.form-label[data-v-7a7de64e] {\n  font-weight: 500;\n  color: #495057;\n  margin-bottom: 0.5rem;\n  font-size: 0.9rem;\n}\n.btn[data-v-7a7de64e] {\n  border-radius: 8px;\n  padding: 0.5rem 1.5rem;\n  font-weight: 500;\n  transition: all 0.3s ease;\n}\n.btn[data-v-7a7de64e]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);\n}\n.text-success[data-v-7a7de64e] {\n  color: #38ef7d !important;\n}\n.text-danger[data-v-7a7de64e] {\n  color: #eb3349 !important;\n}\n.text-primary[data-v-7a7de64e] {\n  color: #667eea !important;\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

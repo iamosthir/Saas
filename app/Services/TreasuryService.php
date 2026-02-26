@@ -11,13 +11,14 @@ class TreasuryService
     /**
      * Record a treasury transaction
      */
-    public function recordTransaction($type, $category, $amount, $description, $transactionable = null)
+    public function recordTransaction($type, $category, $amount, $description, $transactionable = null, $currency = 'IQD')
     {
         $transaction = TreasuryTransaction::create([
             'merchant_id' => auth()->user()->merchant_id,
             'type' => $type,
             'category' => $category,
             'amount' => $amount,
+            'currency' => strtoupper($currency ?: 'IQD'),
             'description' => $description,
             'transactionable_id' => $transactionable ? $transactionable->id : null,
             'transactionable_type' => $transactionable ? get_class($transactionable) : null,
@@ -73,7 +74,7 @@ class TreasuryService
     }
 
     /**
-     * Get dashboard statistics
+     * Get dashboard statistics grouped by currency
      */
     public function getDashboardStats()
     {
@@ -81,44 +82,65 @@ class TreasuryService
         $currentYear = now()->year;
         $currentMonth = now()->month;
 
-        // Current month stats
-        $currentMonthIncome = TreasuryTransaction::where('merchant_id', $merchantId)
-            ->income()
-            ->forMonth($currentYear, $currentMonth)
-            ->sum('amount');
+        $monthIncome = TreasuryTransaction::where('merchant_id', $merchantId)
+            ->income()->forMonth($currentYear, $currentMonth)
+            ->selectRaw('currency, SUM(amount) as total')
+            ->groupBy('currency')
+            ->pluck('total', 'currency')
+            ->toArray();
 
-        $currentMonthExpense = TreasuryTransaction::where('merchant_id', $merchantId)
-            ->expense()
-            ->forMonth($currentYear, $currentMonth)
-            ->sum('amount');
+        $monthExpense = TreasuryTransaction::where('merchant_id', $merchantId)
+            ->expense()->forMonth($currentYear, $currentMonth)
+            ->selectRaw('currency, SUM(amount) as total')
+            ->groupBy('currency')
+            ->pluck('total', 'currency')
+            ->toArray();
 
-        // Year to date stats
         $ytdIncome = TreasuryTransaction::where('merchant_id', $merchantId)
-            ->income()
-            ->forYear($currentYear)
-            ->sum('amount');
+            ->income()->forYear($currentYear)
+            ->selectRaw('currency, SUM(amount) as total')
+            ->groupBy('currency')
+            ->pluck('total', 'currency')
+            ->toArray();
 
         $ytdExpense = TreasuryTransaction::where('merchant_id', $merchantId)
+            ->expense()->forYear($currentYear)
+            ->selectRaw('currency, SUM(amount) as total')
+            ->groupBy('currency')
+            ->pluck('total', 'currency')
+            ->toArray();
+
+        // ytd_net per currency
+        $ytdNet = [];
+        foreach (array_unique(array_merge(array_keys($ytdIncome), array_keys($ytdExpense))) as $cur) {
+            $ytdNet[$cur] = (float)($ytdIncome[$cur] ?? 0) - (float)($ytdExpense[$cur] ?? 0);
+        }
+
+        // Current balance per currency (all-time income minus expense)
+        $allIncome = TreasuryTransaction::where('merchant_id', $merchantId)
+            ->income()
+            ->selectRaw('currency, SUM(amount) as total')
+            ->groupBy('currency')
+            ->pluck('total', 'currency')
+            ->toArray();
+
+        $allExpense = TreasuryTransaction::where('merchant_id', $merchantId)
             ->expense()
-            ->forYear($currentYear)
-            ->sum('amount');
+            ->selectRaw('currency, SUM(amount) as total')
+            ->groupBy('currency')
+            ->pluck('total', 'currency')
+            ->toArray();
 
-        // Current balance (latest closing balance)
-        $latestSummary = TreasurySummary::where('merchant_id', $merchantId)
-            ->orderBy('year', 'desc')
-            ->orderBy('month', 'desc')
-            ->first();
-
-        $currentBalance = $latestSummary ? $latestSummary->closing_balance : 0;
+        $currentBalance = [];
+        foreach (array_unique(array_merge(array_keys($allIncome), array_keys($allExpense))) as $cur) {
+            $currentBalance[$cur] = (float)($allIncome[$cur] ?? 0) - (float)($allExpense[$cur] ?? 0);
+        }
 
         return [
-            'current_month_income' => $currentMonthIncome,
-            'current_month_expense' => $currentMonthExpense,
-            'current_month_net' => $currentMonthIncome - $currentMonthExpense,
-            'ytd_income' => $ytdIncome,
-            'ytd_expense' => $ytdExpense,
-            'ytd_net' => $ytdIncome - $ytdExpense,
-            'current_balance' => $currentBalance,
+            'current_month_income'  => $monthIncome,
+            'current_month_expense' => $monthExpense,
+            'ytd_net'               => $ytdNet,
+            'current_balance'       => $currentBalance,
         ];
     }
 
