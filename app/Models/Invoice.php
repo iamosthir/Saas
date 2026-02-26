@@ -32,6 +32,7 @@ class Invoice extends Model
         'custom_fields',
         'enable_signature',
         'order_status_id',
+        'currency',
         'created_by',
     ];
 

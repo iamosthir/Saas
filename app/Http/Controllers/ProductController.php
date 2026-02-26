@@ -22,7 +22,15 @@ class ProductController extends Controller
         if($req->supplier_id != "") {
             $products = $products->where("supplier_id", $req->supplier_id);
         }
-        $products = $products->get();
+        $products = $products->get()
+            ->map(function ($product) {
+                $product->default_price     = convertCurrency($product->default_price);
+                $product->purchase_price    = convertCurrency($product->purchase_price);
+                $product->sell_price        = convertCurrency($product->sell_price);
+                $product->installment_price = convertCurrency($product->installment_price);
+                $product->discount_amount   = convertCurrency($product->discount_amount);
+                return $product;
+            });
         return response()->json($products);
     }
 
@@ -39,7 +47,14 @@ class ProductController extends Controller
             return response()->json(['status' => 'fail', 'msg' => 'Product not found'], 404);
         }
 
-        $vars = ProductVariation::where("product_id", $req->productId)->get();
+        $vars = ProductVariation::where("product_id", $req->productId)->get()
+            ->map(function ($var) {
+                $var->price            = convertCurrency($var->price);
+                $var->installment_price = convertCurrency($var->installment_price);
+                $var->purchase_price   = convertCurrency($var->purchase_price);
+                $var->average_price    = convertCurrency($var->average_price);
+                return $var;
+            });
         return response()->json($vars);
     }
 

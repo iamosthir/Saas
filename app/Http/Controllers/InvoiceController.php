@@ -138,6 +138,7 @@ class InvoiceController extends Controller
                 'custom_fields' => $request->custom_fields,
                 'enable_signature' => $request->enable_signature ?? 1,
                 'order_status_id' => $request->order_status_id,
+                'currency' => $user->currency ?? 'IQD',
                 'created_by' => $user->id,
             ]);
 
@@ -163,6 +164,7 @@ class InvoiceController extends Controller
                     'quantity' => $item['quantity'],
                     'original_price' => $priceToUse,
                     'custom_price' => $finalPrice,
+                    'unit_cost' => convertCurrency((float) ($variation ? $variation->purchase_price : $product->purchase_price)),
                     'line_total' => $finalPrice * $item['quantity'],
                     'custom_fields' => $item['custom_fields'] ?? null,
                 ]);

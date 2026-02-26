@@ -3257,6 +3257,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
   },
   data: function data() {
     return {
+      currencyName: window.currencyName || 'USD',
       form: new Form({
         customer_name: "",
         customer_phone1: "",
@@ -14810,14 +14811,14 @@ var render = function render() {
       domProps: {
         value: variation.id
       }
-    }, [_vm._v("\n                                      " + _vm._s(variation.var_name) + " - " + _vm._s(_vm.formatNumber(_vm.getPriceForVariation(variation))) + " د.ع (المخزون: " + _vm._s(variation.quantity) + ")\n                                  ")]);
+    }, [_vm._v("\n                                      " + _vm._s(variation.var_name) + " - " + _vm._s(_vm.formatNumber(_vm.getPriceForVariation(variation))) + " " + _vm._s(_vm.currencyName) + " (المخزون: " + _vm._s(variation.quantity) + ")\n                                  ")]);
   }), 0)])]), _vm._v(" "), _c("div", {
     staticClass: "col-md-3 mb-4"
   }, [_c("div", {
     staticClass: "modern-form-group"
   }, [_c("label", {
     staticClass: "modern-form-label"
-  }, [_vm._v("سعر مخصص")]), _vm._v(" "), _c("input", {
+  }, [_vm._v("سعر مخصص (" + _vm._s(_vm.currencyName) + ")")]), _vm._v(" "), _c("input", {
     directives: [{
       name: "model",
       rawName: "v-model",
@@ -14930,7 +14931,7 @@ var render = function render() {
   }, [_vm._m(4), _vm._v(" "), _c("tbody", [_vm.invoiceItems.length > 0 ? _vm._l(_vm.invoiceItems, function (item, index) {
     return _c("tr", {
       key: index
-    }, [_c("td", [_vm._v(_vm._s(index + 1))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(item.product_name))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(item.variation_name || "غير متوفر"))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(item.quantity))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm.formatNumber(item.custom_price)) + " د.ع")]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm.formatNumber(item.custom_price * item.quantity)) + " د.ع")]), _vm._v(" "), _c("td", [_c("button", {
+    }, [_c("td", [_vm._v(_vm._s(index + 1))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(item.product_name))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(item.variation_name || "غير متوفر"))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(item.quantity))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm.formatNumber(item.custom_price)) + " " + _vm._s(_vm.currencyName))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm.formatNumber(item.custom_price * item.quantity)) + " " + _vm._s(_vm.currencyName))]), _vm._v(" "), _c("td", [_c("button", {
       staticClass: "btn btn-danger btn-sm",
       on: {
         click: function click($event) {
@@ -14946,7 +14947,7 @@ var render = function render() {
     attrs: {
       colspan: "2"
     }
-  }, [_c("strong", [_vm._v(_vm._s(_vm.formatNumber(_vm.subtotal)) + " د.ع")])])]) : _vm._e()], 2)])])]), _vm._v(" "), _c("hr"), _vm._v(" "), _vm.invoiceItems.length > 0 ? _c("div", {
+  }, [_c("strong", [_vm._v(_vm._s(_vm.formatNumber(_vm.subtotal)) + " " + _vm._s(_vm.currencyName))])])]) : _vm._e()], 2)])])]), _vm._v(" "), _c("hr"), _vm._v(" "), _vm.invoiceItems.length > 0 ? _c("div", {
     staticClass: "row"
   }, [_vm._m(7), _vm._v(" "), _c("div", {
     staticClass: "col-md-6 mb-4"
@@ -14987,7 +14988,7 @@ var render = function render() {
     staticClass: "modern-form-group"
   }, [_c("label", {
     staticClass: "modern-form-label"
-  }, [_vm._v("قيمة الخصم")]), _vm._v(" "), _c("input", {
+  }, [_vm._v("قيمة الخصم (" + _vm._s(_vm.currencyName) + ")")]), _vm._v(" "), _c("input", {
     directives: [{
       name: "model",
       rawName: "v-model",
@@ -15016,7 +15017,7 @@ var render = function render() {
     staticClass: "modern-form-group"
   }, [_c("label", {
     staticClass: "modern-form-label"
-  }, [_vm._v("رسوم إضافية")]), _vm._v(" "), _c("input", {
+  }, [_vm._v("رسوم إضافية (" + _vm._s(_vm.currencyName) + ")")]), _vm._v(" "), _c("input", {
     directives: [{
       name: "model",
       rawName: "v-model",
@@ -15043,13 +15044,13 @@ var render = function render() {
     staticClass: "col-md-6 mb-4"
   }, [_c("div", {
     staticClass: "alert alert-success"
-  }, [_c("strong", [_vm._v("المبلغ الإجمالي: " + _vm._s(_vm.formatNumber(_vm.totalAmount)) + " د.ع")])])]), _vm._v(" "), _vm.form.payment_type === "full_payment" ? _c("div", {
+  }, [_c("strong", [_vm._v("المبلغ الإجمالي: " + _vm._s(_vm.formatNumber(_vm.totalAmount)) + " " + _vm._s(_vm.currencyName))])])]), _vm._v(" "), _vm.form.payment_type === "full_payment" ? _c("div", {
     staticClass: "col-md-6 mb-4"
   }, [_c("div", {
     staticClass: "modern-form-group"
   }, [_c("label", {
     staticClass: "modern-form-label"
-  }, [_vm._v("المبلغ المدفوع")]), _vm._v(" "), _c("input", {
+  }, [_vm._v("المبلغ المدفوع (" + _vm._s(_vm.currencyName) + ")")]), _vm._v(" "), _c("input", {
     directives: [{
       name: "model",
       rawName: "v-model",
@@ -15159,7 +15160,7 @@ var render = function render() {
     staticClass: "modern-form-group"
   }, [_c("label", {
     staticClass: "modern-form-label"
-  }, [_vm._v("مبلغ العربون")]), _vm._v(" "), _c("input", {
+  }, [_vm._v("مبلغ العربون (" + _vm._s(_vm.currencyName) + ")")]), _vm._v(" "), _c("input", {
     directives: [{
       name: "model",
       rawName: "v-model",
@@ -15185,7 +15186,7 @@ var render = function render() {
     }
   }), _vm._v(" "), _c("small", {
     staticClass: "text-muted"
-  }, [_vm._v("المبلغ المُمَوَّل: " + _vm._s(_vm.formatNumber(_vm.amountToFinance)) + " د.ع")]), _vm._v(" "), _c("HasError", {
+  }, [_vm._v("المبلغ المُمَوَّل: " + _vm._s(_vm.formatNumber(_vm.amountToFinance)) + " " + _vm._s(_vm.currencyName))]), _vm._v(" "), _c("HasError", {
     attrs: {
       form: _vm.form,
       field: "deposit_amount"
@@ -15196,7 +15197,7 @@ var render = function render() {
     staticClass: "modern-form-group"
   }, [_c("label", {
     staticClass: "modern-form-label"
-  }, [_vm._v("دفعة أولية إضافية غير العربون (اختياري)")]), _vm._v(" "), _c("input", {
+  }, [_vm._v("دفعة أولية إضافية غير العربون (" + _vm._s(_vm.currencyName) + ") (اختياري)")]), _vm._v(" "), _c("input", {
     directives: [{
       name: "model",
       rawName: "v-model",
@@ -15227,15 +15228,15 @@ var render = function render() {
     staticClass: "alert alert-info"
   }, [_c("h6", [_vm._v("معاينة خطة الأقساط:")]), _vm._v(" "), _c("p", {
     staticClass: "mb-1"
-  }, [_c("strong", [_vm._v("المبلغ الإجمالي:")]), _vm._v(" " + _vm._s(_vm.formatNumber(_vm.totalAmount)) + " د.ع")]), _vm._v(" "), _vm.form.has_deposit ? _c("p", {
+  }, [_c("strong", [_vm._v("المبلغ الإجمالي:")]), _vm._v(" " + _vm._s(_vm.formatNumber(_vm.totalAmount)) + " " + _vm._s(_vm.currencyName))]), _vm._v(" "), _vm.form.has_deposit ? _c("p", {
     staticClass: "mb-1"
-  }, [_c("strong", [_vm._v("العربون:")]), _vm._v(" " + _vm._s(_vm.formatNumber(_vm.form.deposit_amount || 0)) + " د.ع")]) : _vm._e(), _vm._v(" "), _c("p", {
+  }, [_c("strong", [_vm._v("العربون:")]), _vm._v(" " + _vm._s(_vm.formatNumber(_vm.form.deposit_amount || 0)) + " " + _vm._s(_vm.currencyName))]) : _vm._e(), _vm._v(" "), _c("p", {
     staticClass: "mb-1"
-  }, [_c("strong", [_vm._v("المبلغ المُمَوَّل:")]), _vm._v(" " + _vm._s(_vm.formatNumber(_vm.amountToFinance)) + " د.ع")]), _vm._v(" "), _c("p", {
+  }, [_c("strong", [_vm._v("المبلغ المُمَوَّل:")]), _vm._v(" " + _vm._s(_vm.formatNumber(_vm.amountToFinance)) + " " + _vm._s(_vm.currencyName))]), _vm._v(" "), _c("p", {
     staticClass: "mb-1 text-success"
-  }, [_c("strong", [_vm._v("القسط الشهري (أول " + _vm._s(parseInt(_vm.form.installment_months) - 1) + " شهر):")]), _vm._v(" " + _vm._s(_vm.formatNumber(_vm.monthlyInstallment)) + " د.ع لكل شهر")]), _vm._v(" "), _c("p", {
+  }, [_c("strong", [_vm._v("القسط الشهري (أول " + _vm._s(parseInt(_vm.form.installment_months) - 1) + " شهر):")]), _vm._v(" " + _vm._s(_vm.formatNumber(_vm.monthlyInstallment)) + " " + _vm._s(_vm.currencyName) + " لكل شهر")]), _vm._v(" "), _c("p", {
     staticClass: "mb-1"
-  }, [_c("strong", [_vm._v("القسط الأخير (الشهر " + _vm._s(parseInt(_vm.form.installment_months)) + "):")]), _vm._v(" " + _vm._s(_vm.formatNumber(_vm.lastMonthInstallment)) + " د.ع")]), _vm._v(" "), _c("p", {
+  }, [_c("strong", [_vm._v("القسط الأخير (الشهر " + _vm._s(parseInt(_vm.form.installment_months)) + "):")]), _vm._v(" " + _vm._s(_vm.formatNumber(_vm.lastMonthInstallment)) + " " + _vm._s(_vm.currencyName))]), _vm._v(" "), _c("p", {
     staticClass: "mb-0"
   }, [_c("strong", [_vm._v("إجمالي عدد الأقساط:")]), _vm._v(" " + _vm._s(parseInt(_vm.form.installment_months)))])])]) : _vm._e()] : _vm._e(), _vm._v(" "), _c("div", {
     staticClass: "col-md-12 mb-4"
@@ -20771,7 +20772,7 @@ var render = function render() {
       return _c("div", {
         key: field.id
       }, [item.custom_fields[field.field_key] ? _c("span", [_c("strong", [_vm._v(_vm._s(field.field_label) + ":")]), _vm._v("\n                                                            " + _vm._s(_vm.formatCustomFieldValue(item.custom_fields[field.field_key], field.field_type)) + "\n                                                        ")]) : _vm._e()]);
-    }), 0) : _vm._e()]) : _vm._e(), _vm._v(" "), _c("td", [_vm._v(_vm._s(item.quantity))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(item.custom_price) + " IQD")]), _vm._v(" "), _c("td", [_vm._v(_vm._s(item.line_total) + " IQD")])]);
+    }), 0) : _vm._e()]) : _vm._e(), _vm._v(" "), _c("td", [_vm._v(_vm._s(item.quantity))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(item.custom_price) + " " + _vm._s(_vm.invoice.currency))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(item.line_total) + " " + _vm._s(_vm.invoice.currency))])]);
   }), 0), _vm._v(" "), _c("tfoot", {
     staticClass: "bg-light"
   }, [_c("tr", [_c("td", {
@@ -20779,26 +20780,26 @@ var render = function render() {
     attrs: {
       colspan: _vm.hasItemCustomFields ? 6 : 5
     }
-  }, [_c("strong", [_vm._v("المجموع الفرعي:")])]), _vm._v(" "), _c("td", [_c("strong", [_vm._v(_vm._s(_vm.invoice.subtotal) + " IQD")])])]), _vm._v(" "), _vm.invoice.discount_amount > 0 ? _c("tr", [_c("td", {
+  }, [_c("strong", [_vm._v("المجموع الفرعي:")])]), _vm._v(" "), _c("td", [_c("strong", [_vm._v(_vm._s(_vm.invoice.subtotal) + " " + _vm._s(_vm.invoice.currency))])])]), _vm._v(" "), _vm.invoice.discount_amount > 0 ? _c("tr", [_c("td", {
     staticClass: "text-end",
     attrs: {
       colspan: _vm.hasItemCustomFields ? 6 : 5
     }
   }, [_c("strong", [_vm._v("الخصم:")])]), _vm._v(" "), _c("td", [_c("strong", {
     staticClass: "text-danger"
-  }, [_vm._v("-" + _vm._s(_vm.invoice.discount_amount) + " IQD")])])]) : _vm._e(), _vm._v(" "), _vm.invoice.extra_charge > 0 ? _c("tr", [_c("td", {
+  }, [_vm._v("-" + _vm._s(_vm.invoice.discount_amount) + " " + _vm._s(_vm.invoice.currency))])])]) : _vm._e(), _vm._v(" "), _vm.invoice.extra_charge > 0 ? _c("tr", [_c("td", {
     staticClass: "text-end",
     attrs: {
       colspan: _vm.hasItemCustomFields ? 6 : 5
     }
-  }, [_c("strong", [_vm._v("رسوم إضافية:")])]), _vm._v(" "), _c("td", [_c("strong", [_vm._v(_vm._s(_vm.invoice.extra_charge) + " IQD")])])]) : _vm._e(), _vm._v(" "), _c("tr", {
+  }, [_c("strong", [_vm._v("رسوم إضافية:")])]), _vm._v(" "), _c("td", [_c("strong", [_vm._v(_vm._s(_vm.invoice.extra_charge) + " " + _vm._s(_vm.invoice.currency))])])]) : _vm._e(), _vm._v(" "), _c("tr", {
     staticClass: "table-primary"
   }, [_c("td", {
     staticClass: "text-end",
     attrs: {
       colspan: _vm.hasItemCustomFields ? 6 : 5
     }
-  }, [_c("strong", [_vm._v("المجموع الكلي:")])]), _vm._v(" "), _c("td", [_c("strong", [_vm._v(_vm._s(_vm.invoice.total_amount) + " IQD")])])])])])])])]), _vm._v(" "), _c("div", {
+  }, [_c("strong", [_vm._v("المجموع الكلي:")])]), _vm._v(" "), _c("td", [_c("strong", [_vm._v(_vm._s(_vm.invoice.total_amount) + " " + _vm._s(_vm.invoice.currency))])])])])])])])]), _vm._v(" "), _c("div", {
     staticClass: "row mb-4"
   }, [_c("div", {
     staticClass: "col-md-4"
@@ -20806,19 +20807,19 @@ var render = function render() {
     staticClass: "card bg-success text-white"
   }, [_c("div", {
     staticClass: "card-body text-center"
-  }, [_c("h6", [_vm._v("المبلغ المدفوع")]), _vm._v(" "), _c("h3", [_vm._v(_vm._s(_vm.invoice.paid_amount) + " IQD")])])])]), _vm._v(" "), _c("div", {
+  }, [_c("h6", [_vm._v("المبلغ المدفوع")]), _vm._v(" "), _c("h3", [_vm._v(_vm._s(_vm.invoice.paid_amount) + " " + _vm._s(_vm.invoice.currency))])])])]), _vm._v(" "), _c("div", {
     staticClass: "col-md-4"
   }, [_c("div", {
     staticClass: "card bg-warning text-white"
   }, [_c("div", {
     staticClass: "card-body text-center"
-  }, [_c("h6", [_vm._v("المبلغ المتبقي")]), _vm._v(" "), _c("h3", [_vm._v(_vm._s(_vm.invoice.remaining_amount) + " IQD")])])])]), _vm._v(" "), _c("div", {
+  }, [_c("h6", [_vm._v("المبلغ المتبقي")]), _vm._v(" "), _c("h3", [_vm._v(_vm._s(_vm.invoice.remaining_amount) + " " + _vm._s(_vm.invoice.currency))])])])]), _vm._v(" "), _c("div", {
     staticClass: "col-md-4"
   }, [_c("div", {
     staticClass: "card bg-primary text-white"
   }, [_c("div", {
     staticClass: "card-body text-center"
-  }, [_c("h6", [_vm._v("المبلغ الإجمالي")]), _vm._v(" "), _c("h3", [_vm._v(_vm._s(_vm.invoice.total_amount) + " IQD")])])])])]), _vm._v(" "), _vm.invoice.payment_type == "installment" ? _c("div", {
+  }, [_c("h6", [_vm._v("المبلغ الإجمالي")]), _vm._v(" "), _c("h3", [_vm._v(_vm._s(_vm.invoice.total_amount) + " " + _vm._s(_vm.invoice.currency))])])])])]), _vm._v(" "), _vm.invoice.payment_type == "installment" ? _c("div", {
     staticClass: "card"
   }, [_c("div", {
     staticClass: "card-body"
@@ -20914,15 +20915,15 @@ var render = function render() {
       staticClass: "text-end"
     }, [_c("h5", {
       staticClass: "mb-1"
-    }, [_vm._v(_vm._s(installment.amount) + " IQD")]), _vm._v(" "), _c("small", {
+    }, [_vm._v(_vm._s(installment.amount) + " " + _vm._s(_vm.invoice.currency))]), _vm._v(" "), _c("small", {
       staticClass: "text-muted"
     }, [_vm._v("\n                                                            مدفوع: "), _c("strong", {
       staticClass: "text-success"
-    }, [_vm._v(_vm._s(installment.paid_amount) + " IQD")])]), _vm._v(" "), _c("br"), _vm._v(" "), _c("small", {
+    }, [_vm._v(_vm._s(installment.paid_amount) + " " + _vm._s(_vm.invoice.currency))])]), _vm._v(" "), _c("br"), _vm._v(" "), _c("small", {
       staticClass: "text-muted"
     }, [_vm._v("\n                                                            متبقي: "), _c("strong", {
       staticClass: "text-danger"
-    }, [_vm._v(_vm._s(installment.amount - installment.paid_amount) + " IQD")])])])])])]);
+    }, [_vm._v(_vm._s(installment.amount - installment.paid_amount) + " " + _vm._s(_vm.invoice.currency))])])])])])]);
   }), 0) : _c("div", {
     staticClass: "alert alert-info"
   }, [_c("i", {
@@ -20946,7 +20947,7 @@ var render = function render() {
     }, [_c("td", [_vm._v(_vm._s(index + 1))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(_vm.moment(log.created_at).format("DD MMM YYYY, h:mm a")))]), _vm._v(" "), _c("td", [_c("span", {
       staticClass: "badge",
       "class": _vm.getActionTypeBadgeClass(log.action_type)
-    }, [_vm._v("\n                                                            " + _vm._s(_vm.getActionTypeLabel(log.action_type)) + "\n                                                        ")])]), _vm._v(" "), _c("td", [_vm._v(_vm._s(log.description))]), _vm._v(" "), _c("td", [_c("strong", [_vm._v(_vm._s(log.amount ? log.amount.toLocaleString() : "-") + " IQD")])]), _vm._v(" "), _c("td", [_vm._v(_vm._s(log.user ? log.user.name : "النظام"))])]);
+    }, [_vm._v("\n                                                            " + _vm._s(_vm.getActionTypeLabel(log.action_type)) + "\n                                                        ")])]), _vm._v(" "), _c("td", [_vm._v(_vm._s(log.description))]), _vm._v(" "), _c("td", [_c("strong", [_vm._v(_vm._s(log.amount ? log.amount.toLocaleString() : "-") + " " + _vm._s(_vm.invoice.currency))])]), _vm._v(" "), _c("td", [_vm._v(_vm._s(log.user ? log.user.name : "النظام"))])]);
   }), 0)])]) : _c("div", {
     staticClass: "alert alert-info"
   }, [_c("i", {
@@ -20981,7 +20982,7 @@ var render = function render() {
     staticClass: "modal-body"
   }, [_c("div", {
     staticClass: "alert alert-info"
-  }, [_c("strong", [_vm._v("مبلغ القسط:")]), _vm._v(" " + _vm._s(_vm.selectedInstallment.amount) + " IQD"), _c("br"), _vm._v(" "), _c("strong", [_vm._v("المبلغ المدفوع سابقاً:")]), _vm._v(" " + _vm._s(_vm.selectedInstallment.paid_amount) + " IQD"), _c("br"), _vm._v(" "), _c("strong", [_vm._v("المبلغ المتبقي:")]), _vm._v(" " + _vm._s(_vm.selectedInstallment.amount - _vm.selectedInstallment.paid_amount) + " IQD\n                    ")]), _vm._v(" "), _c("div", {
+  }, [_c("strong", [_vm._v("مبلغ القسط:")]), _vm._v(" " + _vm._s(_vm.selectedInstallment.amount) + " " + _vm._s(_vm.invoice.currency)), _c("br"), _vm._v(" "), _c("strong", [_vm._v("المبلغ المدفوع سابقاً:")]), _vm._v(" " + _vm._s(_vm.selectedInstallment.paid_amount) + " " + _vm._s(_vm.invoice.currency)), _c("br"), _vm._v(" "), _c("strong", [_vm._v("المبلغ المتبقي:")]), _vm._v(" " + _vm._s(_vm.selectedInstallment.amount - _vm.selectedInstallment.paid_amount) + " " + _vm._s(_vm.invoice.currency) + "\n                    ")]), _vm._v(" "), _c("div", {
     staticClass: "form-group"
   }, [_c("label", {
     staticClass: "form-label",

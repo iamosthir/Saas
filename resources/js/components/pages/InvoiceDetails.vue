@@ -148,26 +148,26 @@
                                                     </div>
                                                 </td>
                                                 <td>{{ item.quantity }}</td>
-                                                <td>{{ item.custom_price }} IQD</td>
-                                                <td>{{ item.line_total }} IQD</td>
+                                                <td>{{ item.custom_price }} {{ invoice.currency }}</td>
+                                                <td>{{ item.line_total }} {{ invoice.currency }}</td>
                                             </tr>
                                         </tbody>
                                         <tfoot class="bg-light">
                                             <tr>
                                                 <td :colspan="hasItemCustomFields ? 6 : 5" class="text-end"><strong>المجموع الفرعي:</strong></td>
-                                                <td><strong>{{ invoice.subtotal }} IQD</strong></td>
+                                                <td><strong>{{ invoice.subtotal }} {{ invoice.currency }}</strong></td>
                                             </tr>
                                             <tr v-if="invoice.discount_amount > 0">
                                                 <td :colspan="hasItemCustomFields ? 6 : 5" class="text-end"><strong>الخصم:</strong></td>
-                                                <td><strong class="text-danger">-{{ invoice.discount_amount }} IQD</strong></td>
+                                                <td><strong class="text-danger">-{{ invoice.discount_amount }} {{ invoice.currency }}</strong></td>
                                             </tr>
                                             <tr v-if="invoice.extra_charge > 0">
                                                 <td :colspan="hasItemCustomFields ? 6 : 5" class="text-end"><strong>رسوم إضافية:</strong></td>
-                                                <td><strong>{{ invoice.extra_charge }} IQD</strong></td>
+                                                <td><strong>{{ invoice.extra_charge }} {{ invoice.currency }}</strong></td>
                                             </tr>
                                             <tr class="table-primary">
                                                 <td :colspan="hasItemCustomFields ? 6 : 5" class="text-end"><strong>المجموع الكلي:</strong></td>
-                                                <td><strong>{{ invoice.total_amount }} IQD</strong></td>
+                                                <td><strong>{{ invoice.total_amount }} {{ invoice.currency }}</strong></td>
                                             </tr>
                                         </tfoot>
                                     </table>
@@ -181,7 +181,7 @@
                                 <div class="card bg-success text-white">
                                     <div class="card-body text-center">
                                         <h6>المبلغ المدفوع</h6>
-                                        <h3>{{ invoice.paid_amount }} IQD</h3>
+                                        <h3>{{ invoice.paid_amount }} {{ invoice.currency }}</h3>
                                     </div>
                                 </div>
                             </div>
@@ -189,7 +189,7 @@
                                 <div class="card bg-warning text-white">
                                     <div class="card-body text-center">
                                         <h6>المبلغ المتبقي</h6>
-                                        <h3>{{ invoice.remaining_amount }} IQD</h3>
+                                        <h3>{{ invoice.remaining_amount }} {{ invoice.currency }}</h3>
                                     </div>
                                 </div>
                             </div>
@@ -197,7 +197,7 @@
                                 <div class="card bg-primary text-white">
                                     <div class="card-body text-center">
                                         <h6>المبلغ الإجمالي</h6>
-                                        <h3>{{ invoice.total_amount }} IQD</h3>
+                                        <h3>{{ invoice.total_amount }} {{ invoice.currency }}</h3>
                                     </div>
                                 </div>
                             </div>
@@ -258,13 +258,13 @@
                                                             </p>
                                                         </div>
                                                         <div class="text-end">
-                                                            <h5 class="mb-1">{{ installment.amount }} IQD</h5>
+                                                            <h5 class="mb-1">{{ installment.amount }} {{ invoice.currency }}</h5>
                                                             <small class="text-muted">
-                                                                مدفوع: <strong class="text-success">{{ installment.paid_amount }} IQD</strong>
+                                                                مدفوع: <strong class="text-success">{{ installment.paid_amount }} {{ invoice.currency }}</strong>
                                                             </small>
                                                             <br>
                                                             <small class="text-muted">
-                                                                متبقي: <strong class="text-danger">{{ installment.amount - installment.paid_amount }} IQD</strong>
+                                                                متبقي: <strong class="text-danger">{{ installment.amount - installment.paid_amount }} {{ invoice.currency }}</strong>
                                                             </small>
                                                         </div>
                                                     </div>
@@ -305,7 +305,7 @@
                                                             </span>
                                                         </td>
                                                         <td>{{ log.description }}</td>
-                                                        <td><strong>{{ log.amount ? log.amount.toLocaleString() : '-' }} IQD</strong></td>
+                                                        <td><strong>{{ log.amount ? log.amount.toLocaleString() : '-' }} {{ invoice.currency }}</strong></td>
                                                         <td>{{ log.user ? log.user.name : 'النظام' }}</td>
                                                     </tr>
                                                 </tbody>
@@ -333,9 +333,9 @@
                     </div>
                     <div class="modal-body">
                         <div class="alert alert-info">
-                            <strong>مبلغ القسط:</strong> {{ selectedInstallment.amount }} IQD<br>
-                            <strong>المبلغ المدفوع سابقاً:</strong> {{ selectedInstallment.paid_amount }} IQD<br>
-                            <strong>المبلغ المتبقي:</strong> {{ selectedInstallment.amount - selectedInstallment.paid_amount }} IQD
+                            <strong>مبلغ القسط:</strong> {{ selectedInstallment.amount }} {{ invoice.currency }}<br>
+                            <strong>المبلغ المدفوع سابقاً:</strong> {{ selectedInstallment.paid_amount }} {{ invoice.currency }}<br>
+                            <strong>المبلغ المتبقي:</strong> {{ selectedInstallment.amount - selectedInstallment.paid_amount }} {{ invoice.currency }}
                         </div>
                         <div class="form-group">
                             <label for="paymentAmount" class="form-label">المبلغ المدفوع</label>

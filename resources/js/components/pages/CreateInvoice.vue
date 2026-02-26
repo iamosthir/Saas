@@ -232,7 +232,7 @@
                                       <option v-for="variation in productVariations"
                                           :key="variation.id"
                                           :value="variation.id">
-                                          {{ variation.var_name }} - {{ formatNumber(getPriceForVariation(variation)) }} د.ع (المخزون: {{ variation.quantity }})
+                                          {{ variation.var_name }} - {{ formatNumber(getPriceForVariation(variation)) }} {{ currencyName }} (المخزون: {{ variation.quantity }})
                                       </option>
                                   </select>
                               </div>
@@ -240,7 +240,7 @@
 
                           <div class="col-md-3 mb-4">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label">سعر مخصص</label>
+                                  <label class="modern-form-label">سعر مخصص ({{ currencyName }})</label>
                                   <input type="number" class="modern-form-control"
                                       v-model="currentItem.custom_price"
                                       placeholder="0"
@@ -298,8 +298,8 @@
                                               <td>{{ item.product_name }}</td>
                                               <td>{{ item.variation_name || 'غير متوفر' }}</td>
                                               <td>{{ item.quantity }}</td>
-                                              <td>{{ formatNumber(item.custom_price) }} د.ع</td>
-                                              <td>{{ formatNumber(item.custom_price * item.quantity) }} د.ع</td>
+                                              <td>{{ formatNumber(item.custom_price) }} {{ currencyName }}</td>
+                                              <td>{{ formatNumber(item.custom_price * item.quantity) }} {{ currencyName }}</td>
                                               <td>
                                                   <button @click="removeProduct(index)" class="btn btn-danger btn-sm">
                                                       <i class="fas fa-trash"></i>
@@ -316,7 +316,7 @@
                                       <!-- صف المجموع الفرعي -->
                                       <tr v-if="invoiceItems.length > 0" class="table-info">
                                           <td colspan="5" class="text-end"><strong>المجموع الفرعي:</strong></td>
-                                          <td colspan="2"><strong>{{ formatNumber(subtotal) }} د.ع</strong></td>
+                                          <td colspan="2"><strong>{{ formatNumber(subtotal) }} {{ currencyName }}</strong></td>
                                       </tr>
                                   </tbody>
                               </table>
@@ -344,7 +344,7 @@
 
                           <div class="col-md-6 mb-4">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label">قيمة الخصم</label>
+                                  <label class="modern-form-label">قيمة الخصم ({{ currencyName }})</label>
                                   <input type="number" class="modern-form-control"
                                       v-model="form.discount_amount"
                                       :placeholder="form.discount_type === 'percentage' ? '0-100' : '0'"
@@ -356,7 +356,7 @@
                           <!-- رسوم إضافية -->
                           <div class="col-md-6 mb-4">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label">رسوم إضافية</label>
+                                  <label class="modern-form-label">رسوم إضافية ({{ currencyName }})</label>
                                   <input type="number" class="modern-form-control"
                                       v-model="form.extra_charge"
                                       placeholder="0"
@@ -368,14 +368,14 @@
                           <!-- عرض المجموع -->
                           <div class="col-md-6 mb-4">
                               <div class="alert alert-success">
-                                  <strong>المبلغ الإجمالي: {{ formatNumber(totalAmount) }} د.ع</strong>
+                                  <strong>المبلغ الإجمالي: {{ formatNumber(totalAmount) }} {{ currencyName }}</strong>
                               </div>
                           </div>
 
                           <!-- حقول الدفع الكامل -->
                           <div class="col-md-6 mb-4" v-if="form.payment_type === 'full_payment'">
                               <div class="modern-form-group">
-                                  <label class="modern-form-label">المبلغ المدفوع</label>
+                                  <label class="modern-form-label">المبلغ المدفوع ({{ currencyName }})</label>
                                   <input type="number" class="modern-form-control"
                                       v-model="form.paid_amount"
                                       :placeholder="formatNumber(totalAmount)"
@@ -413,21 +413,21 @@
 
                               <div class="col-md-6 mb-4" v-if="form.has_deposit">
                                   <div class="modern-form-group">
-                                      <label class="modern-form-label">مبلغ العربون</label>
+                                      <label class="modern-form-label">مبلغ العربون ({{ currencyName }})</label>
                                       <input type="number" class="modern-form-control"
                                           v-model="form.deposit_amount"
                                           placeholder="0"
                                           step="0.01"
                                           min="0"
                                           :max="totalAmount">
-                                      <small class="text-muted">المبلغ المُمَوَّل: {{ formatNumber(amountToFinance) }} د.ع</small>
+                                      <small class="text-muted">المبلغ المُمَوَّل: {{ formatNumber(amountToFinance) }} {{ currencyName }}</small>
                                       <HasError :form="form" field="deposit_amount"/>
                                   </div>
                               </div>
 
                               <div class="col-md-6 mb-4">
                                   <div class="modern-form-group">
-                                      <label class="modern-form-label">دفعة أولية إضافية غير العربون (اختياري)</label>
+                                      <label class="modern-form-label">دفعة أولية إضافية غير العربون ({{ currencyName }}) (اختياري)</label>
                                       <input type="number" class="modern-form-control"
                                           v-model="form.paid_amount"
                                           placeholder="0"
@@ -441,11 +441,11 @@
                               <div class="col-md-12 mb-4" v-if="form.installment_months > 0">
                                   <div class="alert alert-info">
                                       <h6>معاينة خطة الأقساط:</h6>
-                                      <p class="mb-1"><strong>المبلغ الإجمالي:</strong> {{ formatNumber(totalAmount) }} د.ع</p>
-                                      <p class="mb-1" v-if="form.has_deposit"><strong>العربون:</strong> {{ formatNumber(form.deposit_amount || 0) }} د.ع</p>
-                                      <p class="mb-1"><strong>المبلغ المُمَوَّل:</strong> {{ formatNumber(amountToFinance) }} د.ع</p>
-                                      <p class="mb-1 text-success"><strong>القسط الشهري (أول {{ parseInt(form.installment_months) - 1 }} شهر):</strong> {{ formatNumber(monthlyInstallment) }} د.ع لكل شهر</p>
-                                      <p class="mb-1"><strong>القسط الأخير (الشهر {{ parseInt(form.installment_months) }}):</strong> {{ formatNumber(lastMonthInstallment) }} د.ع</p>
+                                      <p class="mb-1"><strong>المبلغ الإجمالي:</strong> {{ formatNumber(totalAmount) }} {{ currencyName }}</p>
+                                      <p class="mb-1" v-if="form.has_deposit"><strong>العربون:</strong> {{ formatNumber(form.deposit_amount || 0) }} {{ currencyName }}</p>
+                                      <p class="mb-1"><strong>المبلغ المُمَوَّل:</strong> {{ formatNumber(amountToFinance) }} {{ currencyName }}</p>
+                                      <p class="mb-1 text-success"><strong>القسط الشهري (أول {{ parseInt(form.installment_months) - 1 }} شهر):</strong> {{ formatNumber(monthlyInstallment) }} {{ currencyName }} لكل شهر</p>
+                                      <p class="mb-1"><strong>القسط الأخير (الشهر {{ parseInt(form.installment_months) }}):</strong> {{ formatNumber(lastMonthInstallment) }} {{ currencyName }}</p>
                                       <p class="mb-0"><strong>إجمالي عدد الأقساط:</strong> {{ parseInt(form.installment_months) }}</p>
                                   </div>
                               </div>
@@ -501,6 +501,7 @@ export default {
 
     data() {
         return {
+            currencyName: window.currencyName || 'USD',
             form: new Form({
                 customer_name: "",
                 customer_phone1: "",

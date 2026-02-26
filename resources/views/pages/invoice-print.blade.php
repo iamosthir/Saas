@@ -273,8 +273,8 @@
                 @endif
 
                 <td>{{ $item->quantity }}</td>
-                <td>{{ number_format($item->custom_price, 0) }}</td>
-                <td>{{ number_format($item->line_total, 0) }}</td>
+                <td>{{ $item->custom_price }} {{ $invoice->currency }}</td>
+                <td>{{ $item->line_total }} {{ $invoice->currency }}</td>
             </tr>
             @endforeach
         </tbody>
@@ -284,26 +284,26 @@
     <div class="summary">
         <div class="summary-row">
             <span>المجموع الفرعي:</span>
-            <span>{{ number_format($invoice->subtotal, 0) }} د.ع</span>
+            <span>{{ number_format($invoice->subtotal, 0) }} {{ $invoice->currency }}</span>
         </div>
 
         @if($invoice->discount_amount > 0)
         <div class="summary-row">
             <span>الخصم:</span>
-            <span>-{{ number_format($invoice->discount_amount, 0) }} د.ع</span>
+            <span>-{{ number_format($invoice->discount_amount, 0) }} {{ $invoice->currency }}</span>
         </div>
         @endif
 
         @if($invoice->extra_charge > 0)
         <div class="summary-row">
             <span>رسوم إضافية:</span>
-            <span>{{ number_format($invoice->extra_charge, 0) }} د.ع</span>
+            <span>{{ number_format($invoice->extra_charge, 0) }} {{ $invoice->currency }}</span>
         </div>
         @endif
 
         <div class="summary-row total">
             <span>الإجمالي:</span>
-            <span>{{ number_format($invoice->total_amount, 0) }} د.ع</span>
+            <span>{{ number_format($invoice->total_amount, 0) }} {{ $invoice->currency }}</span>
         </div>
     </div>
 
